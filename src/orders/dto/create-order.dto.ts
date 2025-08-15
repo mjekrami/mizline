@@ -1,12 +1,15 @@
-import { IsArray, IsUUID } from 'class-validator';
-
+import { IsArray, IsUUID, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateOrderItemDto } from './create-order-item.dto';
 export class CreateOrderDto {
   @IsUUID()
   tableId: string;
 
+  @IsUUID()
+  customerId: string;
+
   @IsArray()
-  items: {
-    menuItemId: string;
-    quantity: number;
-  }[];
+  @ValidateNested({ each: true })
+  @Type(() => CreateOrderItemDto)
+  items: CreateOrderItemDto[];
 }
