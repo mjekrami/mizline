@@ -1,4 +1,46 @@
-import { Controller } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { TablesService } from './tables.service';
+import { CreateTableDto } from './dto/create-table.dto';
+import { UpdateTableDto } from './dto/update-table.dto';
 
 @Controller('tables')
-export class TablesController {}
+export class TablesController {
+  constructor(private readonly tablesService: TablesService) {}
+
+  @Post()
+  create(@Body() createTableDto: CreateTableDto) {
+    return this.tablesService.create(createTableDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.tablesService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tablesService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateTableDto: UpdateTableDto,
+  ) {
+    return this.tablesService.update(id, updateTableDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tablesService.remove(id);
+  }
+}
