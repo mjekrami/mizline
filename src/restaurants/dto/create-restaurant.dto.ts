@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class CreateRestaurantDto {
   @IsString()
@@ -8,4 +8,7 @@ export class CreateRestaurantDto {
   @IsString()
   @IsNotEmpty()
   address: string;
+
+  @IsUUID()
+  adminId: string;
 }

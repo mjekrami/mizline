@@ -5,9 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Table } from '../../tables/entities/table.entity';
 import { MenuItem } from '../../menu-items/entities/menu-item.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('restaurants')
 export class Restaurant {
@@ -25,6 +28,16 @@ export class Restaurant {
 
   @OneToMany(() => MenuItem, (menuItem) => menuItem.restaurant)
   menuItems: MenuItem[];
+
+  @OneToMany(() => User, (user) => user.restaurant)
+  staff: User[];
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'adminId' })
+  admin: User;
+
+  @Column({ type: 'uuid' })
+  adminId: string;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,18 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  Scope,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MenuItem } from './entities/menu-item.entity';
 import { CreateMenuItemDto } from './dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from './dto/update-menu-item.dto';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
+import { REQUEST } from '@nestjs/core';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class MenuItemsService {
   constructor(
     @InjectRepository(MenuItem)
     private readonly menuItemRepository: Repository<MenuItem>,
     @InjectRepository(Restaurant)
     private readonly restaurantRepository: Repository<Restaurant>,
+    @Inject(REQUEST) private readonly request: any,
   ) {}
 
   async create(createMenuItemDto: CreateMenuItemDto): Promise<MenuItem> {
@@ -28,11 +35,25 @@ export class MenuItemsService {
     const newMenuItem = this.menuItemRepository.create({
       ...menuItemData,
       restaurant,
+      restaurantId,
     });
     return this.menuItemRepository.save(newMenuItem);
   }
 
   async findAll(): Promise<MenuItem[]> {
+    const user = this.request.user;
+    if (user.role === 'ADMIN' || user.role === 'STAFF') {
+      return this.menuItemRepository.find({
+        where: { restaurantId: user.restaurantId },
+        relations: ['restaurant'],
+      });
+    }
+    // For customers, we should probably not return all menu items from all restaurants.
+    // This part of the logic is not specified in the requirements.
+    // For now, I will return an empty array for customers.
+    if (user.role === 'CUSTOMER') {
+      return [];
+    }
     return this.menuItemRepository.find({ relations: ['restaurant'] });
   }
 

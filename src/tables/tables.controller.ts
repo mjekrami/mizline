@@ -11,12 +11,14 @@ import {
 import { TablesService } from './tables.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
+import { Resource } from '../auth/resource.decorator';
 
 @Controller('tables')
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 
   @Post()
+  @Resource('table')
   create(@Body() createTableDto: CreateTableDto) {
     return this.tablesService.create(createTableDto);
   }

@@ -11,6 +11,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Resource } from '../auth/resource.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -27,11 +28,13 @@ export class UsersController {
   }
 
   @Get(':id')
+  @Resource('user')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
+  @Resource('user')
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -40,6 +43,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Resource('user')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }

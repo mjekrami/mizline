@@ -11,6 +11,7 @@ import {
 import { RestaurantsService } from './restaurants.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { Resource } from '../auth/resource.decorator';
 
 @Controller('restaurants')
 export class RestaurantsController {
@@ -27,11 +28,13 @@ export class RestaurantsController {
   }
 
   @Get(':id')
+  @Resource('restaurant')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.restaurantsService.findOne(id);
   }
 
   @Patch(':id')
+  @Resource('restaurant')
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateRestaurantDto: UpdateRestaurantDto,
@@ -40,6 +43,7 @@ export class RestaurantsController {
   }
 
   @Delete(':id')
+  @Resource('restaurant')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.restaurantsService.remove(id);
   }

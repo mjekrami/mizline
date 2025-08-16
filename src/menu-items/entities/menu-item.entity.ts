@@ -31,7 +31,11 @@ export class MenuItem {
   category: string;
 
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.menuItems)
+  @JoinColumn({ name: 'restaurantId' })
   restaurant: Restaurant;
+
+  @Column({ type: 'uuid' })
+  restaurantId: string;
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.menuItem)
   orderItems: OrderItem[];

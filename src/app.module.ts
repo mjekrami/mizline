@@ -15,6 +15,9 @@ import { Table } from './tables/entities/table.entity';
 import { MenuItem } from './menu-items/entities/menu-item.entity';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -35,8 +38,18 @@ import { OrderItem } from './orders/entities/order-item.entity';
       entities: [User, Restaurant, Table, MenuItem, Order, OrderItem],
       synchronize: true,
     }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1d' },
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

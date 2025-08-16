@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
@@ -8,8 +8,9 @@ import { User } from '../users/entities/user.entity';
 import { Table } from '../tables/entities/table.entity';
 import { MenuItem } from '../menu-items/entities/menu-item.entity';
 import { OrderItem } from './entities/order-item.entity';
+import { REQUEST } from '@nestjs/core';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
@@ -22,6 +23,7 @@ export class OrdersService {
     private readonly tableRepository: Repository<Table>,
     @InjectRepository(MenuItem)
     private readonly menuItemRepository: Repository<MenuItem>,
+    @Inject(REQUEST) private readonly request: any,
   ) {}
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
@@ -69,6 +71,25 @@ export class OrdersService {
   }
 
   async findAll(): Promise<Order[]> {
+    const user = this.request.user;
+    if (user.role === 'CUSTOMER') {
+      return this.orderRepository.find({
+        where: { customerId: user.sub },
+        relations: ['customer', 'table', 'orderItems', 'orderItems.menuItem'],
+      });
+    }
+    if (user.role === 'ADMIN' || user.role === 'STAFF') {
+      return this.orderRepository
+        .createQueryBuilder('order')
+        .leftJoinAndSelect('order.table', 'table')
+        .where('table.restaurantId = :restaurantId', {
+          restaurantId: user.restaurantId,
+        })
+        .leftJoinAndSelect('order.customer', 'customer')
+        .leftJoinAndSelect('order.orderItems', 'orderItems')
+        .leftJoinAndSelect('orderItems.menuItem', 'menuItem')
+        .getMany();
+    }
     return this.orderRepository.find({
       relations: ['customer', 'table', 'orderItems', 'orderItems.menuItem'],
     });
@@ -101,5 +122,16 @@ export class OrdersService {
     if (result.affected === 0) {
       throw new NotFoundException(`Order with ID "${id}" not found`);
     }
+  }
+
+  async getRestaurantForOrder(orderId: string): Promise<any> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['table', 'table.restaurant'],
+    });
+    if (!order) {
+      throw new NotFoundException(`Order with ID "${orderId}" not found`);
+    }
+    return order.table.restaurant;
   }
 }

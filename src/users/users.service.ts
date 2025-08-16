@@ -1,16 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  Scope,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { REQUEST } from '@nestjs/core';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @Inject(REQUEST) private readonly request: any,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -24,6 +31,12 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
+    const user = this.request.user;
+    if (user.role === 'ADMIN') {
+      return this.userRepository.find({
+        where: { restaurantId: user.restaurantId },
+      });
+    }
     return this.userRepository.find();
   }
 
@@ -36,18 +49,15 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const { password, ...userData } = updateUserDto as any;
-    let passwordHash: string | undefined;
-    if (password) {
-      passwordHash = await bcrypt.hash(password, 10);
-    }
     const user = await this.userRepository.preload({
       id,
-      ...userData,
-      ...(passwordHash && { passwordHash }),
+      ...updateUserDto,
     });
     if (!user) {
       throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+    if (updateUserDto.password) {
+      user.passwordHash = await bcrypt.hash(updateUserDto.password, 10);
     }
     return this.userRepository.save(user);
   }

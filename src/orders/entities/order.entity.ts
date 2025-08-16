@@ -36,6 +36,9 @@ export class Order {
   @ManyToOne(() => User, (user) => user.orders)
   customer: User;
 
+  @Column({ type: 'uuid' })
+  customerId: string;
+
   @ManyToOne(() => Table, (table) => table.orders)
   table: Table;
 

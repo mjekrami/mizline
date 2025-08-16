@@ -1,18 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  Scope,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Table } from './entities/table.entity';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
+import { REQUEST } from '@nestjs/core';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class TablesService {
   constructor(
     @InjectRepository(Table)
     private readonly tableRepository: Repository<Table>,
     @InjectRepository(Restaurant)
     private readonly restaurantRepository: Repository<Restaurant>,
+    @Inject(REQUEST) private readonly request: any,
   ) {}
 
   async create(createTableDto: CreateTableDto): Promise<Table> {
@@ -33,6 +40,16 @@ export class TablesService {
   }
 
   async findAll(): Promise<Table[]> {
+    const user = this.request.user;
+    if (user.role === 'ADMIN' || user.role === 'STAFF') {
+      return this.tableRepository.find({
+        where: { restaurantId: user.restaurantId },
+        relations: ['restaurant'],
+      });
+    }
+    if (user.role === 'CUSTOMER') {
+      return [];
+    }
     return this.tableRepository.find({ relations: ['restaurant'] });
   }
 
