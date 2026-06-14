@@ -1,0 +1,29 @@
+---
+description: PostgreSQL schema and Prisma conventions
+globs: prisma/**,**/schema.prisma,**/*.prisma
+alwaysApply: false
+---
+
+# Database Schema
+
+PostgreSQL via Prisma. All tenant-owned models include `tenantId`.
+
+## Core Models
+
+| Model | Key Fields | Notes |
+|-------|-----------|-------|
+| Tenant | id, name, slug, subscriptionPlan | Root isolation boundary |
+| Store | id, tenantId, name, address, timezone | Physical location |
+| Table | id, storeId, name, qrCode, active | QR links to store + table |
+| Category | id, storeId, name, sortOrder | Menu grouping |
+| Product | id, categoryId, name, description, price, image, available | |
+| ProductVariant | id, productId, name, priceModifier | Small/Medium/Large |
+| Order | id, tenantId, storeId, tableId, status, subtotal, total | |
+| OrderItem | id, orderId, productId, variantId, quantity, price | Snapshot price at order time |
+
+## Conventions
+
+- Use `cuid()` or `uuid()` for IDs consistently
+- Index `tenantId` on all tenant-scoped tables
+- Index `storeId` on orders for KDS queries
+- Enum `OrderStatus`: `NEW | PREPARING | READY | FULFILLED | CANCELLED`

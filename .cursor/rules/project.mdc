@@ -1,0 +1,33 @@
+---
+description: Mizline product overview and technology stack
+alwaysApply: true
+---
+
+# Mizline Overview
+
+Cloud-based QR ordering and kitchen management SaaS for coffee shops, cafés, bakeries, and small restaurants. Multi-tenant architecture.
+
+## Applications
+
+| App | Audience | Priority |
+|-----|----------|----------|
+| Customer PWA | Table guests (QR scan) | Mobile-first, no auth |
+| Kitchen Dashboard | Baristas / kitchen staff | Desktop-first, real-time KDS |
+| Admin Dashboard | Store managers | Desktop-first |
+
+## Stack
+
+- **Frontend**: Next.js, TypeScript, TailwindCSS, shadcn/ui
+- **Backend**: NestJS, Prisma, PostgreSQL, Redis, BullMQ, Socket.IO
+- **Infra**: Docker, Coolify (initial), GitHub Actions CI/CD
+
+## Principles
+
+- Simplicity and maintainability over premature optimization
+- Real-time updates under 1 second
+- TypeScript across the entire stack
+- Horizontal scalability; Kubernetes-ready
+
+## Out of Scope (MVP)
+
+Payment (Stripe/Apple Pay), loyalty, coupons, customer accounts, inventory, scheduling. See `future-features.mdc`.

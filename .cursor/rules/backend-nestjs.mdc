@@ -1,0 +1,37 @@
+---
+description: NestJS backend architecture and conventions
+globs: backend/**/*.ts,apps/api/**/*.ts,**/*.controller.ts,**/*.service.ts,**/*.module.ts,**/*.gateway.ts
+alwaysApply: false
+---
+
+# NestJS Backend
+
+## Layering
+
+```text
+Controller → Service → Repository (Prisma) → Database
+```
+
+- Controllers: HTTP validation, auth guards, delegate to services
+- Services: all business logic lives here
+- Repositories: optional Prisma wrappers for complex queries
+
+## Module Responsibilities
+
+Auth, tenant management, products, orders, notifications, realtime (Socket.IO gateway).
+
+## Patterns
+
+```typescript
+// ✅ Business logic in service, not controller
+@Injectable()
+export class OrdersService {
+  async create(tenantId: string, dto: CreateOrderDto) {
+    // validate store/table belong to tenant, compute totals, persist, emit event
+  }
+}
+```
+
+- Use DTOs with `class-validator` for request validation
+- Throw NestJS HTTP exceptions (`NotFoundException`, `ForbiddenException`)
+- Emit Socket.IO events from services after successful state changes

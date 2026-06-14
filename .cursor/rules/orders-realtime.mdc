@@ -1,0 +1,34 @@
+---
+description: Order lifecycle, Socket.IO events, and KDS behavior
+globs: **/*order*,**/*kds*,**/*kitchen*,**/*socket*,**/*gateway*
+alwaysApply: false
+---
+
+# Orders & Realtime
+
+## Order Lifecycle
+
+```text
+Customer submits → NEW → PREPARING → READY → FULFILLED
+```
+
+Only authorized kitchen staff (BARISTA+) may change order status. Customers cannot cancel after submission in MVP.
+
+## Socket.IO Events
+
+| Event | Trigger | Payload |
+|-------|---------|---------|
+| `order.created` | Customer submits | `{ orderId }` |
+| `order.preparing` | Kitchen accepts | `{ orderId }` |
+| `order.ready` | Kitchen completes | `{ orderId }` |
+| `order.fulfilled` | Handed to customer | `{ orderId }` |
+
+## Kitchen Display System
+
+Four columns: **NEW → PREPARING → READY → FULFILLED**
+
+Order card shows: order number, table, wait time, items, special instructions. Staff drag or click to advance status.
+
+## Customer Notifications
+
+In-app (WebSocket) + optional browser push: "Order received", "Being prepared", "Ready for pickup".

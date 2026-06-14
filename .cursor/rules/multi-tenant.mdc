@@ -1,0 +1,32 @@
+---
+description: Multi-tenant data isolation requirements
+alwaysApply: true
+---
+
+# Multi-Tenant Isolation
+
+Every business is a **tenant**. Tenant isolation is critical — a tenant must never access another tenant's data.
+
+## Rules
+
+1. Every database query on tenant-owned data MUST filter by `tenantId`
+2. Derive `tenantId` from the authenticated user's JWT or validated store/table context — never trust client-supplied tenant IDs alone
+3. Validate that `storeId` and `tableId` belong to the resolved tenant before use
+4. Socket.IO rooms must be scoped per store/tenant — never broadcast tenant data globally
+
+```typescript
+// ❌ BAD — no tenant filter
+await prisma.order.findMany({ where: { storeId } });
+
+// ✅ GOOD
+await prisma.order.findMany({
+  where: { tenantId, storeId },
+});
+```
+
+## Entity Hierarchy
+
+```text
+Tenant → Store → Table / Category / Product
+Tenant → Order (also has storeId, tableId)
+```

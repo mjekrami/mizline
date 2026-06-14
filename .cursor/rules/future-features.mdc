@@ -1,0 +1,16 @@
+---
+description: Post-MVP features — do not implement unless explicitly requested
+alwaysApply: false
+---
+
+# Future Features
+
+Do not build these in MVP unless the user explicitly asks.
+
+## Phase 2
+
+Stripe integration, Apple Pay, Google Pay, loyalty points, coupons, customer accounts.
+
+## Phase 3
+
+Multiple kitchens, kitchen printers, franchise support, white-label deployments, inventory management, employee scheduling.

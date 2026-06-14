@@ -1,0 +1,31 @@
+---
+description: Next.js frontend conventions for Mizline apps
+globs: apps/**/*.{ts,tsx},frontend/**/*.{ts,tsx},**/*.tsx
+alwaysApply: false
+---
+
+# Frontend Apps
+
+## Customer PWA (`apps/customer`)
+
+- Mobile-first; no authentication
+- Entry: QR URL `https://app.mizline.com/store/{storeId}/table/{tableId}`
+- Flow: load store → menu → cart → checkout → order tracking
+- Persist cart in localStorage; associate orders with table from URL
+
+## Kitchen Dashboard (`apps/kitchen`)
+
+- Desktop-first KDS with four status columns
+- Real-time via Socket.IO — no polling
+- Audio alert on `order.created`; support full-screen mode
+
+## Admin Dashboard (`apps/admin`)
+
+- Desktop-first; JWT auth required (MANAGER+)
+- CRUD: products, categories, tables, employees; analytics and reports
+
+## Conventions
+
+- Next.js App Router, TypeScript strict, TailwindCSS + shadcn/ui
+- Server Components for data fetching; Client Components for interactivity and sockets
+- Shared types in a `packages/types` or `packages/shared` workspace package

@@ -1,0 +1,29 @@
+---
+description: JWT authentication and role-based access control
+globs: **/*auth*,**/*guard*,**/*jwt*,**/*role*
+alwaysApply: false
+---
+
+# Authentication
+
+JWT access tokens + refresh tokens. Customer PWA does not use auth.
+
+## Roles (ascending privilege)
+
+```text
+BARISTA → MANAGER → TENANT_ADMIN → SUPER_ADMIN
+```
+
+| Role | Access |
+|------|--------|
+| BARISTA | Kitchen dashboard, order status changes |
+| MANAGER | Admin dashboard for own store(s) |
+| TENANT_ADMIN | All stores within tenant |
+| SUPER_ADMIN | Platform-wide tenant/billing management |
+
+## Rules
+
+- Attach `tenantId`, `role`, and `storeIds` to JWT payload
+- Use NestJS `@Roles()` guard + custom `TenantGuard` on every protected route
+- Refresh tokens stored hashed in DB; rotate on use
+- Never expose refresh tokens to client-side JavaScript (httpOnly cookie)
