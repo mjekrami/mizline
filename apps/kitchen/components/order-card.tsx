@@ -1,0 +1,123 @@
+"use client";
+
+import type { Order, OrderStatus } from "@mizline/shared";
+import { orderStatusLabels } from "@mizline/shared";
+import { Clock3, Loader2 } from "lucide-react";
+import {
+  formatOrderNumber,
+  formatPrice,
+  formatWaitTime,
+} from "@/lib/format";
+import { getAdvanceActionLabel } from "@/lib/order-status";
+import { cn } from "@/lib/utils";
+
+const columnAccent: Record<OrderStatus, string> = {
+  new: "border-order-new text-order-new",
+  preparing: "border-order-preparing text-order-preparing",
+  ready: "border-order-ready text-order-ready",
+  fulfilled: "border-order-fulfilled text-order-fulfilled",
+  cancelled: "border-order-cancelled text-order-cancelled",
+};
+
+interface OrderCardProps {
+  order: Order;
+  now: number;
+  advancing: boolean;
+  onAdvance: (order: Order) => void;
+}
+
+export function OrderCard({
+  order,
+  now,
+  advancing,
+  onAdvance,
+}: OrderCardProps) {
+  const actionLabel = getAdvanceActionLabel(order.status);
+  const notes = order.items
+    .map((item) => item.notes?.trim())
+    .filter(Boolean) as string[];
+
+  return (
+    <article
+      className={cn(
+        "flex flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm",
+        columnAccent[order.status],
+        "border-t-4",
+      )}
+    >
+      <header className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-lg font-semibold tracking-tight">
+            #{formatOrderNumber(order.id)}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Table {order.tableName}
+          </p>
+        </div>
+        <div
+          className={cn(
+            "flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium",
+            columnAccent[order.status],
+            "bg-muted/60",
+          )}
+        >
+          <Clock3 className="size-3.5" />
+          {formatWaitTime(order.createdAt, now)}
+        </div>
+      </header>
+
+      <ul className="flex flex-col gap-1.5 text-sm">
+        {order.items.map((item) => (
+          <li key={item.id}>
+            <span className="font-medium">
+              {item.quantity}× {item.productName}
+            </span>
+            {item.variantName ? (
+              <span className="text-muted-foreground">
+                {" "}
+                · {item.variantName}
+              </span>
+            ) : null}
+            {item.notes ? (
+              <p className="text-xs text-muted-foreground italic">
+                {item.notes}
+              </p>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
+      {notes.length > 0 ? (
+        <div className="rounded-md border border-border bg-muted/40 px-2 py-1.5 text-xs">
+          <p className="font-medium text-foreground">Special instructions</p>
+          <ul className="mt-1 list-disc pl-4 text-muted-foreground">
+            {notes.map((note, index) => (
+              <li key={`${order.id}-note-${index}`}>{note}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <footer className="flex items-center justify-between gap-2 border-t border-border pt-2">
+        <span className="text-sm font-medium">{formatPrice(order.total)}</span>
+        {actionLabel ? (
+          <button
+            type="button"
+            disabled={advancing}
+            onClick={() => onAdvance(order)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {advancing ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : null}
+            {actionLabel}
+          </button>
+        ) : (
+          <span className="text-xs font-medium text-muted-foreground">
+            {orderStatusLabels[order.status]}
+          </span>
+        )}
+      </footer>
+    </article>
+  );
+}

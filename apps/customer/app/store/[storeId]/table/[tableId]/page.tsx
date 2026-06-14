@@ -1,3 +1,7 @@
+import { TableOrdering } from "@/components/table-ordering";
+import { getMenu, getStore } from "@/lib/api";
+import { notFound } from "next/navigation";
+
 type TablePageProps = {
   params: Promise<{
     storeId: string;
@@ -8,19 +12,21 @@ type TablePageProps = {
 export default async function TablePage({ params }: TablePageProps) {
   const { storeId, tableId } = await params;
 
+  let store;
+  let menu;
+
+  try {
+    [store, menu] = await Promise.all([
+      getStore(storeId),
+      getMenu(storeId),
+    ]);
+  } catch {
+    notFound();
+  }
+
   return (
-    <main className="flex flex-1 flex-col gap-4 px-4 py-8">
-      <header className="flex flex-col gap-1 border-b border-border pb-4">
-        <p className="text-sm text-muted-foreground">Table ordering</p>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Store {storeId}
-        </h1>
-        <p className="text-muted-foreground">Table {tableId}</p>
-      </header>
-      <p className="text-muted-foreground">
-        Menu and cart will load here. Cart persists in localStorage; orders
-        associate with the table from the URL.
-      </p>
+    <main className="flex min-h-full flex-1 flex-col bg-background">
+      <TableOrdering store={store} menu={menu} tableId={tableId} />
     </main>
   );
 }

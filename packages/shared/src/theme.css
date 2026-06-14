@@ -36,6 +36,42 @@
   --radius: 0.625rem;
 }
 
+.dark {
+  --background: #141210;
+  --foreground: #f5f0eb;
+
+  --card: #1f1b18;
+  --card-foreground: #f5f0eb;
+
+  --popover: #1f1b18;
+  --popover-foreground: #f5f0eb;
+
+  --primary: #d6b48a;
+  --primary-hover: #e8cba8;
+  --primary-foreground: #141210;
+
+  --secondary: #3b2f2f;
+  --secondary-foreground: #f5f0eb;
+
+  --muted: color-mix(in srgb, #3b2f2f 45%, #141210);
+  --muted-foreground: #a8a096;
+
+  --accent: #e67e22;
+  --accent-foreground: #ffffff;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #ef4444;
+  --info: #60a5fa;
+
+  --border: #3d3530;
+  --input: #3d3530;
+  --ring: #d6b48a;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
