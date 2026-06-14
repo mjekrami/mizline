@@ -6,6 +6,10 @@ export {
 } from "./colors";
 
 export type {
+  AdminCatalog,
+  AdminCategory,
+  AdminProduct,
+  AdminTable,
   CreateOrderItemRequest,
   CreateOrderRequest,
   MenuCategory,

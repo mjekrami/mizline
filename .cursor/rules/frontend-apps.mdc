@@ -13,16 +13,13 @@ alwaysApply: false
 - Flow: load store → menu → cart → checkout → order tracking
 - Persist cart in localStorage; associate orders with table from URL
 
-## Kitchen Dashboard (`apps/kitchen`)
+## Staff Dashboard (`apps/kitchen`)
 
-- Desktop-first KDS with four status columns
-- Real-time via Socket.IO — no polling
-- Audio alert on `order.created`; support full-screen mode
+Single app for kitchen and admin staff. Runs on port 3001.
 
-## Admin Dashboard (`apps/admin`)
-
-- Desktop-first; JWT auth required (MANAGER+)
-- CRUD: products, categories, tables, employees; analytics and reports
+- `/kitchen` — Desktop-first KDS with four status columns; real-time via Socket.IO
+- `/admin` — Desktop-first store management; JWT auth required (MANAGER+)
+- Audio alert on `order.created`; support full-screen mode on kitchen view
 
 ## Conventions
 

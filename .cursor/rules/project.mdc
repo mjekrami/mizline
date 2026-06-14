@@ -12,8 +12,7 @@ Cloud-based QR ordering and kitchen management SaaS for coffee shops, cafés, ba
 | App | Audience | Priority |
 |-----|----------|----------|
 | Customer PWA | Table guests (QR scan) | Mobile-first, no auth |
-| Kitchen Dashboard | Baristas / kitchen staff | Desktop-first, real-time KDS |
-| Admin Dashboard | Store managers | Desktop-first |
+| Staff Dashboard | Kitchen staff + store managers | Desktop-first, `/kitchen` KDS + `/admin` management |
 
 ## Stack
 

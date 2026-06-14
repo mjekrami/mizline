@@ -75,5 +75,31 @@ export interface OrderCreatedEvent {
 export interface OrderStatusEvent {
     orderId: OrderId;
 }
+export interface AdminCategory {
+    id: string;
+    name: string;
+    sortOrder: number;
+    productCount: number;
+}
+export interface AdminProduct {
+    id: ProductId;
+    categoryId: string;
+    categoryName: string;
+    name: string;
+    description?: string | null;
+    price: number;
+    image?: string | null;
+    available: boolean;
+}
+export interface AdminTable {
+    id: TableId;
+    name: string;
+    qrCode: string;
+    active: boolean;
+}
+export interface AdminCatalog {
+    categories: AdminCategory[];
+    products: AdminProduct[];
+}
 export type OrderRealtimeEvent = "order.created" | "order.preparing" | "order.ready" | "order.fulfilled";
 export type OrderRealtimePayload = OrderCreatedEvent | OrderStatusEvent;

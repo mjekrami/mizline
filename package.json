@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "dev:customer": "pnpm --filter @mizline/customer dev",
-    "dev:kitchen": "pnpm --filter @mizline/kitchen dev",
-    "dev:admin": "pnpm --filter @mizline/admin dev",
+    "dev:staff": "pnpm --filter @mizline/staff dev",
     "dev:api": "pnpm --filter @mizline/api dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mizline Kitchen",
-  description: "Kitchen display system",
+  title: "Mizline Staff",
+  description: "Kitchen display and store management",
 };
 
 export default function RootLayout({
@@ -34,7 +34,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          storageKey="mizline-kitchen-theme"
+          storageKey="mizline-staff-theme"
           disableTransitionOnChange
         >
           {children}

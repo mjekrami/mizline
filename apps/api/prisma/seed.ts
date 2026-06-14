@@ -19,6 +19,8 @@ const DEMO_CATEGORIES = [
         name: "Espresso",
         description: "Single shot of espresso",
         price: 250,
+        image:
+          "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ffe7?w=600&h=450&fit=crop",
         variants: [
           { name: "Single", priceModifier: 0 },
           { name: "Double", priceModifier: 100 },
@@ -28,6 +30,8 @@ const DEMO_CATEGORIES = [
         name: "Latte",
         description: "Espresso with steamed milk",
         price: 450,
+        image:
+          "https://images.unsplash.com/photo-1561882468-e40229189598?w=600&h=450&fit=crop",
         variants: [
           { name: "Small", priceModifier: 0 },
           { name: "Large", priceModifier: 100 },
@@ -37,6 +41,8 @@ const DEMO_CATEGORIES = [
         name: "Cappuccino",
         description: "Equal parts espresso, steamed milk, and foam",
         price: 450,
+        image:
+          "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&h=450&fit=crop",
         variants: [],
       },
     ],
@@ -49,12 +55,16 @@ const DEMO_CATEGORIES = [
         name: "Croissant",
         description: "Buttery, flaky classic",
         price: 350,
+        image:
+          "https://images.unsplash.com/photo-1555507036-abbf6ddb9334?w=600&h=450&fit=crop",
         variants: [],
       },
       {
         name: "Blueberry Muffin",
         description: "Fresh baked daily",
         price: 300,
+        image:
+          "https://images.unsplash.com/photo-1607958996338-0102a517f79f?w=600&h=450&fit=crop",
         variants: [],
       },
     ],
@@ -139,6 +149,7 @@ async function main() {
             name: product.name,
             description: product.description,
             price: product.price,
+            image: product.image,
             available: true,
           },
         });
@@ -148,6 +159,7 @@ async function main() {
           data: {
             description: product.description,
             price: product.price,
+            image: product.image,
             available: true,
           },
         });

@@ -3,6 +3,7 @@
 import type { MenuProduct, MenuVariant } from "@mizline/shared";
 import { Minus, Plus, X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
+import { ProductImage } from "@/components/product-image";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,11 @@ export function VariantPicker({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4 p-5">
+        <ProductImage
+          src={product.image}
+          alt={product.name}
+          className="aspect-[4/3] w-full rounded-lg"
+        />
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">{product.name}</h2>
@@ -106,26 +112,33 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
     <button
       type="button"
       onClick={() => onSelect(product)}
-      className="flex w-full flex-col gap-1 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40"
+      className="flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-left transition-colors hover:border-primary/40"
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="font-semibold leading-snug">{product.name}</h3>
-        <span className="shrink-0 text-sm font-semibold text-primary">
-          {product.variants.length > 0 ? "from " : ""}
-          {formatPrice(fromPrice)}
-        </span>
+      <ProductImage
+        src={product.image}
+        alt={product.name}
+        className="aspect-[4/3] w-full"
+      />
+      <div className="flex flex-col gap-1 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-semibold leading-snug">{product.name}</h3>
+          <span className="shrink-0 text-sm font-semibold text-primary">
+            {product.variants.length > 0 ? "from " : ""}
+            {formatPrice(fromPrice)}
+          </span>
+        </div>
+        {product.description ? (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {product.description}
+          </p>
+        ) : null}
+        {product.variants.length > 0 ? (
+          <p className="text-xs text-muted-foreground">
+            {product.variants.length} size
+            {product.variants.length === 1 ? "" : "s"} available
+          </p>
+        ) : null}
       </div>
-      {product.description ? (
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {product.description}
-        </p>
-      ) : null}
-      {product.variants.length > 0 ? (
-        <p className="text-xs text-muted-foreground">
-          {product.variants.length} size
-          {product.variants.length === 1 ? "" : "s"} available
-        </p>
-      ) : null}
     </button>
   );
 }

@@ -56,6 +56,21 @@ Send header `x-kitchen-dev-token: <KITCHEN_DEV_TOKEN>`:
 - `GET /api/stores/:storeId/orders?status=new,preparing,ready`
 - `PATCH /api/orders/:orderId/status` — body `{ "status": "preparing" | "ready" | "fulfilled" }`
 
+### Admin (temporary dev auth)
+
+Same `x-kitchen-dev-token` header until JWT auth lands:
+
+- `GET /api/stores/:storeId/admin/catalog` — categories + products (includes unavailable)
+- `GET /api/stores/:storeId/admin/tables`
+- `POST /api/stores/:storeId/admin/categories` — body `{ "name": "..." }`
+- `PATCH /api/stores/:storeId/admin/categories/:categoryId`
+- `DELETE /api/stores/:storeId/admin/categories/:categoryId`
+- `POST /api/stores/:storeId/admin/products` — body `{ "categoryId", "name", "price", ... }`
+- `PATCH /api/stores/:storeId/admin/products/:productId`
+- `DELETE /api/stores/:storeId/admin/products/:productId`
+- `POST /api/stores/:storeId/admin/tables` — body `{ "name", "qrCode" }`
+- `PATCH /api/stores/:storeId/admin/tables/:tableId`
+
 ## Socket.IO
 
 Connect to namespace `/realtime`:

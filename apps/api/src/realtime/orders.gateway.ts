@@ -13,11 +13,7 @@ import { RealtimeService } from "./realtime.service";
 @WebSocketGateway({
   namespace: "/realtime",
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-    ],
+    origin: ["http://localhost:3000", "http://localhost:3001"],
   },
 })
 export class OrdersGateway implements OnGatewayInit, OnGatewayConnection {
