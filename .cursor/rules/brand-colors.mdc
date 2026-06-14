@@ -1,0 +1,83 @@
+---
+description: Mizline brand palette, semantic colors, and Tailwind usage
+globs: apps/**/*.{tsx,css},packages/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Mizline Brand Colors
+
+Use these tokens everywhere — never hardcode one-off hex values outside this palette.
+
+## Primary Palette
+
+| Token | Hex |
+|-------|-----|
+| Primary (Coffee Brown) | `#3B2F2F` |
+| Accent (Warm Orange) | `#E67E22` |
+| Secondary (Latte Beige) | `#D6B48A` |
+| Background (Warm White) | `#FCFAF7` |
+| Surface / Card | `#FFFFFF` |
+| Text Primary | `#1A1A1A` |
+| Text Secondary | `#6B7280` |
+| Border | `#E5E7EB` |
+
+## Semantic Colors
+
+| Token | Hex |
+|-------|-----|
+| Success | `#2E8B57` |
+| Warning | `#F59E0B` |
+| Error | `#DC2626` |
+| Info | `#2563EB` |
+
+## Order Status (Kitchen KDS)
+
+| Status | Hex |
+|--------|-----|
+| NEW | `#3B82F6` |
+| PREPARING | `#F59E0B` |
+| READY | `#10B981` |
+| FULFILLED | `#6B7280` |
+| CANCELLED | `#EF4444` |
+
+## Tailwind / CSS Variables
+
+Define in `@theme` or a shared `mizlineColors` export:
+
+```ts
+export const mizlineColors = {
+  primary: "#3B2F2F",
+  accent: "#E67E22",
+  secondary: "#D6B48A",
+  background: "#FCFAF7",
+  surface: "#FFFFFF",
+  text: { primary: "#1A1A1A", secondary: "#6B7280" },
+  border: "#E5E7EB",
+  success: "#2E8B57",
+  warning: "#F59E0B",
+  error: "#DC2626",
+  info: "#2563EB",
+  orderStatus: {
+    new: "#3B82F6",
+    preparing: "#F59E0B",
+    ready: "#10B981",
+    fulfilled: "#6B7280",
+    cancelled: "#EF4444",
+  },
+};
+```
+
+## Usage
+
+- **Primary button**: bg `#3B2F2F`, hover `#2A2020`, text `#FFFFFF`
+- **Primary actions** (Place Order, Checkout, Mark Ready, Save): bg `#E67E22`, text `#FFFFFF`
+- **App background**: `#FCFAF7` · **Cards**: `#FFFFFF` · **Borders**: `#E5E7EB`
+- **Kitchen columns**: map each status to its order-status color for instant recognition
+
+```tsx
+// ✅ GOOD — semantic token
+<button className="bg-primary text-white hover:bg-[#2A2020]">Save</button>
+
+// ❌ BAD — arbitrary hex outside palette
+<div className="bg-[#4a3728]">...</div>
+```

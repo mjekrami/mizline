@@ -1,0 +1,46 @@
+{
+  "name": "@mizline/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch --builder tsc",
+    "predev": "pnpm --filter @mizline/shared build",
+    "build": "tsc -p tsconfig.build.json",
+    "prebuild": "pnpm --filter @mizline/shared build",
+    "start": "node dist/main.js",
+    "start:prod": "node dist/main.js",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "postinstall": "pnpm --filter @mizline/shared build && prisma generate"
+  },
+  "dependencies": {
+    "@mizline/shared": "workspace:*",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.0.0",
+    "@nestjs/websockets": "^11.0.0",
+    "@prisma/client": "^6.8.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20",
+    "eslint": "^9",
+    "prisma": "^6.8.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "node -r tsx/cjs prisma/seed.ts"
+  }
+}

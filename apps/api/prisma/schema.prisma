@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  new
+  preparing
+  ready
+  fulfilled
+  cancelled
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stores    Store[]
+  orders    Order[]
+}
+
+model Store {
+  id         String     @id @default(cuid())
+  tenantId   String
+  name       String
+  address    String?
+  timezone   String     @default("UTC")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tables     Table[]
+  categories Category[]
+  orders     Order[]
+
+  @@index([tenantId])
+}
+
+model Table {
+  id        String   @id @default(cuid())
+  storeId   String
+  name      String
+  qrCode    String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orders    Order[]
+
+  @@index([storeId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  storeId   String
+  name      String
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products  Product[]
+
+  @@index([storeId])
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  categoryId  String
+  name        String
+  description String?
+  price       Int
+  image       String?
+  available   Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id            String      @id @default(cuid())
+  productId     String
+  name          String
+  priceModifier Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems    OrderItem[]
+
+  @@index([productId])
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  tenantId  String
+  storeId   String
+  tableId   String
+  status    OrderStatus @default(new)
+  subtotal  Int
+  total     Int
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  store     Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  table     Table       @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  items     OrderItem[]
+
+  @@index([tenantId])
+  @@index([storeId])
+  @@index([tableId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String?
+  quantity  Int
+  price     Int
+  notes     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
