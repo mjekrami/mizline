@@ -11,7 +11,7 @@ export const ORDER_STATUS_TRANSITIONS: Record<
 > = {
   new: "preparing",
   preparing: "ready",
-  ready: "fulfilled",
+  ready: null,
   fulfilled: null,
   cancelled: null,
 };

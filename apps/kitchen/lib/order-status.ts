@@ -4,7 +4,7 @@ import { orderStatusLabels } from "@mizline/shared";
 const NEXT_STATUS: Record<OrderStatus, OrderStatus | null> = {
   new: "preparing",
   preparing: "ready",
-  ready: "fulfilled",
+  ready: null,
   fulfilled: null,
   cancelled: null,
 };

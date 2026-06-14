@@ -22,6 +22,7 @@ export function mapOrderItem(
     quantity: item.quantity,
     price: item.price,
     notes: item.notes,
+    fulfilled: item.fulfilled,
   };
 }
 

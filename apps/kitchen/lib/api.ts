@@ -34,6 +34,15 @@ export function updateOrderStatus(
   });
 }
 
+export function fulfillOrderItem(
+  orderId: string,
+  itemId: string,
+): Promise<Order> {
+  return kitchenFetch(`/api/kitchen/orders/${orderId}/items/${itemId}/fulfill`, {
+    method: "PATCH",
+  });
+}
+
 export function getApiBaseUrl(): string {
   return API_BASE;
 }

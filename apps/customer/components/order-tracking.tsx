@@ -178,9 +178,14 @@ export function OrderTracking({
           {order.items.map((item) => (
             <li
               key={item.id}
-              className="flex items-start justify-between gap-3 text-sm"
+              className={cn(
+                "flex items-start justify-between gap-3 rounded-lg border px-3 py-2 text-sm",
+                item.fulfilled
+                  ? "border-success/30 bg-success/5"
+                  : "border-transparent",
+              )}
             >
-              <div>
+              <div className={cn(item.fulfilled && "text-muted-foreground")}>
                 <span className="font-medium">
                   {item.quantity}× {item.productName}
                 </span>
@@ -190,10 +195,20 @@ export function OrderTracking({
                     · {item.variantName}
                   </span>
                 ) : null}
+                {item.fulfilled ? (
+                  <p className="text-xs text-success">Handed off</p>
+                ) : order.status === "ready" ? (
+                  <p className="text-xs text-muted-foreground">Ready for pickup</p>
+                ) : null}
               </div>
-              <span className="font-medium">
-                {formatPrice(item.price * item.quantity)}
-              </span>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                {item.fulfilled ? (
+                  <CheckCircle2 className="size-4 text-success" />
+                ) : null}
+                <span className="font-medium">
+                  {formatPrice(item.price * item.quantity)}
+                </span>
+              </div>
             </li>
           ))}
         </ul>

@@ -156,6 +156,7 @@ export class OrdersService {
   async updateStatus(orderId: string, nextStatus: OrderStatus) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
+      include: { items: true },
     });
 
     if (!order) {
@@ -167,6 +168,15 @@ export class OrdersService {
     if (!isValidOrderStatusTransition(currentStatus, nextStatus)) {
       throw new BadRequestException(
         `Invalid status transition from ${currentStatus} to ${nextStatus}`,
+      );
+    }
+
+    if (
+      nextStatus === "fulfilled" &&
+      !order.items.every((item) => item.fulfilled)
+    ) {
+      throw new BadRequestException(
+        "All items must be handed off before completing the order",
       );
     }
 
@@ -199,6 +209,70 @@ export class OrdersService {
     }
 
     return mapOrder(updated);
+  }
+
+  async fulfillOrderItem(orderId: string, itemId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    if (order.status !== PrismaOrderStatus.ready) {
+      throw new BadRequestException(
+        "Items can only be handed off when the order is ready",
+      );
+    }
+
+    const item = order.items.find((entry) => entry.id === itemId);
+    if (!item) {
+      throw new NotFoundException("Order item not found");
+    }
+
+    if (item.fulfilled) {
+      throw new BadRequestException("Item is already handed off");
+    }
+
+    await this.prisma.orderItem.update({
+      where: { id: itemId },
+      data: { fulfilled: true },
+    });
+
+    const refreshed = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderWithRelationsInclude,
+    });
+
+    if (!refreshed) {
+      throw new NotFoundException("Order not found");
+    }
+
+    const allFulfilled = refreshed.items.every((entry) => entry.fulfilled);
+
+    if (allFulfilled) {
+      const completed = await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: PrismaOrderStatus.fulfilled },
+        include: orderWithRelationsInclude,
+      });
+
+      this.realtime.emitOrderFulfilled(
+        completed.storeId,
+        completed.id,
+        { orderId: completed.id },
+      );
+
+      return mapOrder(completed);
+    }
+
+    this.realtime.emitOrderReady(refreshed.storeId, refreshed.id, {
+      orderId: refreshed.id,
+    });
+
+    return mapOrder(refreshed);
   }
 
   private parseStatusFilter(statusFilter?: string): OrderStatus[] {

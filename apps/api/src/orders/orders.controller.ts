@@ -49,4 +49,13 @@ export class OrdersController {
   ) {
     return this.ordersService.updateStatus(orderId, dto.status);
   }
+
+  @Patch("orders/:orderId/items/:itemId/fulfill")
+  @UseGuards(KitchenDevTokenGuard)
+  fulfillOrderItem(
+    @Param("orderId") orderId: string,
+    @Param("itemId") itemId: string,
+  ) {
+    return this.ordersService.fulfillOrderItem(orderId, itemId);
+  }
 }

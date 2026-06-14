@@ -63,6 +63,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   notes?: string | null;
+  fulfilled: boolean;
 }
 
 export interface Order {

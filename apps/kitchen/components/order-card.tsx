@@ -2,7 +2,7 @@
 
 import type { Order, OrderStatus } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
-import { Clock3, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock3, Loader2 } from "lucide-react";
 import {
   formatOrderNumber,
   formatPrice,
@@ -23,19 +23,25 @@ interface OrderCardProps {
   order: Order;
   now: number;
   advancing: boolean;
+  fulfillingItemId: string | null;
   onAdvance: (order: Order) => void;
+  onFulfillItem: (order: Order, itemId: string) => void;
 }
 
 export function OrderCard({
   order,
   now,
   advancing,
+  fulfillingItemId,
   onAdvance,
+  onFulfillItem,
 }: OrderCardProps) {
   const actionLabel = getAdvanceActionLabel(order.status);
   const notes = order.items
     .map((item) => item.notes?.trim())
     .filter(Boolean) as string[];
+  const pendingItems = order.items.filter((item) => !item.fulfilled);
+  const canHandOffItems = order.status === "ready" && pendingItems.length > 0;
 
   return (
     <article
@@ -66,25 +72,58 @@ export function OrderCard({
         </div>
       </header>
 
-      <ul className="flex flex-col gap-1.5 text-sm">
-        {order.items.map((item) => (
-          <li key={item.id}>
-            <span className="font-medium">
-              {item.quantity}× {item.productName}
-            </span>
-            {item.variantName ? (
-              <span className="text-muted-foreground">
-                {" "}
-                · {item.variantName}
-              </span>
-            ) : null}
-            {item.notes ? (
-              <p className="text-xs text-muted-foreground italic">
-                {item.notes}
-              </p>
-            ) : null}
-          </li>
-        ))}
+      <ul className="flex flex-col gap-2 text-sm">
+        {order.items.map((item) => {
+          const handingOff = fulfillingItemId === item.id;
+
+          return (
+            <li
+              key={item.id}
+              className={cn(
+                "flex items-start justify-between gap-2 rounded-md border px-2 py-1.5",
+                item.fulfilled
+                  ? "border-success/30 bg-success/5"
+                  : "border-border bg-background",
+              )}
+            >
+              <div className={cn(item.fulfilled && "text-muted-foreground")}>
+                <span className="font-medium">
+                  {item.quantity}× {item.productName}
+                </span>
+                {item.variantName ? (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · {item.variantName}
+                  </span>
+                ) : null}
+                {item.notes ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    {item.notes}
+                  </p>
+                ) : null}
+              </div>
+
+              {item.fulfilled ? (
+                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-success">
+                  <CheckCircle2 className="size-3.5" />
+                  Handed off
+                </span>
+              ) : canHandOffItems ? (
+                <button
+                  type="button"
+                  disabled={handingOff}
+                  onClick={() => onFulfillItem(order, item.id)}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md bg-accent px-2 py-1 text-xs font-semibold text-accent-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {handingOff ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : null}
+                  Hand off
+                </button>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
 
       {notes.length > 0 ? (
@@ -112,6 +151,11 @@ export function OrderCard({
             ) : null}
             {actionLabel}
           </button>
+        ) : canHandOffItems ? (
+          <span className="text-xs font-medium text-muted-foreground">
+            {pendingItems.length} item{pendingItems.length === 1 ? "" : "s"}{" "}
+            remaining
+          </span>
         ) : (
           <span className="text-xs font-medium text-muted-foreground">
             {orderStatusLabels[order.status]}

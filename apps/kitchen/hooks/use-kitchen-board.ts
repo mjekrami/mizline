@@ -3,7 +3,7 @@
 import type { Order, OrderStatus } from "@mizline/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import { getApiBaseUrl, listStoreOrders, updateOrderStatus } from "@/lib/api";
+import { getApiBaseUrl, fulfillOrderItem, listStoreOrders, updateOrderStatus } from "@/lib/api";
 import { getNextOrderStatus } from "@/lib/order-status";
 
 const KITCHEN_COLUMNS: OrderStatus[] = [
@@ -49,6 +49,7 @@ export function useKitchenBoard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [advancingId, setAdvancingId] = useState<string | null>(null);
+  const [fulfillingItemId, setFulfillingItemId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const audioUnlocked = useRef(false);
 
@@ -127,6 +128,22 @@ export function useKitchenBoard({
     }
   }, []);
 
+  const fulfillItem = useCallback(async (order: Order, itemId: string) => {
+    setFulfillingItemId(itemId);
+    setError(null);
+
+    try {
+      const updated = await fulfillOrderItem(order.id, itemId);
+      setOrders((current) =>
+        current.map((entry) => (entry.id === updated.id ? updated : entry)),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to hand off item");
+    } finally {
+      setFulfillingItemId(null);
+    }
+  }, []);
+
   const ordersByStatus = useMemo(() => {
     const grouped = Object.fromEntries(
       KITCHEN_COLUMNS.map((status) => [status, [] as Order[]]),
@@ -147,9 +164,11 @@ export function useKitchenBoard({
     loading,
     error,
     advancingId,
+    fulfillingItemId,
     now,
     refreshOrders,
     advanceOrder,
+    fulfillItem,
     unlockAudio,
   };
 }

@@ -42,9 +42,11 @@ export function KitchenBoard({
     loading,
     error,
     advancingId,
+    fulfillingItemId,
     now,
     refreshOrders,
     advanceOrder,
+    fulfillItem,
     unlockAudio,
   } = useKitchenBoard({ storeId, initialOrders });
 
@@ -167,7 +169,9 @@ export function KitchenBoard({
                       order={order}
                       now={now}
                       advancing={advancingId === order.id}
+                      fulfillingItemId={fulfillingItemId}
                       onAdvance={advanceOrder}
+                      onFulfillItem={fulfillItem}
                     />
                   ))
                 )}
