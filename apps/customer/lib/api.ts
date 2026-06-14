@@ -3,6 +3,7 @@ import type {
   MenuCategory,
   Order,
   Store,
+  TableInfo,
 } from "@mizline/shared";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
@@ -31,6 +32,13 @@ export function getStore(storeId: string): Promise<Store> {
 
 export function getMenu(storeId: string): Promise<MenuCategory[]> {
   return apiFetch(`/api/stores/${storeId}/menu`);
+}
+
+export function getTable(
+  storeId: string,
+  tableId: string,
+): Promise<TableInfo> {
+  return apiFetch(`/api/stores/${storeId}/tables/${tableId}`);
 }
 
 export function createOrder(

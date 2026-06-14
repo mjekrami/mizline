@@ -118,6 +118,10 @@ export function OrderTracking({
         <p className="text-muted-foreground">
           Table {order.tableName} · {formatPrice(order.total)}
         </p>
+        <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          Pay at the counter when you&apos;re ready. No online payment — settle
+          up with staff.
+        </p>
       </header>
 
       <ol className="flex flex-col gap-3">
@@ -194,6 +198,16 @@ export function OrderTracking({
                     {" "}
                     · {item.variantName}
                   </span>
+                ) : null}
+                {item.modifiers && item.modifiers.length > 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    {item.modifiers.map((modifier) => modifier.optionName).join(", ")}
+                  </p>
+                ) : null}
+                {item.notes ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    {item.notes}
+                  </p>
                 ) : null}
                 {item.fulfilled ? (
                   <p className="text-xs text-success">Handed off</p>

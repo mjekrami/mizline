@@ -6,8 +6,11 @@ import { useMemo, useState } from "react";
 import { ProductImage } from "@/components/product-image";
 import {
   createProduct,
+  createVariant,
   deleteProduct,
+  deleteVariant,
   parsePriceToCents,
+  setProductModifierGroups,
   updateProduct,
 } from "@/lib/admin-api";
 import { formatPrice } from "@/lib/format";
@@ -25,6 +28,7 @@ export function ProductsPanel({
   onError,
 }: ProductsPanelProps) {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     categoryId: catalog.categories[0]?.id ?? "",
@@ -33,6 +37,9 @@ export function ProductsPanel({
     price: "",
     image: "",
   });
+  const [variantForms, setVariantForms] = useState<
+    Record<string, { name: string; price: string }>
+  >({});
 
   const filteredProducts = useMemo(() => {
     if (categoryFilter === "all") return catalog.products;
@@ -172,6 +179,91 @@ export function ProductsPanel({
     }
   }
 
+  async function handleAddVariant(product: AdminProduct) {
+    const variantForm = variantForms[product.id] ?? { name: "", price: "0" };
+    const priceModifier = parsePriceToCents(variantForm.price);
+    if (!variantForm.name.trim() || priceModifier === null) {
+      onError("Enter a variant name and valid price modifier.");
+      return;
+    }
+
+    setSaving(true);
+    onError(null);
+
+    try {
+      const variant = await createVariant(product.id, {
+        name: variantForm.name.trim(),
+        priceModifier,
+      });
+
+      replaceProduct({
+        ...product,
+        variants: [...product.variants, variant].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ),
+      });
+      setVariantForms((current) => ({
+        ...current,
+        [product.id]: { name: "", price: "0" },
+      }));
+    } catch (createError) {
+      onError(
+        createError instanceof Error
+          ? createError.message
+          : "Failed to create variant",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteVariant(product: AdminProduct, variantId: string) {
+    setSaving(true);
+    onError(null);
+
+    try {
+      await deleteVariant(product.id, variantId);
+      replaceProduct({
+        ...product,
+        variants: product.variants.filter((variant) => variant.id !== variantId),
+      });
+    } catch (deleteError) {
+      onError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Failed to delete variant",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleModifierGroup(
+    product: AdminProduct,
+    groupId: string,
+    checked: boolean,
+  ) {
+    const nextGroupIds = checked
+      ? [...product.modifierGroupIds, groupId]
+      : product.modifierGroupIds.filter((id) => id !== groupId);
+
+    setSaving(true);
+    onError(null);
+
+    try {
+      const updated = await setProductModifierGroups(product.id, nextGroupIds);
+      replaceProduct(updated);
+    } catch (updateError) {
+      onError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Failed to update modifier groups",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <form
@@ -296,84 +388,220 @@ export function ProductsPanel({
             No products in this view.
           </p>
         ) : (
-          filteredProducts.map((product) => (
-            <article
-              key={product.id}
-              className="flex flex-col overflow-hidden rounded-lg border border-border bg-card"
-            >
-              <ProductImage
-                src={product.image}
-                alt={product.name}
-                className="aspect-[4/3] w-full"
-              />
+          filteredProducts.map((product) => {
+            const expanded = expandedProductId === product.id;
+            const variantForm = variantForms[product.id] ?? {
+              name: "",
+              price: "0",
+            };
 
-              <div className="flex flex-1 flex-col gap-3 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-medium">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.categoryName}
-                    </p>
+            return (
+              <article
+                key={product.id}
+                className="flex flex-col overflow-hidden rounded-lg border border-border bg-card"
+              >
+                <ProductImage
+                  src={product.image}
+                  alt={product.name}
+                  className="aspect-[4/3] w-full"
+                />
+
+                <div className="flex flex-1 flex-col gap-3 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-medium">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {product.categoryName}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-medium">
+                      {formatPrice(product.price)}
+                    </span>
                   </div>
-                  <span className="shrink-0 font-medium">
-                    {formatPrice(product.price)}
-                  </span>
-                </div>
 
-                {product.description ? (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {product.description}
+                  {product.description ? (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {product.description}
+                    </p>
+                  ) : null}
+
+                  <p className="text-xs text-muted-foreground">
+                    {product.variants.length} variant
+                    {product.variants.length === 1 ? "" : "s"} ·{" "}
+                    {product.modifierGroupIds.length} modifier group
+                    {product.modifierGroupIds.length === 1 ? "" : "s"}
                   </p>
-                ) : null}
 
-                <label className="flex flex-col gap-1 text-xs">
-                  <span className="font-medium text-muted-foreground">
-                    Image URL
-                  </span>
-                  <input
-                    key={`${product.id}-${product.image ?? ""}`}
-                    defaultValue={product.image ?? ""}
-                    placeholder="https://…"
-                    type="url"
-                    disabled={saving}
-                    onBlur={(event) => {
-                      const next = event.target.value.trim();
-                      const current = product.image?.trim() ?? "";
-                      if (next !== current) {
-                        void saveImage(product, next);
-                      }
-                    }}
-                    className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
-                  />
-                </label>
+                  <label className="flex flex-col gap-1 text-xs">
+                    <span className="font-medium text-muted-foreground">
+                      Image URL
+                    </span>
+                    <input
+                      key={`${product.id}-${product.image ?? ""}`}
+                      defaultValue={product.image ?? ""}
+                      placeholder="https://…"
+                      type="url"
+                      disabled={saving}
+                      onBlur={(event) => {
+                        const next = event.target.value.trim();
+                        const current = product.image?.trim() ?? "";
+                        if (next !== current) {
+                          void saveImage(product, next);
+                        }
+                      }}
+                      className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                    />
+                  </label>
 
-                <div className="mt-auto flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    onClick={() => void toggleAvailability(product)}
-                    disabled={saving}
-                    className={cn(
-                      "rounded-full px-2.5 py-1 text-xs font-medium",
-                      product.available
-                        ? "bg-success/10 text-success"
-                        : "bg-muted text-muted-foreground",
-                    )}
+                    onClick={() =>
+                      setExpandedProductId(expanded ? null : product.id)
+                    }
+                    className="text-left text-sm font-medium text-primary hover:underline"
                   >
-                    {product.available ? "Available" : "Hidden"}
+                    {expanded ? "Hide customization" : "Manage sizes & modifiers"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(product)}
-                    disabled={saving}
-                    className="rounded-md p-1 text-muted-foreground hover:bg-error/10 hover:text-error"
-                    aria-label={`Delete ${product.name}`}
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+
+                  {expanded ? (
+                    <div className="flex flex-col gap-4 rounded-md border border-border bg-muted/20 p-3 text-sm">
+                      <div>
+                        <p className="mb-2 font-medium">Size variants</p>
+                        {product.variants.length > 0 ? (
+                          <ul className="mb-2 flex flex-col gap-1">
+                            {product.variants.map((variant) => (
+                              <li
+                                key={variant.id}
+                                className="flex items-center justify-between gap-2"
+                              >
+                                <span>
+                                  {variant.name} (
+                                  {variant.priceModifier >= 0 ? "+" : ""}
+                                  {formatPrice(variant.priceModifier)})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handleDeleteVariant(product, variant.id)
+                                  }
+                                  disabled={saving}
+                                  className="text-muted-foreground hover:text-error"
+                                  aria-label={`Delete ${variant.name}`}
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mb-2 text-xs text-muted-foreground">
+                            No variants yet.
+                          </p>
+                        )}
+                        <div className="grid gap-2 sm:grid-cols-[1fr_6rem_auto]">
+                          <input
+                            value={variantForm.name}
+                            onChange={(event) =>
+                              setVariantForms((current) => ({
+                                ...current,
+                                [product.id]: {
+                                  ...variantForm,
+                                  name: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="e.g. Large"
+                            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                          />
+                          <input
+                            value={variantForm.price}
+                            onChange={(event) =>
+                              setVariantForms((current) => ({
+                                ...current,
+                                [product.id]: {
+                                  ...variantForm,
+                                  price: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="+1.00"
+                            inputMode="decimal"
+                            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void handleAddVariant(product)}
+                            disabled={saving}
+                            className="rounded-md bg-background px-2 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-60"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="mb-2 font-medium">Modifier groups</p>
+                        {catalog.modifierGroups.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            Create modifier groups on the Modifiers tab first.
+                          </p>
+                        ) : (
+                          <ul className="flex flex-col gap-1">
+                            {catalog.modifierGroups.map((group) => (
+                              <li key={group.id}>
+                                <label className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={product.modifierGroupIds.includes(
+                                      group.id,
+                                    )}
+                                    disabled={saving}
+                                    onChange={(event) =>
+                                      void toggleModifierGroup(
+                                        product,
+                                        group.id,
+                                        event.target.checked,
+                                      )
+                                    }
+                                  />
+                                  <span>{group.name}</span>
+                                </label>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-auto flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void toggleAvailability(product)}
+                      disabled={saving}
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-xs font-medium",
+                        product.available
+                          ? "bg-success/10 text-success"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {product.available ? "Available" : "Hidden"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(product)}
+                      disabled={saving}
+                      className="rounded-md p-1 text-muted-foreground hover:bg-error/10 hover:text-error"
+                      aria-label={`Delete ${product.name}`}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))
+              </article>
+            );
+          })
         )}
       </div>
     </div>

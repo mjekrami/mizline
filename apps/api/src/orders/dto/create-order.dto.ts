@@ -17,6 +17,11 @@ export class CreateOrderItemDto {
   @IsString()
   variantId?: string;
 
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  modifierOptionIds?: string[];
+
   @IsInt()
   @Min(1)
   quantity!: number;

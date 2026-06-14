@@ -1,18 +1,18 @@
 "use client";
 
-import type { OrderStatus, Store } from "@mizline/shared";
+import type { KitchenMetrics, OrderStatus, Store } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
 import {
   Loader2,
   Maximize2,
   Minimize2,
   RefreshCw,
-  Volume2,
-  Wifi,
   WifiOff,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { KitchenMetricsBar } from "@/components/kitchen-metrics";
 import { OrderCard } from "@/components/order-card";
+import { StaffLiveControls } from "@/components/staff-live-controls";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useKitchenBoard } from "@/hooks/use-kitchen-board";
 import { cn } from "@/lib/utils";
@@ -29,29 +29,33 @@ interface KitchenBoardProps {
   store: Store;
   storeId: string;
   initialOrders: import("@mizline/shared").Order[];
+  initialMetrics: KitchenMetrics;
 }
 
 export function KitchenBoard({
   store,
   storeId,
   initialOrders,
+  initialMetrics,
 }: KitchenBoardProps) {
   const {
     columns,
     ordersByStatus,
+    metrics,
     loading,
     error,
     advancingId,
     fulfillingItemId,
     now,
+    connected,
+    audioEnabled,
     refreshOrders,
     advanceOrder,
     fulfillItem,
     unlockAudio,
-  } = useKitchenBoard({ storeId, initialOrders });
+  } = useKitchenBoard({ storeId, initialOrders, initialMetrics });
 
   const [fullscreen, setFullscreen] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
 
   useEffect(() => {
     const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -68,11 +72,6 @@ export function KitchenBoard({
     await document.documentElement.requestFullscreen();
   }, []);
 
-  const enableAudio = useCallback(() => {
-    unlockAudio();
-    setAudioEnabled(true);
-  }, [unlockAudio]);
-
   return (
     <main className="flex min-h-full flex-col gap-4 p-4 md:p-6">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -83,24 +82,15 @@ export function KitchenBoard({
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
             {store.name}
           </h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Wifi className="size-4 text-success" />
-            Live · Socket.IO
-          </div>
+          <StaffLiveControls
+            connected={connected}
+            audioEnabled={audioEnabled}
+            onEnableAudio={unlockAudio}
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <ThemeToggle />
-          {!audioEnabled ? (
-            <button
-              type="button"
-              onClick={enableAudio}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
-            >
-              <Volume2 className="size-4" />
-              Enable alerts
-            </button>
-          ) : null}
           <button
             type="button"
             onClick={() => void refreshOrders()}
@@ -135,6 +125,8 @@ export function KitchenBoard({
           {error}
         </div>
       ) : null}
+
+      <KitchenMetricsBar metrics={metrics} />
 
       <div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {columns.map((status) => {

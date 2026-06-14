@@ -3,22 +3,31 @@
 import type {
   AdminCatalog,
   AdminTable,
+  KitchenMetrics,
+  Order,
   Store,
 } from "@mizline/shared";
-import { Loader2, RefreshCw } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { AdminHeader } from "@/components/admin/admin-header";
+import { AdminOrdersPanel } from "@/components/admin/admin-orders-panel";
+import { AdminOverview } from "@/components/admin/admin-overview";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminSidebar, type AdminSection } from "@/components/admin/admin-sidebar";
 import { CategoriesPanel } from "@/components/admin/categories-panel";
+import { ModifiersPanel } from "@/components/admin/modifiers-panel";
 import { ProductsPanel } from "@/components/admin/products-panel";
 import { TablesPanel } from "@/components/admin/tables-panel";
+import { useStoreRealtime } from "@/hooks/use-store-realtime";
 import { fetchAdminCatalog, fetchAdminTables } from "@/lib/admin-api";
-import { cn } from "@/lib/utils";
-
-type AdminTab = "products" | "categories" | "tables";
+import { computeAdminStats } from "@/lib/admin-stats";
+import { getKitchenMetrics, listStoreOrders } from "@/lib/api";
 
 interface AdminDashboardProps {
   store: Store;
   initialCatalog: AdminCatalog;
   initialTables: AdminTable[];
+  initialOrders: Order[];
+  initialMetrics: KitchenMetrics;
   customerBaseUrl: string;
 }
 
@@ -26,25 +35,57 @@ export function AdminDashboard({
   store,
   initialCatalog,
   initialTables,
+  initialOrders,
+  initialMetrics,
   customerBaseUrl,
 }: AdminDashboardProps) {
-  const [tab, setTab] = useState<AdminTab>("products");
+  const [section, setSection] = useState<AdminSection>("overview");
   const [catalog, setCatalog] = useState(initialCatalog);
   const [tables, setTables] = useState(initialTables);
+  const [orders, setOrders] = useState(initialOrders);
+  const [metrics, setMetrics] = useState(initialMetrics);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const stats = useMemo(
+    () => computeAdminStats(orders, catalog, tables),
+    [orders, catalog, tables],
+  );
+
+  const refreshOrdersAndMetrics = useCallback(async () => {
+    try {
+      const [nextOrders, nextMetrics] = await Promise.all([
+        listStoreOrders(),
+        getKitchenMetrics(),
+      ]);
+      setOrders(nextOrders);
+      setMetrics(nextMetrics);
+    } catch {
+      // Realtime refresh failures should not block the dashboard.
+    }
+  }, []);
+
+  const { connected, audioEnabled, unlockAudio } = useStoreRealtime({
+    storeId: store.id,
+    onUpdate: refreshOrdersAndMetrics,
+  });
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [nextCatalog, nextTables] = await Promise.all([
+      const [nextCatalog, nextTables, nextOrders, nextMetrics] = await Promise.all([
         fetchAdminCatalog(),
         fetchAdminTables(),
+        listStoreOrders(),
+        getKitchenMetrics(),
       ]);
+
       setCatalog(nextCatalog);
       setTables(nextTables);
+      setOrders(nextOrders);
+      setMetrics(nextMetrics);
     } catch (refreshError) {
       setError(
         refreshError instanceof Error
@@ -56,72 +97,58 @@ export function AdminDashboard({
     }
   }, []);
 
-  const tabs: { id: AdminTab; label: string; count?: number }[] = [
-    { id: "products", label: "Products", count: catalog.products.length },
-    { id: "categories", label: "Categories", count: catalog.categories.length },
-    { id: "tables", label: "Tables", count: tables.length },
-  ];
-
   return (
-    <main className="flex min-h-full flex-col gap-6 p-4 md:p-8">
-      <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Admin Dashboard
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            {store.name}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Manage menu items, categories, and table QR codes.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => void refresh()}
-          disabled={loading}
-          className="inline-flex items-center gap-2 self-start rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
-        >
-          {loading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <RefreshCw className="size-4" />
-          )}
-          Refresh
-        </button>
-      </header>
-
+    <AdminShell
+      sidebar={
+        <AdminSidebar
+          section={section}
+          onSectionChange={setSection}
+          counts={{
+            orders: stats.activeOrders,
+            products: catalog.products.length,
+            categories: catalog.categories.length,
+            modifiers: catalog.modifierGroups.length,
+            tables: tables.length,
+          }}
+        />
+      }
+      header={
+        <AdminHeader
+          store={store}
+          stats={stats}
+          metrics={metrics}
+          loading={loading}
+          connected={connected}
+          audioEnabled={audioEnabled}
+          onEnableAudio={unlockAudio}
+          onRefresh={() => void refresh()}
+        />
+      }
+    >
       {error ? (
-        <div className="rounded-lg border border-error/30 bg-error/5 px-4 py-3 text-sm text-error">
+        <div className="mb-4 rounded-lg border border-error/30 bg-error/5 px-4 py-3 text-sm text-error">
           {error}
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2 border-b border-border pb-3">
-        {tabs.map(({ id, label, count }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-              tab === id
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {label}
-            {count !== undefined ? (
-              <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
-                {count}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
+      {section === "overview" ? (
+        <AdminOverview
+          catalog={catalog}
+          tables={tables}
+          orders={orders}
+          metrics={metrics}
+          stats={stats}
+        />
+      ) : null}
 
-      {tab === "products" ? (
+      {section === "orders" ? (
+        <AdminOrdersPanel
+          orders={orders}
+          onOrdersChange={setOrders}
+        />
+      ) : null}
+
+      {section === "products" ? (
         <ProductsPanel
           catalog={catalog}
           onCatalogChange={setCatalog}
@@ -129,7 +156,7 @@ export function AdminDashboard({
         />
       ) : null}
 
-      {tab === "categories" ? (
+      {section === "categories" ? (
         <CategoriesPanel
           categories={catalog.categories}
           onCategoriesChange={(categories) =>
@@ -139,7 +166,15 @@ export function AdminDashboard({
         />
       ) : null}
 
-      {tab === "tables" ? (
+      {section === "modifiers" ? (
+        <ModifiersPanel
+          catalog={catalog}
+          onCatalogChange={setCatalog}
+          onError={setError}
+        />
+      ) : null}
+
+      {section === "tables" ? (
         <TablesPanel
           storeId={store.id}
           tables={tables}
@@ -148,6 +183,6 @@ export function AdminDashboard({
           onError={setError}
         />
       ) : null}
-    </main>
+    </AdminShell>
   );
 }

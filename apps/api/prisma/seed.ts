@@ -10,6 +10,41 @@ const DEMO_TABLES = [
   { name: "Patio 1", qrCode: "demo-patio-1" },
 ] as const;
 
+const DEMO_MODIFIER_GROUPS = [
+  {
+    name: "Milk",
+    minSelect: 1,
+    maxSelect: 1,
+    sortOrder: 1,
+    options: [
+      { name: "Whole milk", priceModifier: 0, sortOrder: 1 },
+      { name: "Oat milk", priceModifier: 60, sortOrder: 2 },
+      { name: "Almond milk", priceModifier: 60, sortOrder: 3 },
+    ],
+  },
+  {
+    name: "Extra shot",
+    minSelect: 0,
+    maxSelect: 2,
+    sortOrder: 2,
+    options: [
+      { name: "Single shot", priceModifier: 100, sortOrder: 1 },
+      { name: "Double shot", priceModifier: 180, sortOrder: 2 },
+    ],
+  },
+  {
+    name: "Syrups",
+    minSelect: 0,
+    maxSelect: 3,
+    sortOrder: 3,
+    options: [
+      { name: "Vanilla", priceModifier: 50, sortOrder: 1 },
+      { name: "Caramel", priceModifier: 50, sortOrder: 2 },
+      { name: "Hazelnut", priceModifier: 50, sortOrder: 3 },
+    ],
+  },
+] as const;
+
 const DEMO_CATEGORIES = [
   {
     name: "Coffee",
@@ -25,6 +60,7 @@ const DEMO_CATEGORIES = [
           { name: "Single", priceModifier: 0 },
           { name: "Double", priceModifier: 100 },
         ],
+        modifierGroups: [] as string[],
       },
       {
         name: "Latte",
@@ -36,6 +72,7 @@ const DEMO_CATEGORIES = [
           { name: "Small", priceModifier: 0 },
           { name: "Large", priceModifier: 100 },
         ],
+        modifierGroups: ["Milk", "Extra shot", "Syrups"],
       },
       {
         name: "Cappuccino",
@@ -44,6 +81,7 @@ const DEMO_CATEGORIES = [
         image:
           "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&h=450&fit=crop",
         variants: [],
+        modifierGroups: ["Milk"],
       },
     ],
   },
@@ -58,6 +96,7 @@ const DEMO_CATEGORIES = [
         image:
           "https://images.unsplash.com/photo-1555507036-abbf6ddb9334?w=600&h=450&fit=crop",
         variants: [],
+        modifierGroups: [] as string[],
       },
       {
         name: "Blueberry Muffin",
@@ -66,6 +105,7 @@ const DEMO_CATEGORIES = [
         image:
           "https://images.unsplash.com/photo-1607958996338-0102a517f79f?w=600&h=450&fit=crop",
         variants: [],
+        modifierGroups: [] as string[],
       },
     ],
   },
@@ -115,6 +155,64 @@ async function main() {
         active: true,
       },
     });
+  }
+
+  const modifierGroupIds = new Map<string, string>();
+
+  for (const group of DEMO_MODIFIER_GROUPS) {
+    let dbGroup = await prisma.modifierGroup.findFirst({
+      where: { storeId: store.id, name: group.name },
+    });
+
+    if (!dbGroup) {
+      dbGroup = await prisma.modifierGroup.create({
+        data: {
+          storeId: store.id,
+          name: group.name,
+          minSelect: group.minSelect,
+          maxSelect: group.maxSelect,
+          sortOrder: group.sortOrder,
+        },
+      });
+    } else {
+      dbGroup = await prisma.modifierGroup.update({
+        where: { id: dbGroup.id },
+        data: {
+          minSelect: group.minSelect,
+          maxSelect: group.maxSelect,
+          sortOrder: group.sortOrder,
+        },
+      });
+    }
+
+    modifierGroupIds.set(group.name, dbGroup.id);
+
+    for (const option of group.options) {
+      const existingOption = await prisma.modifierOption.findFirst({
+        where: { groupId: dbGroup.id, name: option.name },
+      });
+
+      if (existingOption) {
+        await prisma.modifierOption.update({
+          where: { id: existingOption.id },
+          data: {
+            priceModifier: option.priceModifier,
+            sortOrder: option.sortOrder,
+            available: true,
+          },
+        });
+      } else {
+        await prisma.modifierOption.create({
+          data: {
+            groupId: dbGroup.id,
+            name: option.name,
+            priceModifier: option.priceModifier,
+            sortOrder: option.sortOrder,
+            available: true,
+          },
+        });
+      }
+    }
   }
 
   for (const category of DEMO_CATEGORIES) {
@@ -184,6 +282,23 @@ async function main() {
             },
           });
         }
+      }
+
+      await prisma.productModifierGroup.deleteMany({
+        where: { productId: dbProduct.id },
+      });
+
+      for (const [index, groupName] of product.modifierGroups.entries()) {
+        const groupId = modifierGroupIds.get(groupName);
+        if (!groupId) continue;
+
+        await prisma.productModifierGroup.create({
+          data: {
+            productId: dbProduct.id,
+            groupId,
+            sortOrder: index,
+          },
+        });
       }
     }
   }

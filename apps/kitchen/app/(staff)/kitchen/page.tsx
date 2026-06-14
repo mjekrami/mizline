@@ -1,59 +1,45 @@
 import { KitchenBoard } from "@/components/kitchen-board";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { listStoreOrders, getStore } from "@/lib/api-server";
-
-function KitchenSetupNotice({ message }: { message: string }) {
-  return (
-    <main className="flex min-h-full items-center justify-center p-8">
-      <div className="relative max-w-lg rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          Kitchen Dashboard
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Setup required
-        </h1>
-        <p className="mt-3 text-muted-foreground">{message}</p>
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-muted p-4 text-xs">
-          {`cp apps/kitchen/.env.example apps/kitchen/.env.local
-# Set NEXT_PUBLIC_KITCHEN_STORE_ID from prisma db seed output
-# Set KITCHEN_DEV_TOKEN to match apps/api/.env`}
-        </pre>
-      </div>
-    </main>
-  );
-}
+import { StaffSetupNotice } from "@/components/staff-setup-notice";
+import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
+import { loadKitchenBoardData } from "@/lib/load-kitchen-board";
+import { getStaffStoreId, hasKitchenDevToken } from "@/lib/staff-env";
 
 export default async function KitchenDashboardPage() {
-  const storeId = process.env.NEXT_PUBLIC_KITCHEN_STORE_ID;
+  const storeId = getStaffStoreId();
 
   if (!storeId) {
     return (
-      <KitchenSetupNotice message="Set NEXT_PUBLIC_KITCHEN_STORE_ID in apps/kitchen/.env.local to the demo store ID printed by prisma db seed." />
+      <StaffSetupNotice
+        title="Kitchen Dashboard"
+        message={STAFF_SETUP_MESSAGES.missingStoreId}
+      />
     );
   }
 
-  if (!process.env.KITCHEN_DEV_TOKEN) {
+  if (!hasKitchenDevToken()) {
     return (
-      <KitchenSetupNotice message="Set KITCHEN_DEV_TOKEN in apps/kitchen/.env.local to match apps/api/.env." />
+      <StaffSetupNotice
+        title="Kitchen Dashboard"
+        message={STAFF_SETUP_MESSAGES.missingDevToken}
+      />
     );
   }
 
   try {
-    const [store, orders] = await Promise.all([
-      getStore(storeId),
-      listStoreOrders(storeId),
-    ]);
+    const { store, orders, metrics } = await loadKitchenBoardData(storeId);
 
     return (
-      <KitchenBoard store={store} storeId={storeId} initialOrders={orders} />
+      <KitchenBoard
+        store={store}
+        storeId={storeId}
+        initialOrders={orders}
+        initialMetrics={metrics}
+      />
     );
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to load kitchen board";
+      error instanceof Error ? error.message : STAFF_SETUP_MESSAGES.kitchenLoadFailed;
 
-    return <KitchenSetupNotice message={message} />;
+    return <StaffSetupNotice title="Kitchen Dashboard" message={message} />;
   }
 }

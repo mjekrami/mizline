@@ -1,19 +1,21 @@
 "use client";
 
-import type { MenuCategory, MenuProduct, MenuVariant, Store } from "@mizline/shared";
+import type { MenuCategory, MenuProduct, Store } from "@mizline/shared";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   CartBar,
   CartSheet,
   MenuCategorySection,
+  MenuSearch,
   ProductCard,
   VariantPicker,
+  type VariantPickerSelection,
 } from "@/components/menu-ui";
 import { MyOrdersBanner, MyOrdersNav, useMyOrders } from "@/components/my-orders";
 import { CartProvider, useCart } from "@/hooks/use-cart";
 import { createOrder } from "@/lib/api";
-import { cartLineKey } from "@/lib/cart";
+import { cartLineKey, computeUnitPrice } from "@/lib/cart";
 import { addOrderRef } from "@/lib/orders";
 
 interface TableOrderingProps {
@@ -23,6 +25,31 @@ interface TableOrderingProps {
   tableName?: string;
 }
 
+function productNeedsPicker(product: MenuProduct): boolean {
+  return product.variants.length > 0 || product.modifierGroups.length > 0;
+}
+
+function filterMenu(menu: MenuCategory[], query: string): MenuCategory[] {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return menu;
+
+  return menu
+    .map((category) => ({
+      ...category,
+      products: category.products.filter((product) => {
+        const haystack = `${product.name} ${product.description ?? ""}`.toLowerCase();
+        return haystack.includes(normalized);
+      }),
+    }))
+    .filter((category) => category.products.length > 0);
+}
+
+function buildAvailableProductIds(menu: MenuCategory[]): Set<string> {
+  return new Set(
+    menu.flatMap((category) => category.products.map((product) => product.id)),
+  );
+}
+
 function TableOrderingContent({
   store,
   menu,
@@ -30,13 +57,33 @@ function TableOrderingContent({
   tableName,
 }: TableOrderingProps) {
   const router = useRouter();
-  const { lines, itemCount, subtotal, addLine, updateQuantity, removeLine, clear } =
-    useCart();
+  const {
+    lines,
+    itemCount,
+    subtotal,
+    addLine,
+    updateQuantity,
+    updateLineNotes,
+    removeLine,
+    removeLines,
+    clear,
+  } = useCart();
   const myOrders = useMyOrders(store.id, tableId);
   const [selectedProduct, setSelectedProduct] = useState<MenuProduct | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredMenu = useMemo(
+    () => filterMenu(menu, searchQuery),
+    [menu, searchQuery],
+  );
+
+  const availableProductIds = useMemo(
+    () => buildAvailableProductIds(menu),
+    [menu],
+  );
 
   const cartLines = useMemo(
     () =>
@@ -44,14 +91,16 @@ function TableOrderingContent({
         key: cartLineKey(line),
         productName: line.productName,
         variantName: line.variantName,
+        modifierNames: line.modifiers.map((modifier) => modifier.name),
         unitPrice: line.unitPrice,
         quantity: line.quantity,
+        notes: line.notes,
       })),
     [lines],
   );
 
   function handleProductSelect(product: MenuProduct) {
-    if (product.variants.length > 0) {
+    if (productNeedsPicker(product)) {
       setSelectedProduct(product);
       return;
     }
@@ -59,20 +108,28 @@ function TableOrderingContent({
     addLine({
       productId: product.id,
       productName: product.name,
+      modifiers: [],
       unitPrice: product.price,
     });
   }
 
-  function handleVariantAdd(variant?: MenuVariant) {
+  function handlePickerAdd(selection: VariantPickerSelection) {
     if (!selectedProduct) return;
 
-    const unitPrice = selectedProduct.price + (variant?.priceModifier ?? 0);
+    const unitPrice = computeUnitPrice(
+      selectedProduct.price,
+      selection.variant?.priceModifier ?? 0,
+      selection.modifiers,
+    );
+
     addLine({
       productId: selectedProduct.id,
       productName: selectedProduct.name,
-      variantId: variant?.id,
-      variantName: variant?.name,
+      variantId: selection.variant?.id,
+      variantName: selection.variant?.name,
+      modifiers: selection.modifiers,
       unitPrice,
+      notes: selection.notes,
     });
     setSelectedProduct(null);
   }
@@ -88,6 +145,7 @@ function TableOrderingContent({
         items: lines.map((line) => ({
           productId: line.productId,
           variantId: line.variantId,
+          modifierOptionIds: line.modifiers.map((modifier) => modifier.optionId),
           quantity: line.quantity,
           notes: line.notes,
         })),
@@ -100,7 +158,27 @@ function TableOrderingContent({
         `/store/${store.id}/table/${tableId}/order/${order.id}`,
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not place order");
+      const message =
+        err instanceof Error ? err.message : "Could not place order";
+
+      if (message.includes("invalid or unavailable")) {
+        const staleKeys = lines
+          .filter((line) => !availableProductIds.has(line.productId))
+          .map((line) => cartLineKey(line));
+
+        if (staleKeys.length > 0) {
+          removeLines(staleKeys);
+          setError(
+            "Some items are no longer available and were removed from your cart.",
+          );
+        } else {
+          setError(
+            "One or more items are no longer available. Please review your cart.",
+          );
+        }
+      } else {
+        setError(message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -121,6 +199,7 @@ function TableOrderingContent({
           />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">{store.name}</h1>
+        <MenuSearch value={searchQuery} onChange={setSearchQuery} />
       </header>
 
       <MyOrdersBanner
@@ -131,12 +210,14 @@ function TableOrderingContent({
       />
 
       <div className="flex flex-1 flex-col gap-8 px-4 py-6 pb-28">
-        {menu.length === 0 ? (
+        {filteredMenu.length === 0 ? (
           <p className="text-center text-muted-foreground">
-            Menu is not available right now.
+            {searchQuery.trim()
+              ? "No matching items found."
+              : "Menu is not available right now."}
           </p>
         ) : (
-          menu.map((category) => (
+          filteredMenu.map((category) => (
             <MenuCategorySection key={category.id} name={category.name}>
               {category.products.map((product) => (
                 <ProductCard
@@ -164,6 +245,7 @@ function TableOrderingContent({
         submitting={submitting}
         error={error}
         onUpdateQuantity={updateQuantity}
+        onUpdateNotes={updateLineNotes}
         onRemove={removeLine}
         onCheckout={handleCheckout}
       />
@@ -173,7 +255,7 @@ function TableOrderingContent({
           product={selectedProduct}
           open={Boolean(selectedProduct)}
           onClose={() => setSelectedProduct(null)}
-          onAdd={handleVariantAdd}
+          onAdd={handlePickerAdd}
         />
       ) : null}
     </>

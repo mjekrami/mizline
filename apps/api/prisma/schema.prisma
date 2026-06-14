@@ -26,17 +26,18 @@ model Tenant {
 }
 
 model Store {
-  id         String     @id @default(cuid())
-  tenantId   String
-  name       String
-  address    String?
-  timezone   String     @default("UTC")
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  tables     Table[]
-  categories Category[]
-  orders     Order[]
+  id              String          @id @default(cuid())
+  tenantId        String
+  name            String
+  address         String?
+  timezone        String          @default("UTC")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tables          Table[]
+  categories      Category[]
+  orders          Order[]
+  modifierGroups  ModifierGroup[]
 
   @@index([tenantId])
 }
@@ -69,18 +70,19 @@ model Category {
 }
 
 model Product {
-  id          String           @id @default(cuid())
-  categoryId  String
-  name        String
-  description String?
-  price       Int
-  image       String?
-  available   Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  variants    ProductVariant[]
-  orderItems  OrderItem[]
+  id             String                 @id @default(cuid())
+  categoryId     String
+  name           String
+  description    String?
+  price          Int
+  image          String?
+  available      Boolean                @default(true)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  category       Category               @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  variants       ProductVariant[]
+  modifierGroups ProductModifierGroup[]
+  orderItems     OrderItem[]
 
   @@index([categoryId])
 }
@@ -99,15 +101,18 @@ model ProductVariant {
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  tenantId  String
-  storeId   String
-  tableId   String
-  status    OrderStatus @default(new)
-  subtotal  Int
-  total     Int
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  tenantId     String
+  storeId      String
+  tableId      String
+  status       OrderStatus @default(new)
+  subtotal     Int
+  total        Int
+  preparingAt  DateTime?
+  readyAt      DateTime?
+  fulfilledAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
   tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   store     Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   table     Table       @relation(fields: [tableId], references: [id], onDelete: Cascade)
@@ -120,19 +125,76 @@ model Order {
 }
 
 model OrderItem {
-  id        String          @id @default(cuid())
+  id        String              @id @default(cuid())
   orderId   String
   productId String
   variantId String?
   quantity  Int
   price     Int
   notes     String?
-  fulfilled Boolean         @default(false)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  fulfilled Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  order     Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant   ProductVariant?     @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  modifiers OrderItemModifier[]
 
   @@index([orderId])
+}
+
+model ModifierGroup {
+  id        String                 @id @default(cuid())
+  storeId   String
+  name      String
+  minSelect Int                    @default(0)
+  maxSelect Int                    @default(1)
+  sortOrder Int                    @default(0)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  store     Store                  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  options   ModifierOption[]
+  products  ProductModifierGroup[]
+
+  @@index([storeId])
+}
+
+model ModifierOption {
+  id            String              @id @default(cuid())
+  groupId       String
+  name          String
+  priceModifier Int                 @default(0)
+  available     Boolean             @default(true)
+  sortOrder     Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  group         ModifierGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  orderItems    OrderItemModifier[]
+
+  @@index([groupId])
+}
+
+model ProductModifierGroup {
+  id        String        @id @default(cuid())
+  productId String
+  groupId   String
+  sortOrder Int           @default(0)
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  group     ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, groupId])
+  @@index([productId])
+  @@index([groupId])
+}
+
+model OrderItemModifier {
+  id            String          @id @default(cuid())
+  orderItemId   String
+  optionId      String?
+  optionName    String
+  priceModifier Int             @default(0)
+  orderItem     OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  option        ModifierOption? @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  @@index([orderItemId])
 }

@@ -32,6 +32,12 @@ export class OrdersController {
     return this.ordersService.getOrder(orderId);
   }
 
+  @Get("stores/:storeId/orders/metrics")
+  @UseGuards(KitchenDevTokenGuard)
+  getStoreMetrics(@Param("storeId") storeId: string) {
+    return this.ordersService.getStoreMetrics(storeId);
+  }
+
   @Get("stores/:storeId/orders")
   @UseGuards(KitchenDevTokenGuard)
   listStoreOrders(

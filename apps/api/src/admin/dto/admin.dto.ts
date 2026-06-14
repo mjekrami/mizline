@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsInt,
   IsOptional,
@@ -102,4 +103,111 @@ export class UpdateTableDto {
   @IsOptional()
   @IsBoolean()
   active?: boolean;
+}
+
+export class CreateVariantDto {
+  @IsString()
+  @MinLength(1)
+  name!: string;
+
+  @IsInt()
+  priceModifier!: number;
+}
+
+export class UpdateVariantDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  name?: string;
+
+  @IsOptional()
+  @IsInt()
+  priceModifier?: number;
+}
+
+export class CreateModifierGroupDto {
+  @IsString()
+  @MinLength(1)
+  name!: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minSelect?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxSelect?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class UpdateModifierGroupDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  name?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minSelect?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxSelect?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class CreateModifierOptionDto {
+  @IsString()
+  @MinLength(1)
+  name!: string;
+
+  @IsInt()
+  priceModifier!: number;
+
+  @IsOptional()
+  @IsBoolean()
+  available?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class UpdateModifierOptionDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  name?: string;
+
+  @IsOptional()
+  @IsInt()
+  priceModifier?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  available?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class SetProductModifierGroupsDto {
+  @IsArray()
+  @IsString({ each: true })
+  groupIds!: string[];
 }

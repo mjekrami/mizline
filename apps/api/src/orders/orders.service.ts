@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import type { OrderStatus } from "@mizline/shared";
+import type { KitchenMetrics, OrderStatus } from "@mizline/shared";
 import { OrderStatus as PrismaOrderStatus } from "@prisma/client";
 import {
   isValidOrderStatusTransition,
@@ -13,11 +13,32 @@ import {
   mapOrder,
   orderWithRelationsInclude,
 } from "../common/mappers/order.mapper";
+import { getStoreDayBounds } from "../common/timezone";
 import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 
 const DEFAULT_KDS_STATUSES: OrderStatus[] = ["new", "preparing", "ready"];
+
+type ProductForOrder = {
+  id: string;
+  name: string;
+  price: number;
+  variants: Array<{ id: string; priceModifier: number }>;
+  modifierGroups: Array<{
+    group: {
+      id: string;
+      name: string;
+      minSelect: number;
+      maxSelect: number;
+      options: Array<{
+        id: string;
+        name: string;
+        priceModifier: number;
+      }>;
+    };
+  }>;
+};
 
 @Injectable()
 export class OrdersService {
@@ -49,17 +70,14 @@ export class OrdersService {
     }
 
     const productIds = [...new Set(dto.items.map((item) => item.productId))];
-    const products = await this.prisma.product.findMany({
-      where: {
-        id: { in: productIds },
-        available: true,
-        category: { storeId },
-      },
-      include: { variants: true },
-    });
+    const products = await this.loadProductsForOrder(storeId, productIds);
 
     if (products.length !== productIds.length) {
-      throw new BadRequestException("One or more products are invalid or unavailable");
+      const foundIds = new Set(products.map((product) => product.id));
+      const unavailableIds = productIds.filter((id) => !foundIds.has(id));
+      throw new BadRequestException(
+        `One or more products are invalid or unavailable:unavailable:${unavailableIds.join(",")}`,
+      );
     }
 
     const productMap = new Map(products.map((product) => [product.id, product]));
@@ -69,6 +87,12 @@ export class OrdersService {
       const product = productMap.get(item.productId);
       if (!product) {
         throw new BadRequestException(`Product ${item.productId} not found`);
+      }
+
+      if (product.variants.length > 0 && !item.variantId) {
+        throw new BadRequestException(
+          `Product ${product.name} requires a size selection`,
+        );
       }
 
       let unitPrice = product.price;
@@ -85,8 +109,17 @@ export class OrdersService {
         variantId = variant.id;
       }
 
-      const lineTotal = unitPrice * item.quantity;
-      subtotal += lineTotal;
+      const selectedOptionIds = item.modifierOptionIds ?? [];
+      const modifierSnapshots = this.validateAndSnapshotModifiers(
+        product,
+        selectedOptionIds,
+      );
+
+      for (const modifier of modifierSnapshots) {
+        unitPrice += modifier.priceModifier;
+      }
+
+      subtotal += unitPrice * item.quantity;
 
       return {
         productId: item.productId,
@@ -94,6 +127,13 @@ export class OrdersService {
         quantity: item.quantity,
         price: unitPrice,
         notes: item.notes,
+        modifiers: {
+          create: modifierSnapshots.map((modifier) => ({
+            optionId: modifier.optionId,
+            optionName: modifier.optionName,
+            priceModifier: modifier.priceModifier,
+          })),
+        },
       };
     });
 
@@ -113,6 +153,91 @@ export class OrdersService {
     this.realtime.emitOrderCreated(storeId, { orderId: order.id });
 
     return mapOrder(order);
+  }
+
+  private async loadProductsForOrder(storeId: string, productIds: string[]) {
+    return this.prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+        available: true,
+        category: { storeId },
+      },
+      include: {
+        variants: true,
+        modifierGroups: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            group: {
+              include: {
+                options: {
+                  where: { available: true },
+                  orderBy: { sortOrder: "asc" },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  private validateAndSnapshotModifiers(
+    product: ProductForOrder,
+    selectedOptionIds: string[],
+  ) {
+    const modifierGroups = product.modifierGroups.map((link) => link.group);
+    const selectedSet = new Set(selectedOptionIds);
+    const snapshots: Array<{
+      optionId: string;
+      optionName: string;
+      priceModifier: number;
+    }> = [];
+
+    for (const group of modifierGroups) {
+      const groupOptionIds = new Set(group.options.map((option) => option.id));
+      const selectedInGroup = selectedOptionIds.filter((id) =>
+        groupOptionIds.has(id),
+      );
+
+      if (selectedInGroup.length < group.minSelect) {
+        throw new BadRequestException(
+          `Select at least ${group.minSelect} option(s) for ${group.name}`,
+        );
+      }
+
+      if (group.maxSelect > 0 && selectedInGroup.length > group.maxSelect) {
+        throw new BadRequestException(
+          `Select at most ${group.maxSelect} option(s) for ${group.name}`,
+        );
+      }
+    }
+
+    for (const optionId of selectedOptionIds) {
+      let matched = false;
+
+      for (const group of modifierGroups) {
+        const option = group.options.find((entry) => entry.id === optionId);
+        if (option) {
+          matched = true;
+          snapshots.push({
+            optionId: option.id,
+            optionName: option.name,
+            priceModifier: option.priceModifier,
+          });
+          break;
+        }
+      }
+
+      if (!matched) {
+        throw new BadRequestException(`Modifier option ${optionId} is invalid`);
+      }
+    }
+
+    if (selectedSet.size !== selectedOptionIds.length) {
+      throw new BadRequestException("Duplicate modifier selections are not allowed");
+    }
+
+    return snapshots;
   }
 
   async getOrder(orderId: string) {
@@ -153,6 +278,66 @@ export class OrdersService {
     return orders.map(mapOrder);
   }
 
+  async getStoreMetrics(storeId: string): Promise<KitchenMetrics> {
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { id: true, tenantId: true, timezone: true },
+    });
+
+    if (!store) {
+      throw new NotFoundException("Store not found");
+    }
+
+    const { start, end } = getStoreDayBounds(store.timezone);
+
+    const [ordersWaiting, ordersCompletedToday, prepSamples] = await Promise.all([
+      this.prisma.order.count({
+        where: {
+          tenantId: store.tenantId,
+          storeId,
+          status: PrismaOrderStatus.new,
+        },
+      }),
+      this.prisma.order.count({
+        where: {
+          tenantId: store.tenantId,
+          storeId,
+          status: PrismaOrderStatus.fulfilled,
+          fulfilledAt: { gte: start, lte: end },
+        },
+      }),
+      this.prisma.order.findMany({
+        where: {
+          tenantId: store.tenantId,
+          storeId,
+          status: PrismaOrderStatus.fulfilled,
+          fulfilledAt: { gte: start, lte: end },
+          preparingAt: { not: null },
+          readyAt: { not: null },
+        },
+        select: { preparingAt: true, readyAt: true },
+      }),
+    ]);
+
+    let averagePrepTimeSeconds: number | null = null;
+
+    if (prepSamples.length > 0) {
+      const totalSeconds = prepSamples.reduce((sum, order) => {
+        const durationMs =
+          order.readyAt!.getTime() - order.preparingAt!.getTime();
+        return sum + Math.max(0, durationMs / 1000);
+      }, 0);
+
+      averagePrepTimeSeconds = Math.round(totalSeconds / prepSamples.length);
+    }
+
+    return {
+      ordersWaiting,
+      averagePrepTimeSeconds,
+      ordersCompletedToday,
+    };
+  }
+
   async updateStatus(orderId: string, nextStatus: OrderStatus) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -180,9 +365,30 @@ export class OrdersService {
       );
     }
 
+    const now = new Date();
+    const timestampUpdates: {
+      preparingAt?: Date;
+      readyAt?: Date;
+      fulfilledAt?: Date;
+    } = {};
+
+    if (nextStatus === "preparing") {
+      timestampUpdates.preparingAt = now;
+    } else if (nextStatus === "ready") {
+      timestampUpdates.readyAt = now;
+      if (!order.preparingAt) {
+        timestampUpdates.preparingAt = now;
+      }
+    } else if (nextStatus === "fulfilled") {
+      timestampUpdates.fulfilledAt = now;
+    }
+
     const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { status: nextStatus as PrismaOrderStatus },
+      data: {
+        status: nextStatus as PrismaOrderStatus,
+        ...timestampUpdates,
+      },
       include: orderWithRelationsInclude,
     });
 
@@ -255,7 +461,10 @@ export class OrdersService {
     if (allFulfilled) {
       const completed = await this.prisma.order.update({
         where: { id: orderId },
-        data: { status: PrismaOrderStatus.fulfilled },
+        data: {
+          status: PrismaOrderStatus.fulfilled,
+          fulfilledAt: new Date(),
+        },
         include: orderWithRelationsInclude,
       });
 

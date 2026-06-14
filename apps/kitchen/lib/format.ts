@@ -20,3 +20,16 @@ export function formatWaitTime(createdAt: string, now = Date.now()): string {
   const minutes = totalMinutes % 60;
   return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
 }
+
+export function formatPrepTime(seconds: number | null): string {
+  if (seconds === null) return "—";
+
+  const totalMinutes = Math.round(seconds / 60);
+
+  if (totalMinutes < 1) return "< 1 min";
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+}

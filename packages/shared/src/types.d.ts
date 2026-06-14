@@ -5,6 +5,8 @@ export type TableId = string;
 export type OrderId = string;
 export type ProductId = string;
 export type VariantId = string;
+export type ModifierGroupId = string;
+export type ModifierOptionId = string;
 export interface Tenant {
     id: TenantId;
     name: string;
@@ -16,10 +18,29 @@ export interface Store {
     address?: string | null;
     timezone: string;
 }
+export interface TableInfo {
+    id: TableId;
+    name: string;
+    active: boolean;
+}
 export interface MenuVariant {
     id: VariantId;
     name: string;
     priceModifier: number;
+}
+export interface MenuModifierOption {
+    id: ModifierOptionId;
+    name: string;
+    priceModifier: number;
+    available: boolean;
+}
+export interface MenuModifierGroup {
+    id: ModifierGroupId;
+    name: string;
+    minSelect: number;
+    maxSelect: number;
+    sortOrder: number;
+    options: MenuModifierOption[];
 }
 export interface MenuProduct {
     id: ProductId;
@@ -29,6 +50,7 @@ export interface MenuProduct {
     image?: string | null;
     available: boolean;
     variants: MenuVariant[];
+    modifierGroups: MenuModifierGroup[];
 }
 export interface MenuCategory {
     id: string;
@@ -39,11 +61,18 @@ export interface MenuCategory {
 export interface CreateOrderItemRequest {
     productId: ProductId;
     variantId?: VariantId;
+    modifierOptionIds?: ModifierOptionId[];
     quantity: number;
     notes?: string;
 }
 export interface CreateOrderRequest {
     items: CreateOrderItemRequest[];
+}
+export interface OrderItemModifier {
+    id: string;
+    optionId?: ModifierOptionId | null;
+    optionName: string;
+    priceModifier: number;
 }
 export interface OrderItem {
     id: string;
@@ -54,7 +83,13 @@ export interface OrderItem {
     quantity: number;
     price: number;
     notes?: string | null;
+    modifiers: OrderItemModifier[];
     fulfilled: boolean;
+}
+export interface KitchenMetrics {
+    ordersWaiting: number;
+    averagePrepTimeSeconds: number | null;
+    ordersCompletedToday: number;
 }
 export interface Order {
     id: OrderId;
@@ -81,6 +116,27 @@ export interface AdminCategory {
     sortOrder: number;
     productCount: number;
 }
+export interface AdminProductVariant {
+    id: VariantId;
+    name: string;
+    priceModifier: number;
+}
+export type AdminVariant = AdminProductVariant;
+export interface AdminModifierOption {
+    id: ModifierOptionId;
+    name: string;
+    priceModifier: number;
+    available: boolean;
+    sortOrder: number;
+}
+export interface AdminModifierGroup {
+    id: ModifierGroupId;
+    name: string;
+    minSelect: number;
+    maxSelect: number;
+    sortOrder: number;
+    options: AdminModifierOption[];
+}
 export interface AdminProduct {
     id: ProductId;
     categoryId: string;
@@ -90,6 +146,8 @@ export interface AdminProduct {
     price: number;
     image?: string | null;
     available: boolean;
+    variants: AdminProductVariant[];
+    modifierGroupIds: ModifierGroupId[];
 }
 export interface AdminTable {
     id: TableId;
@@ -100,6 +158,7 @@ export interface AdminTable {
 export interface AdminCatalog {
     categories: AdminCategory[];
     products: AdminProduct[];
+    modifierGroups: AdminModifierGroup[];
 }
 export type OrderRealtimeEvent = "order.created" | "order.preparing" | "order.ready" | "order.fulfilled";
 export type OrderRealtimePayload = OrderCreatedEvent | OrderStatusEvent;

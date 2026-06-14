@@ -1,68 +1,48 @@
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { getAdminCatalog, getAdminTables } from "@/lib/admin-api-server";
-import { getStore } from "@/lib/api-server";
-
-function AdminSetupNotice({ message }: { message: string }) {
-  return (
-    <main className="flex min-h-full items-center justify-center p-8">
-      <div className="relative max-w-lg rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          Admin Dashboard
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Setup required
-        </h1>
-        <p className="mt-3 text-muted-foreground">{message}</p>
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-muted p-4 text-xs">
-          {`cp apps/kitchen/.env.example apps/kitchen/.env.local
-# Set NEXT_PUBLIC_KITCHEN_STORE_ID from prisma db seed output
-# Set KITCHEN_DEV_TOKEN to match apps/api/.env`}
-        </pre>
-      </div>
-    </main>
-  );
-}
+import { StaffSetupNotice } from "@/components/staff-setup-notice";
+import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
+import { loadAdminDashboardData } from "@/lib/load-admin-dashboard";
+import { getCustomerBaseUrl, getStaffStoreId, hasKitchenDevToken } from "@/lib/staff-env";
 
 export default async function AdminDashboardPage() {
-  const storeId = process.env.NEXT_PUBLIC_KITCHEN_STORE_ID;
+  const storeId = getStaffStoreId();
 
   if (!storeId) {
     return (
-      <AdminSetupNotice message="Set NEXT_PUBLIC_KITCHEN_STORE_ID in apps/kitchen/.env.local to the demo store ID printed by prisma db seed." />
+      <StaffSetupNotice
+        title="Admin Dashboard"
+        message={STAFF_SETUP_MESSAGES.missingStoreId}
+      />
     );
   }
 
-  if (!process.env.KITCHEN_DEV_TOKEN) {
+  if (!hasKitchenDevToken()) {
     return (
-      <AdminSetupNotice message="Set KITCHEN_DEV_TOKEN in apps/kitchen/.env.local to match apps/api/.env." />
+      <StaffSetupNotice
+        title="Admin Dashboard"
+        message={STAFF_SETUP_MESSAGES.missingDevToken}
+      />
     );
   }
 
   try {
-    const [store, catalog, tables] = await Promise.all([
-      getStore(storeId),
-      getAdminCatalog(storeId),
-      getAdminTables(storeId),
-    ]);
+    const { store, catalog, tables, orders, metrics } =
+      await loadAdminDashboardData(storeId);
 
     return (
       <AdminDashboard
         store={store}
         initialCatalog={catalog}
         initialTables={tables}
-        customerBaseUrl={
-          process.env.NEXT_PUBLIC_CUSTOMER_URL ?? "http://localhost:3000"
-        }
+        initialOrders={orders}
+        initialMetrics={metrics}
+        customerBaseUrl={getCustomerBaseUrl()}
       />
     );
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to load admin dashboard";
+      error instanceof Error ? error.message : STAFF_SETUP_MESSAGES.adminLoadFailed;
 
-    return <AdminSetupNotice message={message} />;
+    return <StaffSetupNotice title="Admin Dashboard" message={message} />;
   }
 }

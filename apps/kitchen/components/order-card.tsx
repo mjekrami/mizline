@@ -96,6 +96,11 @@ export function OrderCard({
                     · {item.variantName}
                   </span>
                 ) : null}
+                {item.modifiers && item.modifiers.length > 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    {item.modifiers.map((mod) => mod.optionName).join(", ")}
+                  </p>
+                ) : null}
                 {item.notes ? (
                   <p className="text-xs text-muted-foreground italic">
                     {item.notes}

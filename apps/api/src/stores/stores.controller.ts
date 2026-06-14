@@ -14,4 +14,12 @@ export class StoresController {
   getMenu(@Param("storeId") storeId: string) {
     return this.storesService.getMenu(storeId);
   }
+
+  @Get(":storeId/tables/:tableId")
+  getTable(
+    @Param("storeId") storeId: string,
+    @Param("tableId") tableId: string,
+  ) {
+    return this.storesService.getTable(storeId, tableId);
+  }
 }

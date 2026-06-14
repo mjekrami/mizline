@@ -36,7 +36,7 @@ export default function Icon({ id }: IconProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#3B2F2F",
+          background: "#1A1210",
           borderRadius: size * 0.22,
         }}
       >
@@ -44,7 +44,7 @@ export default function Icon({ id }: IconProps) {
           style={{
             fontSize,
             fontWeight: 700,
-            color: "#FCFAF7",
+            color: "#EDE7DE",
             letterSpacing: "-0.05em",
           }}
         >

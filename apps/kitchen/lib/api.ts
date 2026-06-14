@@ -1,4 +1,4 @@
-import type { Order, OrderStatus } from "@mizline/shared";
+import type { KitchenMetrics, Order, OrderStatus } from "@mizline/shared";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
 
@@ -22,6 +22,14 @@ async function kitchenFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function listStoreOrders(): Promise<Order[]> {
   return kitchenFetch("/api/kitchen/orders");
+}
+
+export function getOrder(orderId: string): Promise<Order> {
+  return kitchenFetch(`/api/kitchen/orders/${orderId}`);
+}
+
+export function getKitchenMetrics(): Promise<KitchenMetrics> {
+  return kitchenFetch("/api/kitchen/metrics");
 }
 
 export function updateOrderStatus(

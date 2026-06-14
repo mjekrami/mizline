@@ -7,3 +7,40 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+.admin-dashboard {
+  min-height: 100vh;
+}
+
+.admin-panel {
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--card) 92%, var(--background));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--foreground) 5%, transparent),
+    0 8px 24px color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.admin-terminal {
+  font-family: var(--font-mono);
+}
+
+.admin-grid-bg {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--border) 22%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--border) 22%, transparent) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 50% 0%,
+      color-mix(in srgb, var(--accent) 5%, transparent),
+      transparent 60%
+    );
+  background-size: 24px 24px, 24px 24px, 100% 100%;
+}

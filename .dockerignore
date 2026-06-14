@@ -1,0 +1,12 @@
+**/.next
+**/dist
+**/node_modules
+.git
+.cursor
+*.md
+!infra/k8s/README.md
+.env
+.env.*
+!.env.example
+docker-compose.yml
+**/.turbo

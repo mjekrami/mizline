@@ -6,6 +6,12 @@ type OrderWithRelations = Order & {
   items: (OrderItem & {
     product: { name: string };
     variant: { name: string } | null;
+    modifiers: {
+      id: string;
+      optionId: string | null;
+      optionName: string;
+      priceModifier: number;
+    }[];
   })[];
   table: { name: string };
 };
@@ -22,6 +28,12 @@ export function mapOrderItem(
     quantity: item.quantity,
     price: item.price,
     notes: item.notes,
+    modifiers: item.modifiers.map((modifier) => ({
+      id: modifier.id,
+      optionId: modifier.optionId,
+      optionName: modifier.optionName,
+      priceModifier: modifier.priceModifier,
+    })),
     fulfilled: item.fulfilled,
   };
 }
@@ -47,6 +59,7 @@ export const orderWithRelationsInclude = {
     include: {
       product: { select: { name: true } },
       variant: { select: { name: true } },
+      modifiers: true,
     },
   },
   table: { select: { name: true } },

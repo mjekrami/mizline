@@ -1,4 +1,4 @@
-import type { Order, OrderStatus, Store } from "@mizline/shared";
+import type { KitchenMetrics, Order, OrderStatus, Store } from "@mizline/shared";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
 
@@ -40,6 +40,10 @@ export function listStoreOrders(storeId: string): Promise<Order[]> {
   const statuses: OrderStatus[] = ["new", "preparing", "ready", "fulfilled"];
   const query = new URLSearchParams({ status: statuses.join(",") });
   return apiFetch(`/api/stores/${storeId}/orders?${query.toString()}`);
+}
+
+export function getStoreMetrics(storeId: string): Promise<KitchenMetrics> {
+  return apiFetch(`/api/stores/${storeId}/orders/metrics`);
 }
 
 export function getApiBaseUrl(): string {

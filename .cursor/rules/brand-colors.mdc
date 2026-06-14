@@ -1,6 +1,6 @@
 ---
 description: Mizline brand palette, semantic colors, and Tailwind usage
-globs: apps/**/*.{tsx,css},packages/**/*.{tsx,css}
+globs: apps/**/*.{tsx,css},packages/**/*.{css}
 alwaysApply: false
 ---
 
@@ -12,33 +12,43 @@ Use these tokens everywhere — never hardcode one-off hex values outside this p
 
 | Token | Hex |
 |-------|-----|
-| Primary (Coffee Brown) | `#3B2F2F` |
-| Accent (Warm Orange) | `#E67E22` |
-| Secondary (Latte Beige) | `#D6B48A` |
-| Background (Warm White) | `#FCFAF7` |
-| Surface / Card | `#FFFFFF` |
-| Text Primary | `#1A1A1A` |
-| Text Secondary | `#6B7280` |
-| Border | `#E5E7EB` |
+| Primary (Espresso) | `#1A1210` |
+| Accent (Burnt Copper) | `#C05621` |
+| Secondary (Mocha Bronze) | `#7A6248` |
+| Background (Warm Stone) | `#DDD4C8` |
+| Surface / Card | `#EDE7DE` |
+| Text Primary | `#140F0C` |
+| Text Secondary | `#5C4F42` |
+| Border | `#BFB4A6` |
+
+## Dark Mode
+
+| Token | Hex |
+|-------|-----|
+| Background | `#080605` |
+| Card | `#12100D` |
+| Primary (Gold Tan) | `#C4A574` |
+| Accent (Copper Glow) | `#E07B32` |
+| Border | `#2C2620` |
 
 ## Semantic Colors
 
 | Token | Hex |
 |-------|-----|
-| Success | `#2E8B57` |
-| Warning | `#F59E0B` |
-| Error | `#DC2626` |
-| Info | `#2563EB` |
+| Success | `#2D6A4F` |
+| Warning | `#B45309` |
+| Error | `#B91C1C` |
+| Info | `#3D6B9E` |
 
 ## Order Status (Kitchen KDS)
 
 | Status | Hex |
 |--------|-----|
-| NEW | `#3B82F6` |
-| PREPARING | `#F59E0B` |
-| READY | `#10B981` |
-| FULFILLED | `#6B7280` |
-| CANCELLED | `#EF4444` |
+| NEW | `#4F7FD4` |
+| PREPARING | `#D97706` |
+| READY | `#0D9B6E` |
+| FULFILLED | `#78716C` |
+| CANCELLED | `#DC2626` |
 
 ## Tailwind / CSS Variables
 
@@ -46,37 +56,37 @@ Define in `@theme` or a shared `mizlineColors` export:
 
 ```ts
 export const mizlineColors = {
-  primary: "#3B2F2F",
-  accent: "#E67E22",
-  secondary: "#D6B48A",
-  background: "#FCFAF7",
-  surface: "#FFFFFF",
-  text: { primary: "#1A1A1A", secondary: "#6B7280" },
-  border: "#E5E7EB",
-  success: "#2E8B57",
-  warning: "#F59E0B",
-  error: "#DC2626",
-  info: "#2563EB",
+  primary: "#1A1210",
+  accent: "#C05621",
+  secondary: "#7A6248",
+  background: "#DDD4C8",
+  surface: "#EDE7DE",
+  text: { primary: "#140F0C", secondary: "#5C4F42" },
+  border: "#BFB4A6",
+  success: "#2D6A4F",
+  warning: "#B45309",
+  error: "#B91C1C",
+  info: "#3D6B9E",
   orderStatus: {
-    new: "#3B82F6",
-    preparing: "#F59E0B",
-    ready: "#10B981",
-    fulfilled: "#6B7280",
-    cancelled: "#EF4444",
+    new: "#4F7FD4",
+    preparing: "#D97706",
+    ready: "#0D9B6E",
+    fulfilled: "#78716C",
+    cancelled: "#DC2626",
   },
 };
 ```
 
 ## Usage
 
-- **Primary button**: bg `#3B2F2F`, hover `#2A2020`, text `#FFFFFF`
-- **Primary actions** (Place Order, Checkout, Mark Ready, Save): bg `#E67E22`, text `#FFFFFF`
-- **App background**: `#FCFAF7` · **Cards**: `#FFFFFF` · **Borders**: `#E5E7EB`
+- **Primary button**: bg `#1A1210`, hover `#0F0A08`, text `#F4EDE4`
+- **Primary actions** (Place Order, Checkout, Mark Ready, Save): bg `#C05621`, text `#FFF8F2`
+- **App background**: `#DDD4C8` · **Cards**: `#EDE7DE` · **Borders**: `#BFB4A6`
 - **Kitchen columns**: map each status to its order-status color for instant recognition
 
 ```tsx
 // ✅ GOOD — semantic token
-<button className="bg-primary text-white hover:bg-[#2A2020]">Save</button>
+<button className="bg-primary text-primary-foreground hover:bg-primary-hover">Save</button>
 
 // ❌ BAD — arbitrary hex outside palette
 <div className="bg-[#4a3728]">...</div>

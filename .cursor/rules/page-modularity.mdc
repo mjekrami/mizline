@@ -1,0 +1,52 @@
+---
+description: Keep pages thin — extract constants, helpers, and sub-components
+globs: apps/**/page.tsx, apps/**/components/**/*.tsx
+alwaysApply: false
+---
+
+# Page & Component Modularity
+
+Pages and route files must stay thin. Do not define constants, helper functions, or UI components inline in a `page.tsx`.
+
+## Structure
+
+| Concern | Location |
+|---------|----------|
+| Page route | `app/**/page.tsx` — data fetch + render one top-level component |
+| Constants | `constants/` or `lib/` |
+| Pure helpers | `lib/` |
+| Reusable UI | `components/` |
+| Section UI | `components/<feature>/` sub-components |
+
+## Page pattern
+
+```tsx
+// ✅ GOOD — page only orchestrates
+export default async function AdminPage() {
+  const storeId = getStaffStoreId();
+  if (!storeId) return <StaffSetupNotice title="Admin" message={STAFF_SETUP_MESSAGES.missingStoreId} />;
+
+  const data = await loadAdminDashboardData(storeId);
+  return <AdminDashboard {...data} />;
+}
+
+// ❌ BAD — inline component, constants, and helpers in page.tsx
+const SETUP_TEXT = "...";
+function SetupNotice() { ... }
+function formatX() { ... }
+```
+
+## Component pattern
+
+Break large components into focused pieces. Move derived data builders to `lib/`, visual constants to `constants/`, and repeated UI blocks to child components.
+
+```tsx
+// ✅ GOOD
+const metrics = buildHeaderMetrics(stats, metrics);
+return metrics.map((m) => <HeaderMetricCard key={m.label} {...m} />);
+
+// ❌ BAD — constants, builder logic, and markup all in one file
+const COLORS = { ... };
+const items = [{ label: "...", value: format(...) }];
+return <div>{items.map(...)}</div>;
+```

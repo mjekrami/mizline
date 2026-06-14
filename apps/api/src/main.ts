@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { getCorsOrigins } from "./common/cors";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +15,7 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: getCorsOrigins(),
   });
   app.enableShutdownHooks();
 

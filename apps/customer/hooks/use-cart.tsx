@@ -25,7 +25,9 @@ interface CartContextValue {
   subtotal: number;
   addLine: (line: Omit<CartLine, "quantity">, quantity?: number) => void;
   updateQuantity: (key: string, quantity: number) => void;
+  updateLineNotes: (key: string, notes: string) => void;
   removeLine: (key: string) => void;
+  removeLines: (keys: string[]) => void;
   clear: () => void;
 }
 
@@ -93,9 +95,25 @@ export function CartProvider({
     });
   }, []);
 
+  const updateLineNotes = useCallback((key: string, notes: string) => {
+    setCart((prev) => ({
+      lines: prev.lines.map((item) => {
+        if (cartLineKey(item) !== key) return item;
+        return { ...item, notes: notes.trim() || undefined };
+      }),
+    }));
+  }, []);
+
   const removeLine = useCallback((key: string) => {
     setCart((prev) => ({
       lines: prev.lines.filter((item) => cartLineKey(item) !== key),
+    }));
+  }, []);
+
+  const removeLines = useCallback((keys: string[]) => {
+    const keySet = new Set(keys);
+    setCart((prev) => ({
+      lines: prev.lines.filter((item) => !keySet.has(cartLineKey(item))),
     }));
   }, []);
 
@@ -113,10 +131,22 @@ export function CartProvider({
       subtotal,
       addLine,
       updateQuantity,
+      updateLineNotes,
       removeLine,
+      removeLines,
       clear,
     }),
-    [cart.lines, itemCount, subtotal, addLine, updateQuantity, removeLine, clear],
+    [
+      cart.lines,
+      itemCount,
+      subtotal,
+      addLine,
+      updateQuantity,
+      updateLineNotes,
+      removeLine,
+      removeLines,
+      clear,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

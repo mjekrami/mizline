@@ -1,25 +1,25 @@
 export declare const mizlineColors: {
-    readonly primary: "#3B2F2F";
-    readonly primaryHover: "#2A2020";
-    readonly accent: "#E67E22";
-    readonly secondary: "#D6B48A";
-    readonly background: "#FCFAF7";
-    readonly surface: "#FFFFFF";
+    readonly primary: "#1A1210";
+    readonly primaryHover: "#0F0A08";
+    readonly accent: "#C05621";
+    readonly secondary: "#7A6248";
+    readonly background: "#DDD4C8";
+    readonly surface: "#EDE7DE";
     readonly text: {
-        readonly primary: "#1A1A1A";
-        readonly secondary: "#6B7280";
+        readonly primary: "#140F0C";
+        readonly secondary: "#5C4F42";
     };
-    readonly border: "#E5E7EB";
-    readonly success: "#2E8B57";
-    readonly warning: "#F59E0B";
-    readonly error: "#DC2626";
-    readonly info: "#2563EB";
+    readonly border: "#BFB4A6";
+    readonly success: "#2D6A4F";
+    readonly warning: "#B45309";
+    readonly error: "#B91C1C";
+    readonly info: "#3D6B9E";
     readonly orderStatus: {
-        readonly new: "#3B82F6";
-        readonly preparing: "#F59E0B";
-        readonly ready: "#10B981";
-        readonly fulfilled: "#6B7280";
-        readonly cancelled: "#EF4444";
+        readonly new: "#4F7FD4";
+        readonly preparing: "#D97706";
+        readonly ready: "#0D9B6E";
+        readonly fulfilled: "#78716C";
+        readonly cancelled: "#DC2626";
     };
 };
 export type OrderStatus = keyof typeof mizlineColors.orderStatus;

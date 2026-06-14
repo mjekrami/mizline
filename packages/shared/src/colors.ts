@@ -1,30 +1,30 @@
 export const mizlineColors = {
-  primary: "#3B2F2F",
-  primaryHover: "#2A2020",
-  accent: "#E67E22",
-  secondary: "#D6B48A",
+  primary: "#1A1210",
+  primaryHover: "#0F0A08",
+  accent: "#C05621",
+  secondary: "#7A6248",
 
-  background: "#FCFAF7",
-  surface: "#FFFFFF",
+  background: "#DDD4C8",
+  surface: "#EDE7DE",
 
   text: {
-    primary: "#1A1A1A",
-    secondary: "#6B7280",
+    primary: "#140F0C",
+    secondary: "#5C4F42",
   },
 
-  border: "#E5E7EB",
+  border: "#BFB4A6",
 
-  success: "#2E8B57",
-  warning: "#F59E0B",
-  error: "#DC2626",
-  info: "#2563EB",
+  success: "#2D6A4F",
+  warning: "#B45309",
+  error: "#B91C1C",
+  info: "#3D6B9E",
 
   orderStatus: {
-    new: "#3B82F6",
-    preparing: "#F59E0B",
-    ready: "#10B981",
-    fulfilled: "#6B7280",
-    cancelled: "#EF4444",
+    new: "#4F7FD4",
+    preparing: "#D97706",
+    ready: "#0D9B6E",
+    fulfilled: "#78716C",
+    cancelled: "#DC2626",
   },
 } as const;
 

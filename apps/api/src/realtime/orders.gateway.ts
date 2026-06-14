@@ -8,12 +8,13 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { getCorsOrigins } from "../common/cors";
 import { RealtimeService } from "./realtime.service";
 
 @WebSocketGateway({
   namespace: "/realtime",
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: getCorsOrigins(),
   },
 })
 export class OrdersGateway implements OnGatewayInit, OnGatewayConnection {

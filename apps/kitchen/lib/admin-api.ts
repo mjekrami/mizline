@@ -1,8 +1,11 @@
 import type {
   AdminCatalog,
   AdminCategory,
+  AdminModifierGroup,
+  AdminModifierOption,
   AdminProduct,
   AdminTable,
+  AdminVariant,
 } from "@mizline/shared";
 
 async function adminClientFetch<T>(
@@ -100,6 +103,124 @@ export function deleteProduct(productId: string): Promise<void> {
   });
 }
 
+export function createVariant(
+  productId: string,
+  data: { name: string; priceModifier: number },
+): Promise<AdminVariant> {
+  return adminClientFetch(`/api/admin/products/${productId}/variants`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateVariant(
+  productId: string,
+  variantId: string,
+  data: { name?: string; priceModifier?: number },
+): Promise<AdminVariant> {
+  return adminClientFetch(
+    `/api/admin/products/${productId}/variants/${variantId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function deleteVariant(
+  productId: string,
+  variantId: string,
+): Promise<void> {
+  return adminClientFetch(
+    `/api/admin/products/${productId}/variants/${variantId}`,
+    { method: "DELETE" },
+  );
+}
+
+export function setProductModifierGroups(
+  productId: string,
+  groupIds: string[],
+): Promise<AdminProduct> {
+  return adminClientFetch(`/api/admin/products/${productId}/modifier-groups`, {
+    method: "PUT",
+    body: JSON.stringify({ groupIds }),
+  });
+}
+
+export function createModifierGroup(data: {
+  name: string;
+  minSelect?: number;
+  maxSelect?: number;
+}): Promise<AdminModifierGroup> {
+  return adminClientFetch("/api/admin/modifier-groups", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateModifierGroup(
+  groupId: string,
+  data: {
+    name?: string;
+    minSelect?: number;
+    maxSelect?: number;
+    sortOrder?: number;
+  },
+): Promise<AdminModifierGroup> {
+  return adminClientFetch(`/api/admin/modifier-groups/${groupId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteModifierGroup(groupId: string): Promise<void> {
+  return adminClientFetch(`/api/admin/modifier-groups/${groupId}`, {
+    method: "DELETE",
+  });
+}
+
+export function createModifierOption(
+  groupId: string,
+  data: {
+    name: string;
+    priceModifier: number;
+    available?: boolean;
+  },
+): Promise<AdminModifierOption> {
+  return adminClientFetch(`/api/admin/modifier-groups/${groupId}/options`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateModifierOption(
+  groupId: string,
+  optionId: string,
+  data: {
+    name?: string;
+    priceModifier?: number;
+    available?: boolean;
+  },
+): Promise<AdminModifierOption> {
+  return adminClientFetch(
+    `/api/admin/modifier-groups/${groupId}/options/${optionId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function deleteModifierOption(
+  groupId: string,
+  optionId: string,
+): Promise<void> {
+  return adminClientFetch(
+    `/api/admin/modifier-groups/${groupId}/options/${optionId}`,
+    { method: "DELETE" },
+  );
+}
+
 export function createTable(data: {
   name: string;
   qrCode: string;
@@ -128,6 +249,10 @@ export function parsePriceToCents(value: string): number | null {
   if (!Number.isFinite(amount) || amount < 0) return null;
 
   return Math.round(amount * 100);
+}
+
+export function formatCentsToInput(cents: number): string {
+  return (cents / 100).toFixed(2);
 }
 
 export function slugifyQrCode(value: string): string {

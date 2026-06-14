@@ -1,17 +1,76 @@
 "use client";
 
-import type { MenuProduct, MenuVariant } from "@mizline/shared";
-import { Minus, Plus, X } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import type {
+  MenuModifierGroup,
+  MenuProduct,
+  MenuVariant,
+} from "@mizline/shared";
+import { Minus, Plus, Search, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ProductImage } from "@/components/product-image";
+import type { CartModifier } from "@/lib/cart";
+import { computeUnitPrice } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+export interface VariantPickerSelection {
+  variant?: MenuVariant;
+  modifiers: CartModifier[];
+  notes?: string;
+}
 
 interface VariantPickerProps {
   product: MenuProduct;
   open: boolean;
   onClose: () => void;
-  onAdd: (variant?: MenuVariant) => void;
+  onAdd: (selection: VariantPickerSelection) => void;
+}
+
+function toggleModifierSelection(
+  group: MenuModifierGroup,
+  optionId: string,
+  current: CartModifier[],
+): CartModifier[] {
+  const option = group.options.find((entry) => entry.id === optionId);
+  if (!option) return current;
+
+  const inGroup = current.filter((entry) =>
+    group.options.some((opt) => opt.id === entry.optionId),
+  );
+  const isSelected = inGroup.some((entry) => entry.optionId === optionId);
+
+  if (group.maxSelect === 1) {
+    const withoutGroup = current.filter(
+      (entry) => !group.options.some((opt) => opt.id === entry.optionId),
+    );
+    return isSelected
+      ? withoutGroup
+      : [
+          ...withoutGroup,
+          {
+            optionId: option.id,
+            name: option.name,
+            priceModifier: option.priceModifier,
+          },
+        ];
+  }
+
+  if (isSelected) {
+    return current.filter((entry) => entry.optionId !== optionId);
+  }
+
+  if (inGroup.length >= group.maxSelect) {
+    return current;
+  }
+
+  return [
+    ...current,
+    {
+      optionId: option.id,
+      name: option.name,
+      priceModifier: option.priceModifier,
+    },
+  ];
 }
 
 export function VariantPicker({
@@ -21,6 +80,21 @@ export function VariantPicker({
   onAdd,
 }: VariantPickerProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [selectedVariant, setSelectedVariant] = useState<MenuVariant | undefined>(
+    product.variants.length === 1 ? product.variants[0] : undefined,
+  );
+  const [selectedModifiers, setSelectedModifiers] = useState<CartModifier[]>([]);
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setSelectedVariant(
+        product.variants.length === 1 ? product.variants[0] : undefined,
+      );
+      setSelectedModifiers([]);
+      setNotes("");
+    }
+  }, [open, product]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -33,13 +107,41 @@ export function VariantPicker({
     }
   }, [open]);
 
+  const unitPrice = useMemo(
+    () =>
+      computeUnitPrice(
+        product.price,
+        selectedVariant?.priceModifier ?? 0,
+        selectedModifiers,
+      ),
+    [product.price, selectedVariant, selectedModifiers],
+  );
+
+  const canAdd =
+    (product.variants.length === 0 || selectedVariant !== undefined) &&
+    product.modifierGroups.every((group) => {
+      const count = selectedModifiers.filter((entry) =>
+        group.options.some((opt) => opt.id === entry.optionId),
+      ).length;
+      return count >= group.minSelect && count <= group.maxSelect;
+    });
+
+  function handleAdd() {
+    if (!canAdd) return;
+    onAdd({
+      variant: selectedVariant,
+      modifiers: selectedModifiers,
+      notes: notes.trim() || undefined,
+    });
+  }
+
   return (
     <dialog
       ref={dialogRef}
       className="fixed inset-0 z-50 m-auto w-[min(100%,24rem)] rounded-xl border border-border bg-card p-0 shadow-lg backdrop:bg-black/40"
       onClose={onClose}
     >
-      <div className="flex flex-col gap-4 p-5">
+      <div className="flex max-h-[85vh] flex-col gap-4 overflow-y-auto p-5">
         <ProductImage
           src={product.image}
           alt={product.name}
@@ -64,32 +166,95 @@ export function VariantPicker({
           </button>
         </div>
 
-        <div className="flex flex-col gap-2">
-          {product.variants.length === 0 ? (
-            <button
-              type="button"
-              onClick={() => onAdd()}
-              className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-primary"
-            >
-              <span className="font-medium">Standard</span>
-              <span className="font-semibold">{formatPrice(product.price)}</span>
-            </button>
-          ) : (
-            product.variants.map((variant) => (
-              <button
-                key={variant.id}
-                type="button"
-                onClick={() => onAdd(variant)}
-                className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-primary"
-              >
-                <span className="font-medium">{variant.name}</span>
-                <span className="font-semibold">
-                  {formatPrice(product.price + variant.priceModifier)}
-                </span>
-              </button>
-            ))
-          )}
-        </div>
+        {product.variants.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium">Size</p>
+            {product.variants.map((variant) => {
+              const selected = selectedVariant?.id === variant.id;
+              return (
+                <button
+                  key={variant.id}
+                  type="button"
+                  onClick={() => setSelectedVariant(variant)}
+                  className={cn(
+                    "flex items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors",
+                    selected
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-background hover:border-primary",
+                  )}
+                >
+                  <span className="font-medium">{variant.name}</span>
+                  <span className="font-semibold">
+                    {formatPrice(product.price + variant.priceModifier)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {product.modifierGroups.map((group) => (
+          <div key={group.id} className="flex flex-col gap-2">
+            <div>
+              <p className="text-sm font-medium">{group.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {group.minSelect > 0 ? "Required · " : ""}
+                {group.maxSelect === 1
+                  ? "Choose one"
+                  : `Choose up to ${group.maxSelect}`}
+              </p>
+            </div>
+            {group.options.map((option) => {
+              const selected = selectedModifiers.some(
+                (entry) => entry.optionId === option.id,
+              );
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedModifiers((current) =>
+                      toggleModifierSelection(group, option.id, current),
+                    )
+                  }
+                  className={cn(
+                    "flex items-center justify-between rounded-lg border px-4 py-2.5 text-left text-sm transition-colors",
+                    selected
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-background hover:border-primary",
+                  )}
+                >
+                  <span>{option.name}</span>
+                  <span className="font-medium">
+                    {option.priceModifier > 0
+                      ? `+${formatPrice(option.priceModifier)}`
+                      : "Included"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="font-medium">Special instructions</span>
+          <textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="Optional notes for the kitchen"
+            rows={2}
+            className="resize-none rounded-lg border border-border bg-background px-3 py-2"
+          />
+        </label>
+
+        <button
+          type="button"
+          disabled={!canAdd}
+          onClick={handleAdd}
+          className="sticky bottom-0 w-full rounded-xl bg-accent px-4 py-3.5 font-semibold text-accent-foreground transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Add to cart · {formatPrice(unitPrice)}
+        </button>
       </div>
     </dialog>
   );
@@ -107,6 +272,9 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
           ...product.variants.map((v) => product.price + v.priceModifier),
         )
       : product.price;
+
+  const customizationCount =
+    product.variants.length + product.modifierGroups.length;
 
   return (
     <button
@@ -132,11 +300,8 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
             {product.description}
           </p>
         ) : null}
-        {product.variants.length > 0 ? (
-          <p className="text-xs text-muted-foreground">
-            {product.variants.length} size
-            {product.variants.length === 1 ? "" : "s"} available
-          </p>
+        {customizationCount > 0 ? (
+          <p className="text-xs text-muted-foreground">Customizable</p>
         ) : null}
       </div>
     </button>
@@ -159,6 +324,27 @@ export function MenuCategorySection({
       </h2>
       <div className="flex flex-col gap-3">{children}</div>
     </section>
+  );
+}
+
+interface MenuSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function MenuSearch({ value, onChange }: MenuSearchProps) {
+  return (
+    <div className="relative mt-3">
+      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Search menu…"
+        className="w-full rounded-lg border border-border bg-background py-2.5 pr-3 pl-9 text-sm"
+        aria-label="Search menu"
+      />
+    </div>
   );
 }
 
@@ -198,20 +384,25 @@ export function CartBar({
   );
 }
 
+interface CartSheetLine {
+  key: string;
+  productName: string;
+  variantName?: string;
+  modifierNames: string[];
+  unitPrice: number;
+  quantity: number;
+  notes?: string;
+}
+
 interface CartSheetProps {
   open: boolean;
   onClose: () => void;
-  lines: Array<{
-    key: string;
-    productName: string;
-    variantName?: string;
-    unitPrice: number;
-    quantity: number;
-  }>;
+  lines: CartSheetLine[];
   subtotal: number;
   submitting: boolean;
   error?: string | null;
   onUpdateQuantity: (key: string, quantity: number) => void;
+  onUpdateNotes: (key: string, notes: string) => void;
   onRemove: (key: string) => void;
   onCheckout: () => void;
 }
@@ -224,6 +415,7 @@ export function CartSheet({
   submitting,
   error,
   onUpdateQuantity,
+  onUpdateNotes,
   onRemove,
   onCheckout,
 }: CartSheetProps) {
@@ -267,52 +459,73 @@ export function CartSheet({
               {lines.map((line) => (
                 <li
                   key={line.key}
-                  className="flex items-start justify-between gap-3 border-b border-border pb-4 last:border-0 last:pb-0"
+                  className="flex flex-col gap-2 border-b border-border pb-4 last:border-0 last:pb-0"
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{line.productName}</p>
-                    {line.variantName ? (
-                      <p className="text-sm text-muted-foreground">
-                        {line.variantName}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{line.productName}</p>
+                      {line.variantName ? (
+                        <p className="text-sm text-muted-foreground">
+                          {line.variantName}
+                        </p>
+                      ) : null}
+                      {line.modifierNames.length > 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          {line.modifierNames.join(", ")}
+                        </p>
+                      ) : null}
+                      <p className="mt-1 text-sm font-medium">
+                        {formatPrice(line.unitPrice * line.quantity)}
                       </p>
-                    ) : null}
-                    <p className="mt-1 text-sm font-medium">
-                      {formatPrice(line.unitPrice * line.quantity)}
-                    </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onUpdateQuantity(line.key, line.quantity - 1)
+                        }
+                        className="rounded-md border border-border p-1.5 hover:bg-muted"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="size-4" />
+                      </button>
+                      <span className="w-6 text-center text-sm font-medium">
+                        {line.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onUpdateQuantity(line.key, line.quantity + 1)
+                        }
+                        className="rounded-md border border-border p-1.5 hover:bg-muted"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onRemove(line.key)}
+                        className="ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                        aria-label="Remove item"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onUpdateQuantity(line.key, line.quantity - 1)
-                      }
-                      className="rounded-md border border-border p-1.5 hover:bg-muted"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="size-4" />
-                    </button>
-                    <span className="w-6 text-center text-sm font-medium">
-                      {line.quantity}
+                  <label className="flex flex-col gap-1 text-xs">
+                    <span className="font-medium text-muted-foreground">
+                      Special instructions
                     </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onUpdateQuantity(line.key, line.quantity + 1)
+                    <input
+                      type="text"
+                      defaultValue={line.notes ?? ""}
+                      placeholder="Optional"
+                      onBlur={(event) =>
+                        onUpdateNotes(line.key, event.target.value)
                       }
-                      className="rounded-md border border-border p-1.5 hover:bg-muted"
-                      aria-label="Increase quantity"
-                    >
-                      <Plus className="size-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(line.key)}
-                      className="ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-                      aria-label="Remove item"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </div>
+                      className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                    />
+                  </label>
                 </li>
               ))}
             </ul>
@@ -325,6 +538,10 @@ export function CartSheet({
               {error}
             </p>
           ) : null}
+          <p className="mb-3 text-sm text-muted-foreground">
+            Pay at the counter when you&apos;re ready. No online payment — settle
+            up with staff.
+          </p>
           <div className="mb-4 flex items-center justify-between">
             <span className="text-muted-foreground">Subtotal</span>
             <span className="text-lg font-semibold">{formatPrice(subtotal)}</span>
@@ -335,7 +552,7 @@ export function CartSheet({
             onClick={onCheckout}
             className="w-full rounded-xl bg-accent px-4 py-3.5 font-semibold text-accent-foreground transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? "Placing order…" : "Place order"}
+            {submitting ? "Placing order…" : "Submit order · pay at counter"}
           </button>
         </div>
       </div>

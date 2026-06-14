@@ -1,10 +1,15 @@
 "use client";
 
-import type { Order, OrderStatus } from "@mizline/shared";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { io, type Socket } from "socket.io-client";
-import { getApiBaseUrl, fulfillOrderItem, listStoreOrders, updateOrderStatus } from "@/lib/api";
+import type { KitchenMetrics, Order, OrderStatus } from "@mizline/shared";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  fulfillOrderItem,
+  getKitchenMetrics,
+  listStoreOrders,
+  updateOrderStatus,
+} from "@/lib/api";
 import { getNextOrderStatus } from "@/lib/order-status";
+import { useStoreRealtime } from "@/hooks/use-store-realtime";
 
 const KITCHEN_COLUMNS: OrderStatus[] = [
   "new",
@@ -13,101 +18,71 @@ const KITCHEN_COLUMNS: OrderStatus[] = [
   "fulfilled",
 ];
 
-function playNewOrderAlert() {
-  try {
-    const context = new AudioContext();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, context.currentTime);
-    gain.gain.setValueAtTime(0.08, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.35);
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.35);
-    oscillator.onended = () => {
-      void context.close();
-    };
-  } catch {
-    // Audio may be blocked until user interaction.
-  }
-}
-
 interface UseKitchenBoardOptions {
   storeId: string;
   initialOrders: Order[];
+  initialMetrics: KitchenMetrics;
 }
 
 export function useKitchenBoard({
   storeId,
   initialOrders,
+  initialMetrics,
 }: UseKitchenBoardOptions) {
   const [orders, setOrders] = useState(initialOrders);
+  const [metrics, setMetrics] = useState(initialMetrics);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [advancingId, setAdvancingId] = useState<string | null>(null);
   const [fulfillingItemId, setFulfillingItemId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const audioUnlocked = useRef(false);
 
   useEffect(() => {
     setOrders(initialOrders);
   }, [initialOrders]);
 
   useEffect(() => {
+    setMetrics(initialMetrics);
+  }, [initialMetrics]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
+
+  const refreshMetrics = useCallback(async () => {
+    try {
+      const latest = await getKitchenMetrics();
+      setMetrics(latest);
+    } catch {
+      // Metrics refresh failures should not block the board.
+    }
+  }, []);
+
+  const syncOrders = useCallback(async () => {
+    try {
+      const latest = await listStoreOrders();
+      setOrders(latest);
+      await refreshMetrics();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to refresh orders");
+    }
+  }, [refreshMetrics]);
 
   const refreshOrders = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const latest = await listStoreOrders();
-      setOrders(latest);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to refresh orders");
+      await syncOrders();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [syncOrders]);
 
-  useEffect(() => {
-    let socket: Socket | null = null;
-
-    socket = io(`${getApiBaseUrl()}/realtime`, {
-      query: { storeId },
-      transports: ["websocket", "polling"],
-    });
-
-    const handleCreated = () => {
-      if (audioUnlocked.current) {
-        playNewOrderAlert();
-      }
-      void refreshOrders();
-    };
-
-    socket.on("order.created", handleCreated);
-    socket.on("order.preparing", refreshOrders);
-    socket.on("order.ready", refreshOrders);
-    socket.on("order.fulfilled", refreshOrders);
-
-    return () => {
-      socket?.off("order.created", handleCreated);
-      socket?.off("order.preparing", refreshOrders);
-      socket?.off("order.ready", refreshOrders);
-      socket?.off("order.fulfilled", refreshOrders);
-      socket?.disconnect();
-    };
-  }, [refreshOrders, storeId]);
-
-  const unlockAudio = useCallback(() => {
-    audioUnlocked.current = true;
-    playNewOrderAlert();
-  }, []);
+  const { connected, audioEnabled, unlockAudio } = useStoreRealtime({
+    storeId,
+    onUpdate: syncOrders,
+  });
 
   const advanceOrder = useCallback(async (order: Order) => {
     const nextStatus = getNextOrderStatus(order.status);
@@ -121,12 +96,13 @@ export function useKitchenBoard({
       setOrders((current) =>
         current.map((entry) => (entry.id === updated.id ? updated : entry)),
       );
+      await refreshMetrics();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update order");
     } finally {
       setAdvancingId(null);
     }
-  }, []);
+  }, [refreshMetrics]);
 
   const fulfillItem = useCallback(async (order: Order, itemId: string) => {
     setFulfillingItemId(itemId);
@@ -137,12 +113,13 @@ export function useKitchenBoard({
       setOrders((current) =>
         current.map((entry) => (entry.id === updated.id ? updated : entry)),
       );
+      await refreshMetrics();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to hand off item");
     } finally {
       setFulfillingItemId(null);
     }
-  }, []);
+  }, [refreshMetrics]);
 
   const ordersByStatus = useMemo(() => {
     const grouped = Object.fromEntries(
@@ -161,11 +138,14 @@ export function useKitchenBoard({
   return {
     columns: KITCHEN_COLUMNS,
     ordersByStatus,
+    metrics,
     loading,
     error,
     advancingId,
     fulfillingItemId,
     now,
+    connected,
+    audioEnabled,
     refreshOrders,
     advanceOrder,
     fulfillItem,
