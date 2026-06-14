@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mizline-postgres-pv
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: mizline
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: mizline-local
+  hostPath:
+    path: /data/mizline/postgres
+    type: DirectoryOrCreate

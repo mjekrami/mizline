@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mizline
+
+labels:
+  - pairs:
+      app.kubernetes.io/managed-by: kustomize
+    includeSelectors: false
+
+resources:
+  - namespace.yaml
+  - storage/storageclass.yaml
+  - storage/postgres-pv.yaml
+  - storage/redis-pv.yaml
+  - secrets/mizline-secrets.yaml
+  - configmaps/mizline-config.yaml
+  - postgres/configmap.yaml
+  - postgres/statefulset.yaml
+  - postgres/service.yaml
+  - postgres/pdb.yaml
+  - redis/pvc.yaml
+  - redis/deployment.yaml
+  - redis/service.yaml
+  - api/deployment.yaml
+  - api/service.yaml
+  - api/pdb.yaml
+  - api/hpa.yaml
+  - customer/deployment.yaml
+  - customer/service.yaml
+  - customer/pdb.yaml
+  - customer/hpa.yaml
+  - kitchen/deployment.yaml
+  - kitchen/service.yaml
+  - kitchen/pdb.yaml
+  - kitchen/hpa.yaml
+  - ingress/ingress.yaml
+  - network-policies/api.yaml
+
+images:
+  - name: mizline/api
+    newName: mizline/api
+    newTag: latest
+  - name: mizline/customer
+    newName: mizline/customer
+    newTag: latest
+  - name: mizline/kitchen
+    newName: mizline/kitchen
+    newTag: latest

@@ -1,0 +1,11 @@
+# Static provisioning for clusters without a default StorageClass (local/k3s/minikube).
+# On cloud clusters with dynamic provisioning, you can omit PV/PVC and rely on
+# volumeClaimTemplates in StatefulSets using your platform StorageClass.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: mizline-local
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+allowVolumeExpansion: false

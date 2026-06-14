@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mizline-config
+data:
+  API_HOST: api.mizline.ir
+  CUSTOMER_HOST: order.mizline.ir
+  KITCHEN_HOST: kitchen.mizline.ir
+  CORS_ORIGINS: "https://order.mizline.ir,https://kitchen.mizline.ir"
