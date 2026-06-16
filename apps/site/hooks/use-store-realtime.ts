@@ -2,37 +2,55 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { OrderAssignedEvent } from "@mizline/shared";
+import type {
+  OrderAssignedEvent,
+  OrderCreatedEvent,
+  OrderStatusEvent,
+} from "@mizline/shared";
 import { getApiBaseUrl } from "@/lib/api";
 import { getAccessToken, loadAuthSession } from "@/lib/auth-session";
 import { playNewOrderAlert } from "@/lib/order-alert";
 
+export type StoreRealtimeUpdate =
+  | { type: "created"; payload: OrderCreatedEvent }
+  | { type: "status"; payload: OrderStatusEvent }
+  | { type: "assigned"; payload: OrderAssignedEvent };
+
 interface UseStoreRealtimeOptions {
   storeId: string;
-  onUpdate: () => void | Promise<void>;
-  onAssigned?: (payload: OrderAssignedEvent) => void;
+  onUpdate: (update: StoreRealtimeUpdate) => void | Promise<void>;
   enabled?: boolean;
 }
 
 export function useStoreRealtime({
   storeId,
   onUpdate,
-  onAssigned,
   enabled = true,
 }: UseStoreRealtimeOptions) {
   const [connected, setConnected] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const audioUnlocked = useRef(false);
   const onUpdateRef = useRef(onUpdate);
-  const onAssignedRef = useRef(onAssigned);
 
   useEffect(() => {
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
 
   useEffect(() => {
-    onAssignedRef.current = onAssigned;
-  }, [onAssigned]);
+    if (audioUnlocked.current) return;
+
+    const unlock = () => {
+      audioUnlocked.current = true;
+    };
+
+    document.addEventListener("pointerdown", unlock, { once: true });
+    document.addEventListener("keydown", unlock, { once: true });
+
+    return () => {
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+  }, []);
 
   useEffect(() => {
     if (!enabled || !storeId) return;
@@ -50,28 +68,27 @@ export function useStoreRealtime({
         transports: ["websocket", "polling"],
       });
 
-      const handleCreated = () => {
+      const handleCreated = (payload: OrderCreatedEvent) => {
         if (audioUnlocked.current) {
           playNewOrderAlert();
         }
-        void onUpdateRef.current();
+        void onUpdateRef.current({ type: "created", payload });
       };
 
-      const handleUpdate = () => {
-        void onUpdateRef.current();
+      const handleStatus = (payload: OrderStatusEvent) => {
+        void onUpdateRef.current({ type: "status", payload });
       };
 
       const handleAssigned = (payload: OrderAssignedEvent) => {
-        onAssignedRef.current?.(payload);
-        void onUpdateRef.current();
+        void onUpdateRef.current({ type: "assigned", payload });
       };
 
       socket.on("connect", () => setConnected(true));
       socket.on("disconnect", () => setConnected(false));
       socket.on("order.created", handleCreated);
-      socket.on("order.preparing", handleUpdate);
-      socket.on("order.ready", handleUpdate);
-      socket.on("order.fulfilled", handleUpdate);
+      socket.on("order.preparing", handleStatus);
+      socket.on("order.ready", handleStatus);
+      socket.on("order.fulfilled", handleStatus);
       socket.on("order.assigned", handleAssigned);
     });
 

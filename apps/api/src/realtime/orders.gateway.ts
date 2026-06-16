@@ -12,6 +12,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Server, Socket } from "socket.io";
 import { getCorsOrigins } from "../common/cors";
 import type { JwtPayload } from "../auth/auth.types";
+import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeService } from "./realtime.service";
 
 @WebSocketGateway({
@@ -29,6 +30,7 @@ export class OrdersGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly realtime: RealtimeService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly prisma: PrismaService,
   ) {}
 
   afterInit(server: Server) {
@@ -41,6 +43,8 @@ export class OrdersGateway implements OnGatewayInit, OnGatewayConnection {
       client.disconnect();
       return;
     }
+
+    client.data.storeId = storeId;
 
     const token =
       (client.handshake.auth?.token as string | undefined) ??
@@ -84,17 +88,29 @@ export class OrdersGateway implements OnGatewayInit, OnGatewayConnection {
       }
     }
 
-    client.disconnect();
+    // Customers stay connected and receive updates only for orders they join.
   }
 
   @SubscribeMessage("joinOrder")
-  handleJoinOrder(
+  async handleJoinOrder(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { orderId: string },
   ) {
-    if (data?.orderId) {
-      void client.join(`order:${data.orderId}`);
+    const storeId = client.data.storeId as string | undefined;
+    if (!storeId || !data?.orderId) {
+      return { joined: null };
     }
-    return { joined: data?.orderId ?? null };
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: data.orderId, storeId },
+      select: { id: true },
+    });
+
+    if (!order) {
+      return { joined: null };
+    }
+
+    await client.join(`order:${data.orderId}`);
+    return { joined: data.orderId };
   }
 }

@@ -1,17 +1,21 @@
 "use client";
 
 import type { KitchenMetrics, Order, OrderStatus } from "@mizline/shared";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOrderActions } from "@/hooks/use-order-actions";
 import { useOrderDelayAlerts } from "@/hooks/use-order-delay-alerts";
 import {
   getKitchenMetrics,
+  getKitchenOrder,
   listStoreOrders,
   updateOrderStatus,
 } from "@/lib/kitchen-api";
 import { canAdvanceOrderTo } from "@/lib/order-status";
 import { getAuthUser, loadAuthSession } from "@/lib/auth-session";
-import { useStoreRealtime } from "@/hooks/use-store-realtime";
+import {
+  useStoreRealtime,
+  type StoreRealtimeUpdate,
+} from "@/hooks/use-store-realtime";
 
 const KITCHEN_COLUMNS: OrderStatus[] = [
   "new",
@@ -42,16 +46,13 @@ export function useKitchenBoard({
   const [now, setNow] = useState(() => Date.now());
   const [myOrdersOnly, setMyOrdersOnly] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const syncSeqRef = useRef(0);
 
   useEffect(() => {
     void loadAuthSession().then((user) => {
       setCurrentUserId(user?.id ?? null);
     });
   }, []);
-
-  useEffect(() => {
-    setOrders(initialOrders);
-  }, [initialOrders]);
 
   useEffect(() => {
     setMetrics(initialMetrics);
@@ -85,14 +86,52 @@ export function useKitchenBoard({
     });
 
   const syncOrders = useCallback(async () => {
+    const seq = ++syncSeqRef.current;
+
     try {
       const latest = await listStoreOrders();
+      if (seq !== syncSeqRef.current) return;
       setOrders(latest);
       await refreshMetrics();
     } catch (err) {
+      if (seq !== syncSeqRef.current) return;
       setError(err instanceof Error ? err.message : "Failed to refresh orders");
     }
   }, [refreshMetrics]);
+
+  const syncOrderById = useCallback(
+    async (orderId: string) => {
+      try {
+        const updated = await getKitchenOrder(orderId);
+        updateOrderInList(updated);
+        await refreshMetrics();
+      } catch {
+        await syncOrders();
+      }
+    },
+    [refreshMetrics, syncOrders, updateOrderInList],
+  );
+
+  const handleRealtimeUpdate = useCallback(
+    (update: StoreRealtimeUpdate) => {
+      switch (update.type) {
+        case "created":
+          return syncOrders();
+        case "status":
+          return syncOrderById(update.payload.orderId);
+        case "assigned":
+          setOrders((current) =>
+            current.map((order) =>
+              order.id === update.payload.orderId
+                ? { ...order, assignedTo: update.payload.assignedTo }
+                : order,
+            ),
+          );
+          return syncOrderById(update.payload.orderId);
+      }
+    },
+    [syncOrderById, syncOrders],
+  );
 
   const refreshOrders = useCallback(async () => {
     setLoading(true);
@@ -104,23 +143,9 @@ export function useKitchenBoard({
     }
   }, [syncOrders]);
 
-  const handleAssigned = useCallback(
-    (payload: { orderId: string; assignedTo: { id: string; name: string } }) => {
-      setOrders((current) =>
-        current.map((order) =>
-          order.id === payload.orderId
-            ? { ...order, assignedTo: payload.assignedTo }
-            : order,
-        ),
-      );
-    },
-    [],
-  );
-
   const { connected, audioEnabled, unlockAudio } = useStoreRealtime({
     storeId,
-    onUpdate: syncOrders,
-    onAssigned: handleAssigned,
+    onUpdate: handleRealtimeUpdate,
   });
 
   useOrderDelayAlerts({
@@ -135,8 +160,25 @@ export function useKitchenBoard({
 
   const advanceOrderToStatus = useCallback(
     async (orderId: string, targetStatus: OrderStatus) => {
-      const order = orders.find((entry) => entry.id === orderId);
-      if (!order || !canAdvanceOrderTo(order.status, targetStatus)) return;
+      let previousOrder: Order | undefined;
+      let shouldAdvance = false;
+
+      setOrders((current) => {
+        previousOrder = current.find((entry) => entry.id === orderId);
+        if (
+          !previousOrder ||
+          !canAdvanceOrderTo(previousOrder.status, targetStatus)
+        ) {
+          return current;
+        }
+
+        shouldAdvance = true;
+        return current.map((entry) =>
+          entry.id === orderId ? { ...entry, status: targetStatus } : entry,
+        );
+      });
+
+      if (!shouldAdvance || !previousOrder) return;
 
       setError(null);
 
@@ -145,10 +187,11 @@ export function useKitchenBoard({
         updateOrderInList(updated);
         await refreshMetrics();
       } catch (err) {
+        updateOrderInList(previousOrder);
         setError(err instanceof Error ? err.message : "Failed to update order");
       }
     },
-    [orders, refreshMetrics, updateOrderInList],
+    [refreshMetrics, updateOrderInList],
   );
 
   const visibleOrders = useMemo(() => {

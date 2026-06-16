@@ -4,11 +4,11 @@ import type { Order, OrderStatus } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
 import { CheckCircle2, Clock3, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { io, type Socket } from "socket.io-client";
-import { getApiBaseUrl, getOrder } from "@/lib/api";
+import { useCallback, useEffect, useState } from "react";
+import { getOrder } from "@/lib/api";
 import { formatPrice } from "@/lib/format";
 import { addOrderRef } from "@/lib/orders";
+import { useCustomerOrderRealtime } from "@/hooks/use-customer-order-realtime";
 import { cn } from "@/lib/utils";
 
 const TRACKING_STEPS: OrderStatus[] = [
@@ -52,41 +52,23 @@ export function OrderTracking({
     addOrderRef(storeId, tableId, initialOrder.id, initialOrder.createdAt);
   }, [initialOrder.createdAt, initialOrder.id, storeId, tableId]);
 
-  useEffect(() => {
-    let socket: Socket | null = null;
-    let active = true;
-
-    async function connect() {
-      socket = io(`${getApiBaseUrl()}/realtime`, {
-        query: { storeId },
-        transports: ["websocket", "polling"],
-      });
-
-      socket.emit("joinOrder", { orderId: initialOrder.id });
-
-      const refresh = async () => {
-        if (!active) return;
-        setRefreshing(true);
-        try {
-          const latest = await getOrder(initialOrder.id);
-          if (active) setOrder(latest);
-        } finally {
-          if (active) setRefreshing(false);
-        }
-      };
-
-      socket.on("order.preparing", refresh);
-      socket.on("order.ready", refresh);
-      socket.on("order.fulfilled", refresh);
+  const refreshOrder = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const latest = await getOrder(initialOrder.id);
+      setOrder(latest);
+    } finally {
+      setRefreshing(false);
     }
+  }, [initialOrder.id]);
 
-    void connect();
-
-    return () => {
-      active = false;
-      socket?.disconnect();
-    };
-  }, [initialOrder.id, storeId]);
+  useCustomerOrderRealtime({
+    storeId,
+    orderIds: [initialOrder.id],
+    onStatusUpdate: () => {
+      void refreshOrder();
+    },
+  });
 
   const currentStep = stepIndex(order.status);
 

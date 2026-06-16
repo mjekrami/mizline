@@ -70,7 +70,7 @@ export function AdminDashboard({
 
   const { connected, audioEnabled, unlockAudio } = useStoreRealtime({
     storeId: store.id,
-    onUpdate: refreshOrdersAndMetrics,
+    onUpdate: () => refreshOrdersAndMetrics(),
   });
 
   const openOrder = useCallback((orderId: string) => {

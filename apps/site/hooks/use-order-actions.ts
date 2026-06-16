@@ -25,12 +25,14 @@ export function useOrderActions({
       if (!nextStatus) return;
 
       setAdvancingId(order.id);
+      onOrderUpdated({ ...order, status: nextStatus });
 
       try {
         const updated = await updateOrderStatus(order.id, nextStatus);
         onOrderUpdated(updated);
         await onAfterAction?.();
       } catch (err) {
+        onOrderUpdated(order);
         onError?.(
           err instanceof Error ? err.message : "Failed to update order",
         );

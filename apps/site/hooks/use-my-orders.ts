@@ -2,9 +2,9 @@
 
 import type { Order, OrderStatus } from "@mizline/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { io, type Socket } from "socket.io-client";
-import { getApiBaseUrl, getOrder } from "@/lib/api";
+import { getOrder } from "@/lib/api";
 import { loadOrderRefs } from "@/lib/orders";
+import { useCustomerOrderRealtime } from "@/hooks/use-customer-order-realtime";
 
 const ACTIVE_STATUSES: OrderStatus[] = ["new", "preparing", "ready"];
 
@@ -68,40 +68,15 @@ export function useMyOrders(storeId: string, tableId: string) {
     return () => window.removeEventListener("focus", handleFocus);
   }, [refresh]);
 
-  useEffect(() => {
-    if (trackedOrderIds.length === 0) return;
-
-    let socket: Socket | null = null;
-    let active = true;
-
-    async function connect() {
-      socket = io(`${getApiBaseUrl()}/realtime`, {
-        query: { storeId },
-        transports: ["websocket", "polling"],
-      });
-
-      const handleUpdate = async () => {
-        if (!active) return;
-        setRefreshing(true);
-        try {
-          await refresh();
-        } finally {
-          if (active) setRefreshing(false);
-        }
-      };
-
-      socket.on("order.preparing", handleUpdate);
-      socket.on("order.ready", handleUpdate);
-      socket.on("order.fulfilled", handleUpdate);
-    }
-
-    void connect();
-
-    return () => {
-      active = false;
-      socket?.disconnect();
-    };
-  }, [trackedOrderIds.length, refresh, storeId]);
+  useCustomerOrderRealtime({
+    storeId,
+    orderIds: trackedOrderIds,
+    enabled: trackedOrderIds.length > 0,
+    onStatusUpdate: () => {
+      setRefreshing(true);
+      void refresh().finally(() => setRefreshing(false));
+    },
+  });
 
   const activeOrders = useMemo(
     () => orders.filter((order) => ACTIVE_STATUSES.includes(order.status)),
