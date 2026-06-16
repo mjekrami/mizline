@@ -13,7 +13,7 @@ import {
   setProductModifierGroups,
   updateProduct,
 } from "@/lib/api/admin";
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
 interface ProductsPanelProps {

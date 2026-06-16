@@ -19,7 +19,6 @@ interface PathContextValue extends ParsedSitePath {
   isKitchen: boolean;
   isWaiter: boolean;
   isStaff: boolean;
-  isCustomer: boolean;
 }
 
 const PathContext = createContext<PathContextValue | null>(null);
@@ -37,7 +36,6 @@ export function PathProvider({ children }: { children: ReactNode }) {
       isKitchen: parsed.section === "kitchen",
       isWaiter: parsed.section === "waiter",
       isStaff: isStaffSection(parsed.section),
-      isCustomer: parsed.section === "customer",
     };
   }, [pathname]);
 

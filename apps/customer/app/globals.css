@@ -1,0 +1,426 @@
+@import "tailwindcss";
+@import "@mizline/shared/theme.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-customer);
+}
+
+/* Dark Roasted — deep espresso coffee ordering experience */
+.customer-app {
+  --radius: 1.25rem;
+  --background: #050403;
+  --foreground: #ede5d8;
+
+  --card: #0d0b09;
+  --card-foreground: #ede5d8;
+
+  --popover: #12100d;
+  --popover-foreground: #ede5d8;
+
+  --primary: #c4a574;
+  --primary-hover: #d4b88a;
+  --primary-foreground: #050403;
+
+  --secondary: #181410;
+  --secondary-foreground: #ede5d8;
+
+  --muted: #1c1814;
+  --muted-foreground: #a8947f;
+
+  --accent: #c4956a;
+  --accent-foreground: #050403;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --success: #3d9970;
+  --warning: #e8954a;
+
+  --border: #241e18;
+  --input: #241e18;
+  --ring: #c4a574;
+
+  --customer-caramel: #c4956a;
+  --customer-dark: #050403;
+  --customer-accent-foreground: #faf6f0;
+  --customer-accent-gradient: linear-gradient(
+    135deg,
+    #3d342c 0%,
+    #1a1410 55%,
+    #0a0806 100%
+  );
+  --customer-card-shadow: 0 4px 24px -4px rgb(0 0 0 / 0.45);
+  --customer-float-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.55);
+  --customer-splash-gradient: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 35%,
+    rgb(5 4 3 / 0.45) 70%,
+    rgb(5 4 3 / 0.92) 100%
+  );
+  --customer-home-gradient:
+    radial-gradient(
+      ellipse 90% 70% at 50% -15%,
+      rgb(196 149 106 / 0.18),
+      transparent 58%
+    ),
+    linear-gradient(
+      180deg,
+      #030202 0%,
+      #050403 18%,
+      #0a0806 42%,
+      #0d0b09 68%,
+      var(--background) 100%
+    );
+  --customer-home-foreground: #faf6f0;
+  --customer-home-muted: rgb(250 246 240 / 0.58);
+  --customer-ambient-gradient:
+    radial-gradient(
+      ellipse 105% 85% at 50% -22%,
+      color-mix(in srgb, #c4956a 10%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 75% 55% at 92% 88%,
+      color-mix(in srgb, #e07b32 6%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 8% 62%,
+      color-mix(in srgb, #c4956a 5%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 85% 65% at 50% 108%,
+      color-mix(in srgb, #241e18 40%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      168deg,
+      #050403 0%,
+      #080605 38%,
+      #0a0806 72%,
+      #050403 100%
+    );
+  position: relative;
+  isolation: isolate;
+  color: var(--foreground);
+}
+
+.customer-app body {
+  background: var(--customer-ambient-gradient);
+  background-attachment: fixed;
+}
+
+.customer-app .customer-pill-active,
+.customer-app .customer-btn-primary,
+.customer-app .customer-add-btn {
+  background: var(--customer-accent-gradient);
+  color: var(--customer-accent-foreground);
+}
+
+.customer-app .customer-pill-outlined {
+  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--customer-caramel) 45%, var(--border));
+  color: var(--foreground);
+}
+
+.customer-app .customer-icon-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--customer-card-shadow);
+  color: var(--foreground);
+}
+
+.customer-app .customer-icon-btn:hover {
+  background: var(--secondary);
+}
+
+.customer-app .customer-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--customer-card-shadow);
+  color: var(--foreground);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.customer-app .customer-nav-link:hover:not(:disabled) {
+  background: var(--card);
+}
+
+.customer-app .customer-nav-link:disabled {
+  cursor: not-allowed;
+}
+
+.customer-app .customer-call-waiter {
+  width: 100%;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--customer-caramel) 35%, var(--border));
+}
+
+.customer-app .customer-call-waiter-confirm {
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--customer-card-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.customer-app .customer-product-card,
+.customer-app .customer-horizontal-card {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow: var(--customer-card-shadow);
+  color: var(--card-foreground);
+  text-align: left;
+}
+
+.customer-app .customer-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem;
+}
+
+.customer-app .customer-horizontal-card .customer-card-body {
+  flex: 1 1 auto;
+  min-height: 4.75rem;
+  padding: 0.75rem;
+}
+
+.customer-app .customer-card-title {
+  color: var(--card-foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.customer-app .customer-card-desc {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.customer-app .customer-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.625rem;
+}
+
+.customer-app .customer-card-price {
+  color: var(--card-foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.customer-app .customer-category-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+}
+
+.customer-app .customer-search {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--customer-card-shadow);
+}
+
+.customer-app .customer-home-gradient {
+  background: var(--customer-home-gradient);
+  padding-bottom: 1.25rem;
+}
+
+.customer-app .customer-home-gradient .customer-home-greeting,
+.customer-app .customer-home-gradient .customer-home-subtitle {
+  color: var(--customer-home-muted);
+}
+
+.customer-app .customer-home-gradient .customer-home-title {
+  color: var(--customer-home-foreground);
+}
+
+.customer-app .customer-home-gradient .customer-home-avatar {
+  background: rgb(250 246 240 / 0.1);
+  border: 1px solid rgb(250 246 240 / 0.14);
+  color: var(--customer-home-foreground);
+}
+
+.customer-app .customer-home-gradient .customer-icon-btn {
+  background: rgb(250 246 240 / 0.1);
+  border-color: rgb(250 246 240 / 0.14);
+  color: var(--customer-home-foreground);
+  box-shadow: none;
+}
+
+.customer-app .customer-home-gradient .customer-icon-btn:hover {
+  background: rgb(250 246 240 / 0.16);
+}
+
+.customer-app .customer-home-gradient .customer-hero-headline {
+  color: var(--customer-home-foreground);
+}
+
+.customer-app .customer-hero {
+  position: relative;
+  overflow: visible;
+  background: transparent;
+}
+
+.customer-app .customer-text-accent {
+  color: var(--customer-caramel);
+}
+
+.customer-app .customer-order-banner {
+  background: color-mix(in srgb, var(--customer-caramel) 14%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--customer-caramel) 28%, var(--border));
+}
+
+.customer-app .customer-cart-line {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--customer-card-shadow);
+}
+
+.customer-app .customer-cart-summary {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+}
+
+.customer-app dialog {
+  color: var(--foreground);
+  color-scheme: dark;
+}
+
+.customer-app .customer-detail-view,
+.customer-app .customer-overlay-view {
+  background: var(--customer-ambient-gradient);
+  --muted-foreground: #b8a690;
+}
+
+.customer-app .customer-detail-view textarea,
+.customer-app .customer-overlay-view textarea,
+.customer-app .customer-detail-view input,
+.customer-app .customer-overlay-view input {
+  color: var(--foreground);
+}
+
+.customer-app .customer-detail-footer {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 32px -8px rgb(0 0 0 / 0.35);
+}
+
+.customer-app .customer-scroll-row {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.customer-app .customer-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.customer-app .customer-bottom-nav {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  box-shadow: 0 -4px 24px -4px rgb(0 0 0 / 0.4);
+}
+
+.customer-app .customer-bottom-nav-item-active {
+  background: var(--customer-accent-gradient);
+  color: var(--customer-accent-foreground);
+}
+
+.customer-app .customer-floating-label {
+  background: rgb(5 4 3 / 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--customer-home-foreground);
+}
+
+.customer-app .customer-splash-cta {
+  background: #faf6f0;
+  color: var(--customer-dark);
+  box-shadow: var(--customer-float-shadow);
+}
+
+.customer-app .customer-splash-cta-icon {
+  background: var(--customer-dark);
+  color: #faf6f0;
+}
+
+.customer-app .customer-brand-badge {
+  background: #faf6f0;
+  color: var(--customer-dark);
+}
+
+.customer-app .customer-price-pill {
+  background: var(--customer-accent-gradient);
+  color: var(--customer-accent-foreground);
+}
+
+.customer-app .customer-size-pill-active {
+  background: var(--customer-accent-gradient);
+  color: var(--customer-accent-foreground);
+}
+
+.customer-app .customer-size-pill {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  box-shadow: var(--customer-card-shadow);
+}
+
+.customer-app .customer-stepper-btn-dark {
+  background: var(--customer-accent-gradient);
+  color: var(--customer-accent-foreground);
+}
+
+.customer-app .customer-stepper-btn-outline {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.customer-app .customer-add-cart-btn {
+  background: var(--secondary);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.customer-app .customer-add-cart-btn-icon {
+  background: var(--customer-accent-gradient);
+  color: #faf6f0;
+}
+
+.customer-app .customer-rating-star {
+  color: #f5b942;
+}
+
+.customer-app .customer-rating-star-empty {
+  color: var(--muted);
+}

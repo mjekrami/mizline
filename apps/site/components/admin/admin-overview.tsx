@@ -26,7 +26,7 @@ import {
 } from "@/lib/admin/dashboard";
 import { countTrackedOrders } from "@/lib/admin/dashboard";
 import { fetchDailySummary } from "@/lib/api/reports";
-import { formatPrepTime, formatPrice } from "@/lib/format";
+import { formatPrepTime, formatPrice } from "@mizline/shared";
 
 interface AdminOverviewProps {
   catalog: AdminCatalog;

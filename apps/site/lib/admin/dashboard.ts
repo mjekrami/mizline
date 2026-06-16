@@ -1,6 +1,6 @@
 import type { Order, OrderStatus } from "@mizline/shared";
 import type { AdminCatalog, AdminTable, KitchenMetrics } from "@mizline/shared";
-import { formatOrderNumber, formatPrepTime, formatPrice } from "@/lib/format";
+import { formatOrderNumber, formatPrepTime, formatPrice } from "@mizline/shared";
 
 export interface AdminDashboardStats {
   revenueTodayCents: number;

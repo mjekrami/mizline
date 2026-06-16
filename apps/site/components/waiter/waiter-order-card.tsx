@@ -3,7 +3,7 @@
 import type { Order } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
 import { Clock3 } from "lucide-react";
-import { formatWaitTime } from "@/lib/format";
+import { formatWaitTime } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
 interface WaiterOrderCardProps {

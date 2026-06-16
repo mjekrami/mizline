@@ -1,9 +1,9 @@
 import { Clock3 } from "lucide-react";
 import {
+  formatWaitTime,
   getWaitUrgency,
   type WaitUrgencyThresholds,
 } from "@mizline/shared";
-import { formatWaitTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const urgencyStyles = {

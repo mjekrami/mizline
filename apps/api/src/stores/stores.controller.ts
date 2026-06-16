@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { StoresService } from "./stores.service";
 
 @Controller("stores")
@@ -8,6 +8,18 @@ export class StoresController {
   @Get(":storeId")
   getStore(@Param("storeId") storeId: string) {
     return this.storesService.getStore(storeId);
+  }
+
+  @Get(":storeId/menu/popular")
+  getPopularMenu(
+    @Param("storeId") storeId: string,
+    @Query("limit") limit?: string,
+  ) {
+    const parsedLimit = limit ? Number.parseInt(limit, 10) : 8;
+    return this.storesService.getPopularProducts(
+      storeId,
+      Number.isFinite(parsedLimit) ? parsedLimit : 8,
+    );
   }
 
   @Get(":storeId/menu")

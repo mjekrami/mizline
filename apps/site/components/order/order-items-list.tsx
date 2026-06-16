@@ -3,7 +3,7 @@
 import type { Order } from "@mizline/shared";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { canHandOffOrderItems } from "@/lib/order/display";
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
 type OrderItemsVariant = "kitchen" | "admin";

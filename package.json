@@ -6,7 +6,7 @@
     "dev": "pnpm -r --parallel dev",
     "dev:site": "pnpm --filter @mizline/site dev",
     "dev:api": "pnpm --filter @mizline/api dev",
-    "dev:customer": "pnpm --filter @mizline/customer start",
+    "dev:customer": "pnpm --filter @mizline/customer dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck"

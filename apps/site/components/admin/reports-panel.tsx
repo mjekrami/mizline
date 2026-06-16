@@ -8,7 +8,7 @@ import {
   fetchDailySummary,
   fetchHourlyActivity,
 } from "@/lib/api/reports";
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@mizline/shared";
 
 function todayInputValue() {
   return new Intl.DateTimeFormat("en-CA", {

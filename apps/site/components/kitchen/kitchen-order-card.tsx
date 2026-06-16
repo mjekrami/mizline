@@ -23,7 +23,7 @@ import {
   getReadyAllLabel,
   type KitchenItemTab,
 } from "@/lib/kitchen/display";
-import { formatOrderNumber, formatTimeOfDay, formatWaitTime } from "@/lib/format";
+import { formatOrderNumber, formatTimeOfDay, formatWaitTime } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
 const ITEM_TABS: { id: KitchenItemTab; label: string }[] = [
@@ -178,7 +178,6 @@ export function KitchenOrderCard({
           </span>
           <OrderModifyTrigger
             order={order}
-            mode="staff"
             onClick={() => setModifyOpen(true)}
           />
         </div>
@@ -253,7 +252,6 @@ export function KitchenOrderCard({
       <OrderModifySheet
         order={order}
         storeId={storeId}
-        mode="staff"
         open={modifyOpen}
         onClose={() => setModifyOpen(false)}
         onOrderUpdated={onOrderUpdated}

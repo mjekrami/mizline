@@ -1,5 +1,4 @@
 export type SiteSection =
-  | "customer"
   | "kitchen"
   | "admin"
   | "waiter"
@@ -31,10 +30,6 @@ export function isStaffSection(section: SiteSection): section is StaffSection {
 
 export function parseSitePath(pathname: string): ParsedSitePath {
   const segments = pathname.split("/").filter(Boolean);
-
-  if (segments[0] === "store") {
-    return { section: "customer" };
-  }
 
   if (segments.length >= 2) {
     const [staffPath, section] = segments;

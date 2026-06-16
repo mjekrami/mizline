@@ -2,33 +2,26 @@
 
 import type { MenuCategory, MenuProduct, Order } from "@mizline/shared";
 import {
-  canCustomerAddItems,
+  filterMenu,
+  formatPrice,
+  getProductFromPrice,
   isOrderModifiable,
 } from "@mizline/shared";
 import { Loader2, Minus, Plus, Search, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  MenuCategorySection,
-  MenuSearch,
-  ProductCard,
   VariantPicker,
   type VariantPickerSelection,
 } from "@/components/menu-ui";
 import { useOrderModifications } from "@/hooks/use-order-modifications";
 import type { OrderModificationAction } from "@/hooks/use-order-modifications";
-import { getMenu } from "@/lib/api/customer";
-import { filterMenu, getProductFromPrice } from "@/lib/menu/filter";
-import { formatPrice } from "@/lib/format";
+import { getMenu } from "@/lib/api/menu";
 import { cn } from "@/lib/utils";
-
-type OrderModifyMode = "staff" | "customer";
 
 interface OrderModifySheetProps {
   order: Order;
   storeId: string;
-  tableId?: string;
-  mode: OrderModifyMode;
   open: boolean;
   onClose: () => void;
   onOrderUpdated: (order: Order) => void;
@@ -37,8 +30,6 @@ interface OrderModifySheetProps {
 export function OrderModifySheet({
   order,
   storeId,
-  tableId,
-  mode,
   open,
   onClose,
   onOrderUpdated,
@@ -52,29 +43,21 @@ export function OrderModifySheet({
   );
   const [error, setError] = useState<string | null>(null);
 
-  const canModify =
-    mode === "staff"
-      ? isOrderModifiable(order.status)
-      : canCustomerAddItems(order.status);
+  const canModify = isOrderModifiable(order.status);
 
   const handleOrderUpdated = useCallback(
     (updated: Order, action: OrderModificationAction) => {
       onOrderUpdated(updated);
-      const shouldClose =
-        action === "add" || (mode === "staff" && action === "remove");
-      if (shouldClose) {
+      if (action === "add" || action === "remove") {
         setSelectedProduct(null);
         onClose();
       }
     },
-    [mode, onClose, onOrderUpdated],
+    [onClose, onOrderUpdated],
   );
 
   const { busyKey, addItems, changeItemQuantity, removeItem } =
     useOrderModifications({
-      mode,
-      storeId,
-      tableId,
       onOrderUpdated: handleOrderUpdated,
       onError: setError,
     });
@@ -170,7 +153,7 @@ export function OrderModifySheet({
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {mode === "staff" ? "Modify order" : "Add items"}
+              Modify order
             </p>
             <h2 id="order-modify-title" className="text-lg font-semibold">
               Table {order.tableName} · {formatPrice(order.total)}
@@ -198,98 +181,96 @@ export function OrderModifySheet({
               </p>
             ) : null}
 
-            {mode === "staff" ? (
-              <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Current items
-                </h3>
-                <ul className="flex flex-col gap-2">
-                  {order.items.map((item) => {
-                    const busy = busyKey?.includes(item.id) ?? false;
+            <section className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Current items
+              </h3>
+              <ul className="flex flex-col gap-2">
+                {order.items.map((item) => {
+                  const busy = busyKey?.includes(item.id) ?? false;
 
-                    return (
-                      <li
-                        key={item.id}
-                        className="rounded-lg border border-border bg-background/60 px-3 py-2.5"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">
-                              {item.productName}
+                  return (
+                    <li
+                      key={item.id}
+                      className="rounded-lg border border-border bg-background/60 px-3 py-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">
+                            {item.productName}
+                          </p>
+                          {item.variantName ? (
+                            <p className="text-xs text-muted-foreground">
+                              {item.variantName}
                             </p>
-                            {item.variantName ? (
-                              <p className="text-xs text-muted-foreground">
-                                {item.variantName}
-                              </p>
-                            ) : null}
-                            {item.fulfilled ? (
-                              <p className="text-xs text-success">Delivered</p>
-                            ) : null}
-                          </div>
-                          <span className="shrink-0 text-sm font-medium">
-                            {formatPrice(item.price * item.quantity)}
-                          </span>
+                          ) : null}
+                          {item.fulfilled ? (
+                            <p className="text-xs text-success">Delivered</p>
+                          ) : null}
                         </div>
+                        <span className="shrink-0 text-sm font-medium">
+                          {formatPrice(item.price * item.quantity)}
+                        </span>
+                      </div>
 
-                        {!item.fulfilled ? (
-                          <div className="mt-2 flex items-center justify-between gap-2">
-                            <div className="inline-flex items-center rounded-md border border-border">
-                              <button
-                                type="button"
-                                disabled={busy || item.quantity <= 1}
-                                onClick={() =>
-                                  void changeItemQuantity(
-                                    order.id,
-                                    item.id,
-                                    item.quantity - 1,
-                                  )
-                                }
-                                className="rounded-l-md p-1.5 hover:bg-muted disabled:opacity-40"
-                                aria-label="Decrease quantity"
-                              >
-                                <Minus className="size-3.5" />
-                              </button>
-                              <span className="min-w-8 px-2 text-center text-sm font-semibold tabular-nums">
-                                {busy ? (
-                                  <Loader2 className="mx-auto size-3.5 animate-spin" />
-                                ) : (
-                                  item.quantity
-                                )}
-                              </span>
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={() =>
-                                  void changeItemQuantity(
-                                    order.id,
-                                    item.id,
-                                    item.quantity + 1,
-                                  )
-                                }
-                                className="rounded-r-md p-1.5 hover:bg-muted disabled:opacity-40"
-                                aria-label="Increase quantity"
-                              >
-                                <Plus className="size-3.5" />
-                              </button>
-                            </div>
-
+                      {!item.fulfilled ? (
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <div className="inline-flex items-center rounded-md border border-border">
                             <button
                               type="button"
-                              disabled={busy || order.items.length <= 1}
-                              onClick={() => void removeItem(order.id, item.id)}
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-40"
+                              disabled={busy || item.quantity <= 1}
+                              onClick={() =>
+                                void changeItemQuantity(
+                                  order.id,
+                                  item.id,
+                                  item.quantity - 1,
+                                )
+                              }
+                              className="rounded-l-md p-1.5 hover:bg-muted disabled:opacity-40"
+                              aria-label="Decrease quantity"
                             >
-                              <Trash2 className="size-3.5" />
-                              Remove
+                              <Minus className="size-3.5" />
+                            </button>
+                            <span className="min-w-8 px-2 text-center text-sm font-semibold tabular-nums">
+                              {busy ? (
+                                <Loader2 className="mx-auto size-3.5 animate-spin" />
+                              ) : (
+                                item.quantity
+                              )}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() =>
+                                void changeItemQuantity(
+                                  order.id,
+                                  item.id,
+                                  item.quantity + 1,
+                                )
+                              }
+                              className="rounded-r-md p-1.5 hover:bg-muted disabled:opacity-40"
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="size-3.5" />
                             </button>
                           </div>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ) : null}
+
+                          <button
+                            type="button"
+                            disabled={busy || order.items.length <= 1}
+                            onClick={() => void removeItem(order.id, item.id)}
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-40"
+                          >
+                            <Trash2 className="size-3.5" />
+                            Remove
+                          </button>
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
 
             <section className="flex flex-col gap-3">
               <div>
@@ -297,52 +278,17 @@ export function OrderModifySheet({
                   Add items
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  {mode === "staff"
-                    ? "Search and tap a product to add it."
-                    : "Choose from the menu to add to this order."}
+                  Search and tap a product to add it.
                 </p>
               </div>
 
-              {mode === "staff" ? (
-                <StaffOrderAddMenu
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  menu={filteredMenu}
-                  loading={menuLoading}
-                  onSelectProduct={setSelectedProduct}
-                />
-              ) : (
-                <>
-                  <MenuSearch value={searchQuery} onChange={setSearchQuery} />
-
-                  {menuLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : filteredMenu.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-muted-foreground">
-                      No menu items available.
-                    </p>
-                  ) : (
-                    <div className="flex flex-col gap-6 pb-2">
-                      {filteredMenu.map((category) => (
-                        <MenuCategorySection
-                          key={category.id}
-                          name={category.name}
-                        >
-                          {category.products.map((product) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              onSelect={setSelectedProduct}
-                            />
-                          ))}
-                        </MenuCategorySection>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
+              <StaffOrderAddMenu
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                menu={filteredMenu}
+                loading={menuLoading}
+                onSelectProduct={setSelectedProduct}
+              />
             </section>
           </div>
         )}
@@ -440,23 +386,16 @@ function StaffOrderAddMenu({
 
 interface OrderModifyTriggerProps {
   order: Order;
-  mode: OrderModifyMode;
   className?: string;
   onClick: () => void;
 }
 
 export function OrderModifyTrigger({
   order,
-  mode,
   className,
   onClick,
 }: OrderModifyTriggerProps) {
-  const canShow =
-    mode === "staff"
-      ? isOrderModifiable(order.status)
-      : canCustomerAddItems(order.status);
-
-  if (!canShow) return null;
+  if (!isOrderModifiable(order.status)) return null;
 
   return (
     <button
@@ -467,7 +406,7 @@ export function OrderModifyTrigger({
         className,
       )}
     >
-      {mode === "staff" ? "Modify" : "Add items"}
+      Modify
     </button>
   );
 }

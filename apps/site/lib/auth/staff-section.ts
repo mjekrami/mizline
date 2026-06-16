@@ -20,6 +20,10 @@ export async function redirectIfUnauthorizedStaffSection(
     return;
   }
 
+  if (section === "waiter") {
+    redirect(`/${staffPath}/login?next=/${staffPath}/waiter`);
+  }
+
   redirect(defaultStaffHome(user.role, staffPath));
 }
 

@@ -24,7 +24,7 @@ import {
   formatPrice,
   formatTimeOfDay,
   formatWaitTime,
-} from "@/lib/format";
+} from "@mizline/shared";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { cn } from "@/lib/utils";
 
@@ -249,7 +249,6 @@ function AdminOrderDetail({
         <div className="flex flex-wrap items-center gap-2">
           <OrderModifyTrigger
             order={order}
-            mode="staff"
             onClick={() => setModifyOpen(true)}
           />
           <OrderAdvanceButton
@@ -291,7 +290,6 @@ function AdminOrderDetail({
       <OrderModifySheet
         order={order}
         storeId={storeId}
-        mode="staff"
         open={modifyOpen}
         onClose={() => setModifyOpen(false)}
         onOrderUpdated={onOrderUpdated}

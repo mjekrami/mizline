@@ -7,24 +7,15 @@ import {
   removeOrderItem,
   updateOrderItem,
 } from "@/lib/api/kitchen";
-import { addItemsToOrder } from "@/lib/api/customer";
-
-type OrderModifyMode = "staff" | "customer";
 
 export type OrderModificationAction = "add" | "qty" | "remove";
 
 interface UseOrderModificationsOptions {
-  mode: OrderModifyMode;
-  storeId: string;
-  tableId?: string;
   onOrderUpdated: (order: Order, action: OrderModificationAction) => void;
   onError?: (message: string) => void;
 }
 
 export function useOrderModifications({
-  mode,
-  storeId,
-  tableId,
   onOrderUpdated,
   onError,
 }: UseOrderModificationsOptions) {
@@ -51,16 +42,8 @@ export function useOrderModifications({
 
   const addItems = useCallback(
     (orderId: string, body: AddOrderItemsRequest) =>
-      run(`add:${orderId}`, "add", () => {
-        if (mode === "customer") {
-          if (!tableId) {
-            throw new Error("Table is required to add items");
-          }
-          return addItemsToOrder(storeId, tableId, orderId, body);
-        }
-        return addOrderItems(orderId, body);
-      }),
-    [mode, run, storeId, tableId],
+      run(`add:${orderId}`, "add", () => addOrderItems(orderId, body)),
+    [run],
   );
 
   const changeItemQuantity = useCallback(

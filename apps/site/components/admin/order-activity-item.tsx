@@ -9,7 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { ActivityEntry, ActivityEventType } from "@/lib/admin/dashboard";
-import { formatRelativeTime } from "@/lib/format";
+import { formatRelativeTime } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
 const eventIcons: Record<ActivityEventType, LucideIcon> = {

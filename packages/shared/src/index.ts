@@ -25,6 +25,22 @@ export {
   type WaitUrgencyThresholds,
 } from "./wait-urgency";
 
+export {
+  formatOrderNumber,
+  formatPrepTime,
+  formatPrice,
+  formatRelativeTime,
+  formatTimeOfDay,
+  formatWaitTime,
+} from "./format";
+
+export {
+  buildAvailableProductIds,
+  filterMenu,
+  getProductFromPrice,
+  productNeedsPicker,
+} from "./menu-filter";
+
 export type {
   AddOrderItemsRequest,
   AdminCatalog,

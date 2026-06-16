@@ -1,7 +1,10 @@
 import { LoginForm } from "@/components/login-form";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { getServerAuthUser } from "@/lib/auth/server";
-import { resolvePostLoginPath } from "@/lib/auth/post-login-path";
+import {
+  canAccessStaffPath,
+  resolvePostLoginPath,
+} from "@/lib/auth/post-login-path";
 import { getConfiguredStoreId, getStore } from "@/lib/api/server";
 import { redirect } from "next/navigation";
 
@@ -19,7 +22,15 @@ export default async function StaffLoginPage({
   const user = await getServerAuthUser();
 
   if (user) {
-    redirect(resolvePostLoginPath(user, path, next));
+    const intendedPath = next?.startsWith(`/${path}/`) ? next : undefined;
+
+    if (intendedPath && canAccessStaffPath(user.role, intendedPath)) {
+      redirect(intendedPath);
+    }
+
+    if (!intendedPath) {
+      redirect(resolvePostLoginPath(user, path));
+    }
   }
 
   const storeId = getConfiguredStoreId();
@@ -33,12 +44,21 @@ export default async function StaffLoginPage({
   }
 
   const store = await getStore(storeId);
+  const nextPath = next ?? `/${path}/waiter`;
+  const isWaiterLogin = nextPath.includes("/waiter");
 
   return (
     <LoginForm
       staffPath={path}
       tenantSlug={store.tenantSlug}
-      nextPath={next ?? `/${path}/waiter`}
+      nextPath={nextPath}
+      title={isWaiterLogin ? "Waiter sign in" : "Staff login"}
+      description={
+        isWaiterLogin
+          ? "Sign in with your waiter account to receive orders and table buzzes."
+          : "Sign in to access the kitchen display or admin dashboard."
+      }
+      switchAccount={Boolean(user && isWaiterLogin)}
     />
   );
 }

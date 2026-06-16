@@ -1,17 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PathProvider } from "@/components/path-provider";
-import { PwaProvider } from "@/components/pwa-provider";
 import { GlobalThemeToggle } from "@/components/global-theme-toggle";
 import { ThemeProvider } from "@/components/theme-provider";
-import {
-  APP_DEFAULT_TITLE,
-  APP_DESCRIPTION,
-  APP_NAME,
-  APP_TITLE_TEMPLATE,
-  BACKGROUND_COLOR,
-  THEME_COLOR,
-} from "@/lib/pwa";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,50 +16,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  applicationName: APP_NAME,
+  applicationName: "Mizline Staff",
   title: {
-    default: APP_DEFAULT_TITLE,
-    template: APP_TITLE_TEMPLATE,
+    default: "Mizline Staff",
+    template: "%s | Mizline Staff",
   },
-  description: APP_DESCRIPTION,
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: APP_DEFAULT_TITLE,
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  openGraph: {
-    type: "website",
-    siteName: APP_NAME,
-    title: {
-      default: APP_DEFAULT_TITLE,
-      template: APP_TITLE_TEMPLATE,
-    },
-    description: APP_DESCRIPTION,
-  },
-  twitter: {
-    card: "summary",
-    title: {
-      default: APP_DEFAULT_TITLE,
-      template: APP_TITLE_TEMPLATE,
-    },
-    description: APP_DESCRIPTION,
-  },
+  description: "Kitchen display and store management for Mizline",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: THEME_COLOR },
+    { media: "(prefers-color-scheme: light)", color: "#1A1210" },
     { media: "(prefers-color-scheme: dark)", color: "#080605" },
   ],
   colorScheme: "light dark",
-  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -91,10 +54,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <PathProvider>
-            <PwaProvider>
-              <GlobalThemeToggle />
-              {children}
-            </PwaProvider>
+            <GlobalThemeToggle />
+            {children}
           </PathProvider>
         </ThemeProvider>
       </body>

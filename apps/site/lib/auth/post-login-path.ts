@@ -25,7 +25,7 @@ export function resolvePostLoginPath(
   return `/${staffPath}/login`;
 }
 
-function canAccessStaffPath(role: AuthUser["role"], path: string): boolean {
+export function canAccessStaffPath(role: AuthUser["role"], path: string): boolean {
   if (path.includes("/admin")) {
     return canAccessAdmin(role);
   }

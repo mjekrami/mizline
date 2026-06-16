@@ -46,6 +46,7 @@ Use the printed store/table IDs in API calls below.
 - `GET /api/health` — health + DB ping
 - `GET /api/stores/:storeId` — store info
 - `GET /api/stores/:storeId/menu` — menu
+- `GET /api/stores/:storeId/menu/popular?limit=8` — most ordered items
 - `POST /api/stores/:storeId/tables/:tableId/orders` — submit order
 - `GET /api/orders/:orderId` — order tracking
 

@@ -2,7 +2,7 @@
 
 import type { Order } from "@mizline/shared";
 import { AdminStatusBadge } from "@/components/admin/admin-status-badge";
-import { formatOrderNumber, formatPrice } from "@/lib/format";
+import { formatOrderNumber, formatPrice } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
 interface AdminOrdersTableProps {

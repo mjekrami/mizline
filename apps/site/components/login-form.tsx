@@ -9,9 +9,19 @@ interface LoginFormProps {
   staffPath: string;
   tenantSlug: string;
   nextPath: string;
+  title?: string;
+  description?: string;
+  switchAccount?: boolean;
 }
 
-export function LoginForm({ staffPath, tenantSlug, nextPath }: LoginFormProps) {
+export function LoginForm({
+  staffPath,
+  tenantSlug,
+  nextPath,
+  title = "Staff login",
+  description = "Sign in to access the waiter app, kitchen display, or admin dashboard.",
+  switchAccount = false,
+}: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,10 +59,14 @@ export function LoginForm({ staffPath, tenantSlug, nextPath }: LoginFormProps) {
         className="w-full max-w-md space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm"
       >
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Staff login</h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in to access the waiter app, kitchen display, or admin dashboard.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          <p className="text-sm text-muted-foreground">{description}</p>
+          {switchAccount ? (
+            <p className="text-sm text-muted-foreground">
+              You&apos;re signed in with a different role. Enter waiter
+              credentials below to switch accounts.
+            </p>
+          ) : null}
         </div>
 
         <label className="block space-y-1 text-sm">

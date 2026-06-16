@@ -22,7 +22,7 @@ export function hasKitchenDevToken(): boolean {
 }
 
 export function getCustomerBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  return process.env.NEXT_PUBLIC_CUSTOMER_URL ?? "http://localhost:3001";
 }
 
 export function hasStaffAuthConfigured(): boolean {
