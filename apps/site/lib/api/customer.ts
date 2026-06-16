@@ -67,4 +67,19 @@ export function addItemsToOrder(
   );
 }
 
-export { getApiBaseUrl };
+export async function callWaiter(
+  storeId: string,
+  tableId: string,
+): Promise<{ ok: true }> {
+  const response = await fetch(
+    `/api/customer/stores/${storeId}/tables/${tableId}/call-waiter`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => response.statusText);
+    throw new Error(text || `Request failed (${response.status})`);
+  }
+
+  return response.json() as Promise<{ ok: true }>;
+}

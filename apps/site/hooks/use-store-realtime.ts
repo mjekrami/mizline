@@ -6,8 +6,10 @@ import type {
   OrderAssignedEvent,
   OrderCreatedEvent,
   OrderStatusEvent,
+  OrderUpdatedEvent,
+  WaiterBuzzEvent,
 } from "@mizline/shared";
-import { getApiBaseUrl } from "@/lib/api/customer";
+import { getApiBaseUrl } from "@/lib/auth/constants";
 import { getClientKitchenDevToken } from "@/lib/auth/constants";
 import { getAccessToken, loadAuthSession } from "@/lib/auth/session";
 import { playNewOrderAlert } from "@/lib/kitchen/alerts";
@@ -16,27 +18,36 @@ export type StoreRealtimeUpdate =
   | { type: "created"; payload: OrderCreatedEvent }
   | { type: "status"; payload: OrderStatusEvent }
   | { type: "assigned"; payload: OrderAssignedEvent }
-  | { type: "updated"; payload: import("@mizline/shared").OrderUpdatedEvent };
+  | { type: "updated"; payload: OrderUpdatedEvent };
 
 interface UseStoreRealtimeOptions {
   storeId: string;
   onUpdate: (update: StoreRealtimeUpdate) => void | Promise<void>;
+  onBuzz?: (payload: WaiterBuzzEvent) => void;
   enabled?: boolean;
+  alertOnCreated?: boolean;
 }
 
 export function useStoreRealtime({
   storeId,
   onUpdate,
+  onBuzz,
   enabled = true,
+  alertOnCreated = true,
 }: UseStoreRealtimeOptions) {
   const [connected, setConnected] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const audioUnlocked = useRef(false);
   const onUpdateRef = useRef(onUpdate);
+  const onBuzzRef = useRef(onBuzz);
 
   useEffect(() => {
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
+
+  useEffect(() => {
+    onBuzzRef.current = onBuzz;
+  }, [onBuzz]);
 
   useEffect(() => {
     if (audioUnlocked.current) return;
@@ -73,7 +84,7 @@ export function useStoreRealtime({
       });
 
       const handleCreated = (payload: OrderCreatedEvent) => {
-        if (audioUnlocked.current) {
+        if (alertOnCreated && audioUnlocked.current) {
           playNewOrderAlert();
         }
         void onUpdateRef.current({ type: "created", payload });
@@ -87,8 +98,12 @@ export function useStoreRealtime({
         void onUpdateRef.current({ type: "assigned", payload });
       };
 
-      const handleUpdated = (payload: import("@mizline/shared").OrderUpdatedEvent) => {
+      const handleUpdated = (payload: OrderUpdatedEvent) => {
         void onUpdateRef.current({ type: "updated", payload });
+      };
+
+      const handleBuzz = (payload: WaiterBuzzEvent) => {
+        onBuzzRef.current?.(payload);
       };
 
       socket.on("connect", () => setConnected(true));
@@ -99,6 +114,7 @@ export function useStoreRealtime({
       socket.on("order.fulfilled", handleStatus);
       socket.on("order.assigned", handleAssigned);
       socket.on("order.updated", handleUpdated);
+      socket.on("waiter.buzz", handleBuzz);
     });
 
     return () => {
@@ -111,9 +127,10 @@ export function useStoreRealtime({
       socket?.off("order.fulfilled");
       socket?.off("order.assigned");
       socket?.off("order.updated");
+      socket?.off("waiter.buzz");
       socket?.disconnect();
     };
-  }, [enabled, storeId]);
+  }, [alertOnCreated, enabled, storeId]);
 
   const unlockAudio = useCallback(() => {
     audioUnlocked.current = true;

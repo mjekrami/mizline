@@ -1,4 +1,12 @@
-export type SiteSection = "customer" | "kitchen" | "admin" | "login" | "site";
+export type SiteSection =
+  | "customer"
+  | "kitchen"
+  | "admin"
+  | "waiter"
+  | "login"
+  | "site";
+
+export type StaffSection = "kitchen" | "admin" | "waiter";
 
 export interface ParsedSitePath {
   section: SiteSection;
@@ -11,10 +19,14 @@ export function getStaffPathPrefix(): string {
 }
 
 export function staffHref(
-  section: "kitchen" | "admin",
+  section: StaffSection,
   staffPath = getStaffPathPrefix(),
 ): string {
   return `/${staffPath}/${section}`;
+}
+
+export function isStaffSection(section: SiteSection): section is StaffSection {
+  return section === "kitchen" || section === "admin" || section === "waiter";
 }
 
 export function parseSitePath(pathname: string): ParsedSitePath {
@@ -35,27 +47,14 @@ export function parseSitePath(pathname: string): ParsedSitePath {
       return { section: "admin", staffPath };
     }
 
+    if (section === "waiter") {
+      return { section: "waiter", staffPath };
+    }
+
     if (section === "login") {
       return { section: "login", staffPath };
     }
   }
 
   return { section: "site" };
-}
-
-export function isAdminPath(pathname: string): boolean {
-  return parseSitePath(pathname).section === "admin";
-}
-
-export function isKitchenPath(pathname: string): boolean {
-  return parseSitePath(pathname).section === "kitchen";
-}
-
-export function isStaffPath(pathname: string): boolean {
-  const { section } = parseSitePath(pathname);
-  return section === "kitchen" || section === "admin";
-}
-
-export function isCustomerPath(pathname: string): boolean {
-  return parseSitePath(pathname).section === "customer";
 }

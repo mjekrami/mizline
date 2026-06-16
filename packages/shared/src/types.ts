@@ -11,7 +11,7 @@ export type ModifierOptionId = string;
 export type UserId = string;
 
 export type StaffRole =
-  | "barista"
+  | "waiter"
   | "manager"
   | "tenant_admin"
   | "super_admin";
@@ -77,6 +77,16 @@ export interface OrderAssignedEvent {
   orderId: OrderId;
   assignedTo: OrderAssignee;
 }
+
+export interface WaiterBuzzEvent {
+  tableId: TableId;
+  tableName: string;
+  orderId?: OrderId;
+  targetWaiterIds: UserId[];
+  createdAt: string;
+}
+
+export const WAITER_BUZZ_COOLDOWN_SECONDS = 30;
 
 export interface Tenant {
   id: TenantId;
@@ -280,10 +290,12 @@ export type OrderRealtimeEvent =
   | "order.ready"
   | "order.fulfilled"
   | "order.assigned"
-  | "order.updated";
+  | "order.updated"
+  | "waiter.buzz";
 
 export type OrderRealtimePayload =
   | OrderCreatedEvent
   | OrderStatusEvent
   | OrderAssignedEvent
-  | OrderUpdatedEvent;
+  | OrderUpdatedEvent
+  | WaiterBuzzEvent;

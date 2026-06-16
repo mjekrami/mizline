@@ -3,7 +3,7 @@
 import type { OrderStatusEvent } from "@mizline/shared";
 import { useEffect, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
-import { getApiBaseUrl } from "@/lib/api/customer";
+import { getApiBaseUrl } from "@/lib/auth/constants";
 
 interface UseCustomerOrderRealtimeOptions {
   storeId: string;

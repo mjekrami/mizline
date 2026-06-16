@@ -38,6 +38,10 @@ export function listStoreOrders(storeId: string): Promise<Order[]> {
   return serverFetch(`/api/stores/${storeId}/orders?${query.toString()}`);
 }
 
+export function listWaiterOrders(storeId: string): Promise<Order[]> {
+  return serverFetch(`/api/stores/${storeId}/waiter/orders`);
+}
+
 export function getStoreMetrics(storeId: string): Promise<KitchenMetrics> {
   return serverFetch(`/api/stores/${storeId}/orders/metrics`);
 }

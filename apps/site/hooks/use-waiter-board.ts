@@ -1,41 +1,39 @@
 "use client";
 
-import type { Order } from "@mizline/shared";
+import type { Order, WaiterBuzzEvent } from "@mizline/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useOrderActions } from "@/hooks/use-order-actions";
-import { useOrderDelayAlerts } from "@/hooks/use-order-delay-alerts";
-import {
-  getKitchenOrder,
-  listStoreOrders,
-} from "@/lib/api/kitchen";
+import { getWaiterOrder, listWaiterOrders } from "@/lib/api/waiter";
 import { getAuthUser, loadAuthSession } from "@/lib/auth/session";
 import {
   useStoreRealtime,
   type StoreRealtimeUpdate,
 } from "@/hooks/use-store-realtime";
 import { getActiveKitchenOrders } from "@/lib/kitchen/display";
+import { playWaiterBuzzAlert } from "@/lib/waiter/alerts";
 
-interface UseKitchenBoardOptions {
+interface UseWaiterBoardOptions {
   storeId: string;
   initialOrders: Order[];
-  delayWarningMinutes: number;
-  delayCriticalMinutes: number;
 }
 
-export function useKitchenBoard({
+export interface WaiterBuzzAlert {
+  tableName: string;
+  tableId: string;
+  createdAt: string;
+}
+
+export function useWaiterBoard({
   storeId,
   initialOrders,
-  delayWarningMinutes,
-  delayCriticalMinutes,
-}: UseKitchenBoardOptions) {
+}: UseWaiterBoardOptions) {
   const [orders, setOrders] = useState(initialOrders);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const [myOrdersOnly, setMyOrdersOnly] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [buzzAlert, setBuzzAlert] = useState<WaiterBuzzAlert | null>(null);
   const syncSeqRef = useRef(0);
+  const audioUnlocked = useRef(false);
 
   useEffect(() => {
     void loadAuthSession().then((user) => {
@@ -48,22 +46,24 @@ export function useKitchenBoard({
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!buzzAlert) return;
+
+    const timer = window.setTimeout(() => setBuzzAlert(null), 8_000);
+    return () => window.clearTimeout(timer);
+  }, [buzzAlert]);
+
   const updateOrderInList = useCallback((updated: Order) => {
     setOrders((current) =>
       current.map((entry) => (entry.id === updated.id ? updated : entry)),
     );
   }, []);
 
-  const { advancingId, advanceOrder } = useOrderActions({
-    onOrderUpdated: updateOrderInList,
-    onError: setError,
-  });
-
   const syncOrders = useCallback(async () => {
     const seq = ++syncSeqRef.current;
 
     try {
-      const latest = await listStoreOrders();
+      const latest = await listWaiterOrders();
       if (seq !== syncSeqRef.current) return;
       setOrders(latest);
     } catch (err) {
@@ -75,13 +75,33 @@ export function useKitchenBoard({
   const syncOrderById = useCallback(
     async (orderId: string) => {
       try {
-        const updated = await getKitchenOrder(orderId);
+        const updated = await getWaiterOrder(orderId);
         updateOrderInList(updated);
       } catch {
         await syncOrders();
       }
     },
     [syncOrders, updateOrderInList],
+  );
+
+  const handleBuzz = useCallback(
+    (payload: WaiterBuzzEvent) => {
+      const userId = currentUserId ?? getAuthUser()?.id;
+      if (!userId || !payload.targetWaiterIds.includes(userId)) {
+        return;
+      }
+
+      if (audioUnlocked.current) {
+        playWaiterBuzzAlert();
+      }
+
+      setBuzzAlert({
+        tableName: payload.tableName,
+        tableId: payload.tableId,
+        createdAt: payload.createdAt,
+      });
+    },
+    [currentUserId],
   );
 
   const handleRealtimeUpdate = useCallback(
@@ -117,63 +137,41 @@ export function useKitchenBoard({
     }
   }, [syncOrders]);
 
-  const syncOrder = useCallback(
-    async (orderId: string) => {
-      setSyncingId(orderId);
-      setError(null);
-      try {
-        await syncOrderById(orderId);
-      } finally {
-        setSyncingId((current) => (current === orderId ? null : current));
-      }
-    },
-    [syncOrderById],
-  );
-
-  const { connected, audioEnabled, unlockAudio } = useStoreRealtime({
+  const { connected, unlockAudio } = useStoreRealtime({
     storeId,
     onUpdate: handleRealtimeUpdate,
+    onBuzz: handleBuzz,
+    alertOnCreated: false,
   });
 
-  useOrderDelayAlerts({
-    orders,
-    now,
-    thresholds: {
-      warningMinutes: delayWarningMinutes,
-      criticalMinutes: delayCriticalMinutes,
-    },
-    audioEnabled,
-  });
+  const unlockAlerts = useCallback(() => {
+    audioUnlocked.current = true;
+    unlockAudio();
+  }, [unlockAudio]);
 
   const visibleOrders = useMemo(() => {
-    let next = getActiveKitchenOrders(orders);
-
-    if (myOrdersOnly && currentUserId) {
-      next = next.filter((order) => order.assignedTo?.id === currentUserId);
+    if (!currentUserId) {
+      return [];
     }
 
-    return next.sort(
-      (left, right) =>
-        new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
-    );
-  }, [currentUserId, myOrdersOnly, orders]);
+    return getActiveKitchenOrders(orders)
+      .filter((order) => order.assignedTo?.id === currentUserId)
+      .sort(
+        (left, right) =>
+          new Date(left.createdAt).getTime() -
+          new Date(right.createdAt).getTime(),
+      );
+  }, [currentUserId, orders]);
 
   return {
     visibleOrders,
     loading,
     error,
-    advancingId,
-    syncingId,
     now,
     connected,
-    audioEnabled,
-    myOrdersOnly,
-    setMyOrdersOnly,
-    showMyOrdersFilter: false,
+    buzzAlert,
     refreshOrders,
-    syncOrder,
-    replaceOrder: updateOrderInList,
-    advanceOrder,
-    unlockAudio,
+    unlockAlerts,
+    waiterName: getAuthUser()?.name ?? "Waiter",
   };
 }

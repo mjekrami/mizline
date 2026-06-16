@@ -16,7 +16,7 @@ enum OrderStatus {
 }
 
 enum StaffRole {
-  barista
+  waiter
   manager
   tenant_admin
   super_admin
@@ -56,13 +56,14 @@ model Store {
 }
 
 model Table {
-  id        String   @id @default(cuid())
-  storeId   String
-  name      String
-  qrCode    String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  storeId     String
+  name        String
+  qrCode      String    @unique
+  active      Boolean   @default(true)
+  lastBuzzAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   orders    Order[]
 

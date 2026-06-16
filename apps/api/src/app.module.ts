@@ -9,6 +9,7 @@ import { RealtimeModule } from "./realtime/realtime.module";
 import { ReportsModule } from "./reports/reports.module";
 import { StaffModule } from "./staff/staff.module";
 import { StoresModule } from "./stores/stores.module";
+import { WaiterModule } from "./waiter/waiter.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { StoresModule } from "./stores/stores.module";
     StaffModule,
     ReportsModule,
     RealtimeModule,
+    WaiterModule,
   ],
   controllers: [HealthController],
 })

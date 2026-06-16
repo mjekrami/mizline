@@ -1,8 +1,7 @@
-import type { AuthUser } from "@mizline/shared";
-import { canAccessAdmin, canAccessKitchen } from "@mizline/shared";
 import { LoginForm } from "@/components/login-form";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { getServerAuthUser } from "@/lib/auth/server";
+import { resolvePostLoginPath } from "@/lib/auth/post-login-path";
 import { getConfiguredStoreId, getStore } from "@/lib/api/server";
 import { redirect } from "next/navigation";
 
@@ -20,8 +19,7 @@ export default async function StaffLoginPage({
   const user = await getServerAuthUser();
 
   if (user) {
-    const destination = resolvePostLoginPath(user, path, next);
-    redirect(destination);
+    redirect(resolvePostLoginPath(user, path, next));
   }
 
   const storeId = getConfiguredStoreId();
@@ -40,27 +38,7 @@ export default async function StaffLoginPage({
     <LoginForm
       staffPath={path}
       tenantSlug={store.tenantSlug}
-      nextPath={next ?? `/${path}/kitchen`}
+      nextPath={next ?? `/${path}/waiter`}
     />
   );
-}
-
-function resolvePostLoginPath(
-  user: AuthUser,
-  staffPath: string,
-  next?: string,
-): string {
-  if (next?.startsWith(`/${staffPath}/`)) {
-    if (next.includes("/admin") && !canAccessAdmin(user.role)) {
-      return `/${staffPath}/kitchen`;
-    }
-    if (next.includes("/kitchen") && !canAccessKitchen(user.role)) {
-      return `/${staffPath}/admin`;
-    }
-    return next;
-  }
-
-  return canAccessAdmin(user.role)
-    ? `/${staffPath}/admin`
-    : `/${staffPath}/kitchen`;
 }

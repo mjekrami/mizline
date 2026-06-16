@@ -13,6 +13,7 @@ import {
   OrderModifySheet,
   OrderModifyTrigger,
 } from "@/components/order/order-modify-sheet";
+import { CallWaiterButton } from "@/components/customer/call-waiter-button";
 import { cn } from "@/lib/utils";
 
 const TRACKING_STEPS: OrderStatus[] = [
@@ -233,6 +234,8 @@ export function OrderTracking({
         onClose={() => setModifyOpen(false)}
         onOrderUpdated={setOrder}
       />
+
+      <CallWaiterButton storeId={storeId} tableId={tableId} />
     </div>
   );
 }

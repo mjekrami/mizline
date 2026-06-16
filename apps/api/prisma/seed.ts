@@ -11,14 +11,14 @@ const DEMO_USERS = [
     role: StaffRole.manager,
   },
   {
-    email: "barista1@demo.cafe",
-    name: "Sam Barista",
-    role: StaffRole.barista,
+    email: "waiter1@demo.cafe",
+    name: "Sam Waiter",
+    role: StaffRole.waiter,
   },
   {
-    email: "barista2@demo.cafe",
-    name: "Jordan Barista",
-    role: StaffRole.barista,
+    email: "waiter2@demo.cafe",
+    name: "Jordan Waiter",
+    role: StaffRole.waiter,
   },
 ] as const;
 

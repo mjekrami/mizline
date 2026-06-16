@@ -8,6 +8,7 @@ export {
 export {
   canAccessAdmin,
   canAccessKitchen,
+  canAccessWaiter,
   hasMinimumRole,
 } from "./auth-roles";
 
@@ -74,4 +75,7 @@ export type {
   UpdateOrderItemRequest,
   UserId,
   VariantId,
+  WaiterBuzzEvent,
 } from "./types";
+
+export { WAITER_BUZZ_COOLDOWN_SECONDS } from "./types";

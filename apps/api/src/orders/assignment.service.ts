@@ -10,18 +10,18 @@ export class AssignmentService {
     private readonly realtime: RealtimeService,
   ) {}
 
-  async assignNextBarista(storeId: string, orderId: string) {
-    const baristas = await this.prisma.user.findMany({
+  async assignNextWaiter(storeId: string, orderId: string) {
+    const waiters = await this.prisma.user.findMany({
       where: {
         active: true,
-        role: StaffRole.barista,
+        role: StaffRole.waiter,
         storeLinks: { some: { storeId } },
       },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     });
 
-    if (baristas.length === 0) {
+    if (waiters.length === 0) {
       return null;
     }
 
@@ -33,13 +33,13 @@ export class AssignmentService {
     let nextIndex = 0;
 
     if (store?.lastAssignedUserId) {
-      const currentIndex = baristas.findIndex(
-        (barista) => barista.id === store.lastAssignedUserId,
+      const currentIndex = waiters.findIndex(
+        (waiter) => waiter.id === store.lastAssignedUserId,
       );
-      nextIndex = currentIndex >= 0 ? (currentIndex + 1) % baristas.length : 0;
+      nextIndex = currentIndex >= 0 ? (currentIndex + 1) % waiters.length : 0;
     }
 
-    const assignee = baristas[nextIndex];
+    const assignee = waiters[nextIndex];
 
     await this.prisma.$transaction([
       this.prisma.order.update({

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { canAccessAdmin } from "@mizline/shared";
+import { resolvePostLoginPath } from "@/lib/auth/post-login-path";
 import { loginStaff } from "@/lib/auth/session";
 
 interface LoginFormProps {
@@ -25,11 +25,13 @@ export function LoginForm({ staffPath, tenantSlug, nextPath }: LoginFormProps) {
 
     try {
       const result = await loginStaff({ email, password, tenantSlug });
-      const destination =
-        nextPath.includes("/admin") && !canAccessAdmin(result.user.role)
-          ? `/${staffPath}/kitchen`
-          : nextPath;
-      router.push(destination);
+      router.push(
+        resolvePostLoginPath(
+          result.user,
+          staffPath,
+          nextPath.startsWith(`/${staffPath}/`) ? nextPath : undefined,
+        ),
+      );
       router.refresh();
     } catch (submitError) {
       setError(
@@ -49,7 +51,7 @@ export function LoginForm({ staffPath, tenantSlug, nextPath }: LoginFormProps) {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Staff login</h1>
           <p className="text-sm text-muted-foreground">
-            Sign in to access the kitchen display or admin dashboard.
+            Sign in to access the waiter app, kitchen display, or admin dashboard.
           </p>
         </div>
 

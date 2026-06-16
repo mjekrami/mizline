@@ -19,7 +19,7 @@ export function StaffPanel() {
   const [form, setForm] = useState({
     email: "",
     name: "",
-    role: "barista" as StaffMember["role"],
+    role: "waiter" as StaffMember["role"],
     password: "",
   });
 
@@ -49,7 +49,7 @@ export function StaffPanel() {
     try {
       await createStaffMember(form);
       setDialogOpen(false);
-      setForm({ email: "", name: "", role: "barista", password: "" });
+      setForm({ email: "", name: "", role: "waiter", password: "" });
       await loadStaff();
     } catch (createError) {
       setError(
@@ -77,7 +77,7 @@ export function StaffPanel() {
         <div>
           <h2 className="text-lg font-semibold">Staff</h2>
           <p className="text-sm text-muted-foreground">
-            Manage baristas and managers for this store.
+            Manage waiters and managers for this store.
           </p>
         </div>
         <button
@@ -187,7 +187,7 @@ export function StaffPanel() {
                 }
                 className="w-full rounded-md border border-input bg-background px-3 py-2"
               >
-                <option value="barista">Barista</option>
+                <option value="waiter">Waiter</option>
                 <option value="manager">Manager</option>
               </select>
             </label>

@@ -8,15 +8,16 @@ import {
   type ReactNode,
 } from "react";
 import {
+  isStaffSection,
   parseSitePath,
   type ParsedSitePath,
-  type SiteSection,
 } from "@/lib/site-path";
 
 interface PathContextValue extends ParsedSitePath {
   pathname: string;
   isAdmin: boolean;
   isKitchen: boolean;
+  isWaiter: boolean;
   isStaff: boolean;
   isCustomer: boolean;
 }
@@ -34,7 +35,8 @@ export function PathProvider({ children }: { children: ReactNode }) {
       ...parsed,
       isAdmin: parsed.section === "admin",
       isKitchen: parsed.section === "kitchen",
-      isStaff: parsed.section === "kitchen" || parsed.section === "admin",
+      isWaiter: parsed.section === "waiter",
+      isStaff: isStaffSection(parsed.section),
       isCustomer: parsed.section === "customer",
     };
   }, [pathname]);
@@ -50,12 +52,4 @@ export function usePathContext(): PathContextValue {
   }
 
   return context;
-}
-
-export function useSiteSection(): SiteSection {
-  return usePathContext().section;
-}
-
-export function useIsAdmin(): boolean {
-  return usePathContext().isAdmin;
 }

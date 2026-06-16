@@ -1,11 +1,19 @@
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
+import { redirectIfUnauthorizedStaffSection } from "@/lib/auth/staff-section";
 import { getServerAccessToken } from "@/lib/auth/server";
 import { loadAdminDashboardData } from "@/lib/admin/load";
 import { getCustomerBaseUrl, getStaffStoreId, hasKitchenDevToken } from "@/lib/auth/constants";
 
-export default async function AdminDashboardPage() {
+interface AdminPageProps {
+  params: Promise<{ path: string }>;
+}
+
+export default async function AdminDashboardPage({ params }: AdminPageProps) {
+  const { path } = await params;
+  await redirectIfUnauthorizedStaffSection(path, "admin");
+
   const storeId = getStaffStoreId();
 
   if (!storeId) {

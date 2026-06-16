@@ -58,14 +58,14 @@ export class OrdersController {
 
   @Get("stores/:storeId/orders/metrics")
   @UseGuards(StaffAuthGuard, RolesGuard, TenantGuard)
-  @Roles("barista")
+  @Roles("manager")
   getStoreMetrics(@Param("storeId") storeId: string) {
     return this.ordersService.getStoreMetrics(storeId);
   }
 
   @Get("stores/:storeId/orders")
   @UseGuards(StaffAuthGuard, RolesGuard, TenantGuard)
-  @Roles("barista")
+  @Roles("manager")
   listStoreOrders(
     @Param("storeId") storeId: string,
     @Query() query: ListStoreOrdersQueryDto,
@@ -75,7 +75,7 @@ export class OrdersController {
 
   @Patch("orders/:orderId/status")
   @UseGuards(StaffAuthGuard, RolesGuard)
-  @Roles("barista")
+  @Roles("manager")
   updateStatus(
     @Param("orderId") orderId: string,
     @Body() dto: UpdateOrderStatusDto,
@@ -86,7 +86,7 @@ export class OrdersController {
 
   @Patch("orders/:orderId/items/:itemId/fulfill")
   @UseGuards(StaffAuthGuard, RolesGuard)
-  @Roles("barista")
+  @Roles("manager")
   fulfillOrderItem(
     @Param("orderId") orderId: string,
     @Param("itemId") itemId: string,
@@ -96,14 +96,14 @@ export class OrdersController {
 
   @Patch("orders/:orderId/fulfill")
   @UseGuards(StaffAuthGuard, RolesGuard)
-  @Roles("barista")
+  @Roles("manager")
   fulfillOrder(@Param("orderId") orderId: string) {
     return this.ordersService.fulfillOrder(orderId);
   }
 
   @Post("orders/:orderId/items")
   @UseGuards(StaffAuthGuard, RolesGuard)
-  @Roles("barista")
+  @Roles("manager")
   addOrderItems(
     @Param("orderId") orderId: string,
     @Body() dto: AddOrderItemsDto,
@@ -113,7 +113,7 @@ export class OrdersController {
 
   @Patch("orders/:orderId/items/:itemId")
   @UseGuards(StaffAuthGuard, RolesGuard)
-  @Roles("barista")
+  @Roles("manager")
   updateOrderItem(
     @Param("orderId") orderId: string,
     @Param("itemId") itemId: string,
@@ -124,7 +124,7 @@ export class OrdersController {
 
   @Delete("orders/:orderId/items/:itemId")
   @UseGuards(StaffAuthGuard, RolesGuard)
-  @Roles("barista")
+  @Roles("manager")
   removeOrderItem(
     @Param("orderId") orderId: string,
     @Param("itemId") itemId: string,

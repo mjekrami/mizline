@@ -1,25 +1,25 @@
-import { KitchenBoard } from "@/components/kitchen-board";
+import { WaiterBoard } from "@/components/waiter/waiter-board";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
 import { redirectIfUnauthorizedStaffSection } from "@/lib/auth/staff-section";
 import { getServerAccessToken } from "@/lib/auth/server";
-import { loadKitchenBoardData } from "@/lib/kitchen/board";
+import { loadWaiterBoardData } from "@/lib/waiter/board";
 import { getStaffStoreId, hasKitchenDevToken } from "@/lib/auth/constants";
 
-interface KitchenPageProps {
+interface WaiterPageProps {
   params: Promise<{ path: string }>;
 }
 
-export default async function KitchenDashboardPage({ params }: KitchenPageProps) {
+export default async function WaiterDashboardPage({ params }: WaiterPageProps) {
   const { path } = await params;
-  await redirectIfUnauthorizedStaffSection(path, "kitchen");
+  await redirectIfUnauthorizedStaffSection(path, "waiter");
 
   const storeId = getStaffStoreId();
 
   if (!storeId) {
     return (
       <StaffSetupNotice
-        title="Kitchen Dashboard"
+        title="Waiter App"
         message={STAFF_SETUP_MESSAGES.missingStoreId}
       />
     );
@@ -29,21 +29,17 @@ export default async function KitchenDashboardPage({ params }: KitchenPageProps)
   if (!accessToken && !hasKitchenDevToken()) {
     return (
       <StaffSetupNotice
-        title="Kitchen Dashboard"
-        message="Sign in to access the kitchen display."
+        title="Waiter App"
+        message="Sign in to access the waiter app."
       />
     );
   }
 
   try {
-    const { store, orders } = await loadKitchenBoardData(storeId);
+    const { store, orders } = await loadWaiterBoardData(storeId);
 
     return (
-      <KitchenBoard
-        store={store}
-        storeId={storeId}
-        initialOrders={orders}
-      />
+      <WaiterBoard store={store} storeId={storeId} initialOrders={orders} />
     );
   } catch (error) {
     const message =
@@ -51,6 +47,6 @@ export default async function KitchenDashboardPage({ params }: KitchenPageProps)
         ? error.message
         : STAFF_SETUP_MESSAGES.kitchenLoadFailed;
 
-    return <StaffSetupNotice title="Kitchen Dashboard" message={message} />;
+    return <StaffSetupNotice title="Waiter App" message={message} />;
   }
 }

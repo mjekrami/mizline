@@ -16,6 +16,7 @@ import {
   type VariantPickerSelection,
 } from "@/components/menu-ui";
 import { MyOrdersBanner, useMyOrders } from "@/components/my-orders";
+import { CallWaiterButton } from "@/components/customer/call-waiter-button";
 import { CartProvider, useCart } from "@/hooks/use-cart";
 import { createOrder } from "@/lib/api/customer";
 import { cartLineKey, computeUnitPrice } from "@/lib/cart";
@@ -312,6 +313,8 @@ function TableOrderingContent({
           onAdd={handlePickerAdd}
         />
       ) : null}
+
+      <CallWaiterButton storeId={store.id} tableId={tableId} />
     </div>
   );
 }

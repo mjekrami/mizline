@@ -100,7 +100,7 @@ export class OrdersService {
     });
 
     this.realtime.emitOrderCreated(storeId, { orderId: order.id });
-    await this.assignment.assignNextBarista(storeId, order.id);
+    await this.assignment.assignNextWaiter(storeId, order.id);
 
     const assigned = await this.prisma.order.findUnique({
       where: { id: order.id },
