@@ -1,6 +1,7 @@
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
+import { getServerAccessToken } from "@/lib/auth-server";
 import { loadAdminDashboardData } from "@/lib/load-admin-dashboard";
 import { getCustomerBaseUrl, getStaffStoreId, hasKitchenDevToken } from "@/lib/staff-env";
 
@@ -16,11 +17,12 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  if (!hasKitchenDevToken()) {
+  const accessToken = await getServerAccessToken();
+  if (!accessToken && !hasKitchenDevToken()) {
     return (
       <StaffSetupNotice
         title="Admin Dashboard"
-        message={STAFF_SETUP_MESSAGES.missingDevToken}
+        message="Sign in with a manager account to access the admin dashboard."
       />
     );
   }

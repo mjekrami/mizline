@@ -16,6 +16,8 @@ import { AdminSidebar, type AdminSection } from "@/components/admin/admin-sideba
 import { CategoriesPanel } from "@/components/admin/categories-panel";
 import { ModifiersPanel } from "@/components/admin/modifiers-panel";
 import { ProductsPanel } from "@/components/admin/products-panel";
+import { ReportsPanel } from "@/components/admin/reports-panel";
+import { StaffPanel } from "@/components/admin/staff-panel";
 import { TablesPanel } from "@/components/admin/tables-panel";
 import { useStoreRealtime } from "@/hooks/use-store-realtime";
 import { fetchAdminCatalog, fetchAdminTables } from "@/lib/admin-api";
@@ -193,6 +195,10 @@ export function AdminDashboard({
           onError={setError}
         />
       ) : null}
+
+      {section === "staff" ? <StaffPanel /> : null}
+
+      {section === "reports" ? <ReportsPanel /> : null}
     </AdminShell>
   );
 }

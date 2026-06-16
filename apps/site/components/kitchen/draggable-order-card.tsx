@@ -15,6 +15,8 @@ interface DraggableOrderCardProps {
   now: number;
   advancing: boolean;
   fulfillingItemId: string | null;
+  delayWarningMinutes: number;
+  delayCriticalMinutes: number;
   onAdvance: (order: Order) => void;
   onFulfillItem: (order: Order, itemId: string) => void;
 }

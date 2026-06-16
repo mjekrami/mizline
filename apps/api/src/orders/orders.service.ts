@@ -17,6 +17,7 @@ import { getStoreDayBounds } from "../common/timezone";
 import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
+import { AssignmentService } from "./assignment.service";
 
 const DEFAULT_KDS_STATUSES: OrderStatus[] = ["new", "preparing", "ready"];
 
@@ -45,6 +46,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly realtime: RealtimeService,
+    private readonly assignment: AssignmentService,
   ) {}
 
   async createOrder(
@@ -151,8 +153,14 @@ export class OrdersService {
     });
 
     this.realtime.emitOrderCreated(storeId, { orderId: order.id });
+    await this.assignment.assignNextBarista(storeId, order.id);
 
-    return mapOrder(order);
+    const assigned = await this.prisma.order.findUnique({
+      where: { id: order.id },
+      include: orderWithRelationsInclude,
+    });
+
+    return mapOrder(assigned ?? order);
   }
 
   private async loadProductsForOrder(storeId: string, productIds: string[]) {
@@ -338,7 +346,11 @@ export class OrdersService {
     };
   }
 
-  async updateStatus(orderId: string, nextStatus: OrderStatus) {
+  async updateStatus(
+    orderId: string,
+    nextStatus: OrderStatus,
+    actingUserId?: string,
+  ) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: { items: true },
@@ -374,6 +386,9 @@ export class OrdersService {
 
     if (nextStatus === "preparing") {
       timestampUpdates.preparingAt = now;
+      if (!order.assignedToId && actingUserId && actingUserId !== "dev-user") {
+        await this.assignment.claimOrderForUser(orderId, actingUserId);
+      }
     } else if (nextStatus === "ready") {
       timestampUpdates.readyAt = now;
       if (!order.preparingAt) {

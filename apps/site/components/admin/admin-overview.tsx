@@ -3,6 +3,7 @@
 import type {
   AdminCatalog,
   AdminTable,
+  DailySalesSummary,
   KitchenMetrics,
   Order,
 } from "@mizline/shared";
@@ -10,17 +11,21 @@ import {
   CheckCircle2,
   Clock3,
   Hourglass,
+  Receipt,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { AdminActivityLog } from "@/components/admin/admin-activity-log";
 import { AdminMetricCard } from "@/components/admin/admin-metric-card";
 import { AdminOrderPipeline } from "@/components/admin/admin-order-pipeline";
 import { AdminOrdersTable } from "@/components/admin/admin-orders-table";
 import { AdminStoreSnapshot } from "@/components/admin/admin-store-snapshot";
+import { StoreSettingsPanel } from "@/components/admin/store-settings-panel";
 import {
   buildActivityLog,
   type AdminDashboardStats,
 } from "@/lib/admin-stats";
 import { countTrackedOrders } from "@/lib/admin-overview-data";
+import { fetchDailySummary } from "@/lib/admin-reports-api";
 import { formatPrepTime, formatPrice } from "@/lib/format";
 
 interface AdminOverviewProps {
@@ -44,6 +49,15 @@ export function AdminOverview({
 }: AdminOverviewProps) {
   const activity = buildActivityLog(orders);
   const totalTrackedOrders = countTrackedOrders(stats.ordersByStatus);
+  const [dailySummary, setDailySummary] = useState<DailySalesSummary | null>(null);
+
+  useEffect(() => {
+    void fetchDailySummary()
+      .then(setDailySummary)
+      .catch(() => {
+        // Overview still renders operational metrics if reports fail.
+      });
+  }, [orders]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,7 +71,7 @@ export function AdminOverview({
         <AdminStoreSnapshot catalog={catalog} stats={stats} tables={tables} />
 
         <section className="flex flex-col gap-4 xl:col-span-9">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <AdminMetricCard
               label="Orders waiting"
               value={metrics.ordersWaiting.toString()}
@@ -77,11 +91,22 @@ export function AdminOverview({
             />
             <AdminMetricCard
               label="Revenue today"
-              value={formatPrice(stats.revenueTodayCents)}
+              value={formatPrice(dailySummary?.revenueCents ?? 0)}
               icon={CheckCircle2}
               tone="success"
             />
+            <AdminMetricCard
+              label="Average ticket"
+              value={
+                dailySummary?.averageTicketCents != null
+                  ? formatPrice(dailySummary.averageTicketCents)
+                  : "—"
+              }
+              icon={Receipt}
+            />
           </div>
+
+          <StoreSettingsPanel />
 
           <AdminOrderPipeline
             stats={stats}

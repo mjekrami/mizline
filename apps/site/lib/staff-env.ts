@@ -9,3 +9,7 @@ export function hasKitchenDevToken(): boolean {
 export function getCustomerBaseUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "";
 }
+
+export function hasStaffAuthConfigured(): boolean {
+  return hasKitchenDevToken() || process.env.NODE_ENV === "production";
+}

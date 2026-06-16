@@ -9,7 +9,12 @@ import {
   Put,
   UseGuards,
 } from "@nestjs/common";
-import { KitchenDevTokenGuard } from "../common/guards/kitchen-dev-token.guard";
+import { Roles } from "../auth/decorators/roles.decorator";
+import {
+  RolesGuard,
+  TenantGuard,
+} from "../auth/guards/auth.guards";
+import { StaffAuthGuard } from "../auth/guards/staff-auth.guard";
 import { AdminService } from "./admin.service";
 import {
   CreateCategoryDto,
@@ -28,7 +33,8 @@ import {
 } from "./dto/admin.dto";
 
 @Controller("stores/:storeId/admin")
-@UseGuards(KitchenDevTokenGuard)
+@UseGuards(StaffAuthGuard, RolesGuard, TenantGuard)
+@Roles("manager")
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 

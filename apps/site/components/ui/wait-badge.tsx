@@ -1,33 +1,34 @@
 import { Clock3 } from "lucide-react";
+import {
+  getWaitUrgency,
+  type WaitUrgencyThresholds,
+} from "@mizline/shared";
 import { formatWaitTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-type WaitUrgency = "normal" | "warning" | "critical";
-
-function getWaitUrgency(createdAt: string, now: number): WaitUrgency {
-  const minutes = (now - new Date(createdAt).getTime()) / 60_000;
-  if (minutes >= 10) return "critical";
-  if (minutes >= 5) return "warning";
-  return "normal";
-}
-
-const urgencyStyles: Record<WaitUrgency, string> = {
+const urgencyStyles = {
   normal:
     "border-order-ready-strong/30 bg-order-ready-soft text-order-ready-strong",
   warning:
     "border-order-preparing-strong/30 bg-order-preparing-soft text-order-preparing-strong",
   critical:
     "border-order-cancelled-strong/30 bg-order-cancelled-soft text-order-cancelled-strong",
-};
+} as const;
 
 interface WaitBadgeProps {
   createdAt: string;
   now: number;
+  thresholds?: WaitUrgencyThresholds;
   className?: string;
 }
 
-export function WaitBadge({ createdAt, now, className }: WaitBadgeProps) {
-  const urgency = getWaitUrgency(createdAt, now);
+export function WaitBadge({
+  createdAt,
+  now,
+  thresholds = { warningMinutes: 5, criticalMinutes: 10 },
+  className,
+}: WaitBadgeProps) {
+  const urgency = getWaitUrgency(createdAt, now, thresholds);
 
   return (
     <span
@@ -42,3 +43,5 @@ export function WaitBadge({ createdAt, now, className }: WaitBadgeProps) {
     </span>
   );
 }
+
+export { getWaitUrgency };

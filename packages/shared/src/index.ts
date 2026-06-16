@@ -5,6 +5,18 @@ export {
   type OrderStatus,
 } from "./colors";
 
+export {
+  canAccessAdmin,
+  canAccessKitchen,
+  hasMinimumRole,
+} from "./auth-roles";
+
+export {
+  getWaitUrgency,
+  type WaitUrgency,
+  type WaitUrgencyThresholds,
+} from "./wait-urgency";
+
 export type {
   AdminCatalog,
   AdminCategory,
@@ -14,9 +26,15 @@ export type {
   AdminProductVariant,
   AdminTable,
   AdminVariant,
+  AuthUser,
   CreateOrderItemRequest,
   CreateOrderRequest,
+  DailySalesSummary,
+  HourlyActivityEntry,
+  HourlyActivityReport,
   KitchenMetrics,
+  LoginRequest,
+  LoginResponse,
   MenuCategory,
   MenuModifierGroup,
   MenuModifierOption,
@@ -25,6 +43,8 @@ export type {
   ModifierGroupId,
   ModifierOptionId,
   Order,
+  OrderAssignee,
+  OrderAssignedEvent,
   OrderCreatedEvent,
   OrderId,
   OrderItem,
@@ -33,11 +53,15 @@ export type {
   OrderRealtimePayload,
   OrderStatusEvent,
   ProductId,
+  StaffMember,
+  StaffRole,
   Store,
   StoreId,
+  StoreSettings,
   TableId,
   TableInfo,
   Tenant,
   TenantId,
+  UserId,
   VariantId,
 } from "./types";

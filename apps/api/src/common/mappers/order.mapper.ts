@@ -14,6 +14,7 @@ type OrderWithRelations = Order & {
     }[];
   })[];
   table: { name: string };
+  assignedTo?: { id: string; name: string } | null;
 };
 
 export function mapOrderItem(
@@ -49,6 +50,10 @@ export function mapOrder(order: OrderWithRelations): SharedOrder {
     subtotal: order.subtotal,
     total: order.total,
     items: order.items.map(mapOrderItem),
+    assignedTo: order.assignedTo
+      ? { id: order.assignedTo.id, name: order.assignedTo.name }
+      : null,
+    assignedAt: order.assignedAt?.toISOString() ?? null,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
   };
@@ -63,4 +68,5 @@ export const orderWithRelationsInclude = {
     },
   },
   table: { select: { name: true } },
+  assignedTo: { select: { id: true, name: true } },
 } satisfies Prisma.OrderInclude;

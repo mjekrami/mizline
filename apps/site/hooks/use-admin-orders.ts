@@ -2,11 +2,7 @@
 
 import type { Order, OrderStatus } from "@mizline/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  fulfillOrderItem,
-  updateOrderStatus,
-} from "@/lib/kitchen-api";
-import { getNextOrderStatus } from "@/lib/order-status";
+import { useOrderActions } from "@/hooks/use-order-actions";
 
 export type OrderStatusFilter = "all" | OrderStatus;
 
@@ -24,8 +20,6 @@ export function useAdminOrders({
   onSelectOrderId,
 }: UseAdminOrdersOptions) {
   const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("all");
-  const [advancingId, setAdvancingId] = useState<string | null>(null);
-  const [fulfillingItemId, setFulfillingItemId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -70,30 +64,10 @@ export function useAdminOrders({
     [onOrdersChange, orders],
   );
 
-  const advanceOrder = useCallback(async (order: Order) => {
-    const nextStatus = getNextOrderStatus(order.status);
-    if (!nextStatus) return;
-
-    setAdvancingId(order.id);
-
-    try {
-      const updated = await updateOrderStatus(order.id, nextStatus);
-      updateOrderInList(updated);
-    } finally {
-      setAdvancingId(null);
-    }
-  }, [updateOrderInList]);
-
-  const fulfillItem = useCallback(async (order: Order, itemId: string) => {
-    setFulfillingItemId(itemId);
-
-    try {
-      const updated = await fulfillOrderItem(order.id, itemId);
-      updateOrderInList(updated);
-    } finally {
-      setFulfillingItemId(null);
-    }
-  }, [updateOrderInList]);
+  const { advancingId, fulfillingItemId, advanceOrder, fulfillItem } =
+    useOrderActions({
+      onOrderUpdated: updateOrderInList,
+    });
 
   const sortedOrders = useMemo(
     () =>

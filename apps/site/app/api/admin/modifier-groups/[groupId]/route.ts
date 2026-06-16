@@ -6,16 +6,16 @@ export async function PATCH(
 ) {
   const { groupId } = await params;
   const body = await request.json();
-  return adminProxy(`/modifier-groups/${groupId}`, {
+  return adminProxy(`/modifier-groups/${groupId}`, request, {
     method: "PATCH",
     body: JSON.stringify(body),
   });
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ groupId: string }> },
 ) {
   const { groupId } = await params;
-  return adminProxy(`/modifier-groups/${groupId}`, { method: "DELETE" });
+  return adminProxy(`/modifier-groups/${groupId}`, request, { method: "DELETE" });
 }

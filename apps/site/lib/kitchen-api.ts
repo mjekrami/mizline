@@ -1,14 +1,8 @@
 import type { KitchenMetrics, Order, OrderStatus } from "@mizline/shared";
+import { authFetch } from "@/lib/auth-session";
 
 async function kitchenFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    cache: "no-store",
-  });
+  const response = await authFetch(path, init);
 
   if (!response.ok) {
     const message = await response.text().catch(() => response.statusText);

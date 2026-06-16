@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathContext } from "@/components/path-provider";
 import { staffHref } from "@/lib/site-path";
 import {
+  BarChart3,
   ChefHat,
   ClipboardList,
   FolderTree,
   LayoutDashboard,
   QrCode,
   SlidersHorizontal,
+  UsersRound,
   UtensilsCrossed,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,7 +22,9 @@ export type AdminSection =
   | "products"
   | "categories"
   | "modifiers"
-  | "tables";
+  | "tables"
+  | "staff"
+  | "reports";
 
 interface AdminSidebarProps {
   section: AdminSection;
@@ -46,6 +50,8 @@ const navItems: {
   { id: "categories", label: "Categories", icon: FolderTree, countKey: "categories" },
   { id: "modifiers", label: "Modifiers", icon: SlidersHorizontal, countKey: "modifiers" },
   { id: "tables", label: "Tables", icon: QrCode, countKey: "tables" },
+  { id: "staff", label: "Staff", icon: UsersRound },
+  { id: "reports", label: "Reports", icon: BarChart3 },
 ];
 
 export function AdminSidebar({

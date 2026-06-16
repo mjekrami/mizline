@@ -6,7 +6,7 @@ export async function POST(
 ) {
   const { productId } = await params;
   const body = await request.json();
-  return adminProxy(`/products/${productId}/variants`, {
+  return adminProxy(`/products/${productId}/variants`, request, {
     method: "POST",
     body: JSON.stringify(body),
   });

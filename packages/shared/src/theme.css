@@ -115,6 +115,17 @@
   --color-order-fulfilled: #78716c;
   --color-order-cancelled: #dc2626;
 
+  --color-order-new-soft: color-mix(in srgb, #4f7fd4 12%, var(--card));
+  --color-order-new-strong: #4f7fd4;
+  --color-order-preparing-soft: color-mix(in srgb, #d97706 12%, var(--card));
+  --color-order-preparing-strong: #d97706;
+  --color-order-ready-soft: color-mix(in srgb, #0d9b6e 12%, var(--card));
+  --color-order-ready-strong: #0d9b6e;
+  --color-order-fulfilled-soft: color-mix(in srgb, #78716c 12%, var(--card));
+  --color-order-fulfilled-strong: #78716c;
+  --color-order-cancelled-soft: color-mix(in srgb, #dc2626 12%, var(--card));
+  --color-order-cancelled-strong: #dc2626;
+
   --radius-lg: var(--radius);
 }
 

@@ -8,6 +8,74 @@ export type ProductId = string;
 export type VariantId = string;
 export type ModifierGroupId = string;
 export type ModifierOptionId = string;
+export type UserId = string;
+
+export type StaffRole =
+  | "barista"
+  | "manager"
+  | "tenant_admin"
+  | "super_admin";
+
+export interface AuthUser {
+  id: UserId;
+  tenantId: TenantId;
+  email: string;
+  name: string;
+  role: StaffRole;
+  storeIds: StoreId[];
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  user: AuthUser;
+}
+
+export interface StoreSettings {
+  delayWarningMinutes: number;
+  delayCriticalMinutes: number;
+}
+
+export interface DailySalesSummary {
+  date: string;
+  revenueCents: number;
+  orderCount: number;
+  averageTicketCents: number | null;
+}
+
+export interface HourlyActivityEntry {
+  hour: number;
+  orderCount: number;
+  revenueCents: number;
+}
+
+export interface HourlyActivityReport {
+  date: string;
+  entries: HourlyActivityEntry[];
+}
+
+export interface StaffMember {
+  id: UserId;
+  email: string;
+  name: string;
+  role: StaffRole;
+  active: boolean;
+  storeIds: StoreId[];
+}
+
+export interface OrderAssignee {
+  id: UserId;
+  name: string;
+}
+
+export interface OrderAssignedEvent {
+  orderId: OrderId;
+  assignedTo: OrderAssignee;
+}
 
 export interface Tenant {
   id: TenantId;
@@ -20,6 +88,8 @@ export interface Store {
   name: string;
   address?: string | null;
   timezone: string;
+  delayWarningMinutes?: number;
+  delayCriticalMinutes?: number;
 }
 
 export interface TableInfo {
@@ -116,6 +186,8 @@ export interface Order {
   subtotal: number;
   total: number;
   items: OrderItem[];
+  assignedTo?: OrderAssignee | null;
+  assignedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -191,6 +263,10 @@ export type OrderRealtimeEvent =
   | "order.created"
   | "order.preparing"
   | "order.ready"
-  | "order.fulfilled";
+  | "order.fulfilled"
+  | "order.assigned";
 
-export type OrderRealtimePayload = OrderCreatedEvent | OrderStatusEvent;
+export type OrderRealtimePayload =
+  | OrderCreatedEvent
+  | OrderStatusEvent
+  | OrderAssignedEvent;

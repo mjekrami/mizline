@@ -48,12 +48,21 @@ export function KitchenBoard({
     now,
     connected,
     audioEnabled,
+    myOrdersOnly,
+    setMyOrdersOnly,
+    showMyOrdersFilter,
     refreshOrders,
     advanceOrder,
     advanceOrderToStatus,
     fulfillItem,
     unlockAudio,
-  } = useKitchenBoard({ storeId, initialOrders, initialMetrics });
+  } = useKitchenBoard({
+    storeId,
+    initialOrders,
+    initialMetrics,
+    delayWarningMinutes: store.delayWarningMinutes ?? 5,
+    delayCriticalMinutes: store.delayCriticalMinutes ?? 10,
+  });
 
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -87,6 +96,16 @@ export function KitchenBoard({
             audioEnabled={audioEnabled}
             onEnableAudio={unlockAudio}
           />
+          {showMyOrdersFilter ? (
+            <label className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={myOrdersOnly}
+                onChange={(event) => setMyOrdersOnly(event.target.checked)}
+              />
+              My orders only
+            </label>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -139,6 +158,8 @@ export function KitchenBoard({
               now={now}
               advancingId={advancingId}
               fulfillingItemId={fulfillingItemId}
+              delayWarningMinutes={store.delayWarningMinutes ?? 5}
+              delayCriticalMinutes={store.delayCriticalMinutes ?? 10}
               onAdvance={advanceOrder}
               onAdvanceToStatus={advanceOrderToStatus}
               onFulfillItem={fulfillItem}

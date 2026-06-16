@@ -6,7 +6,7 @@ export async function PUT(
 ) {
   const { productId } = await params;
   const body = await request.json();
-  return adminProxy(`/products/${productId}/modifier-groups`, {
+  return adminProxy(`/products/${productId}/modifier-groups`, request, {
     method: "PUT",
     body: JSON.stringify(body),
   });

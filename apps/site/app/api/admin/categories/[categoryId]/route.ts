@@ -6,16 +6,16 @@ export async function PATCH(
 ) {
   const { categoryId } = await params;
   const body = await request.json();
-  return adminProxy(`/categories/${categoryId}`, {
+  return adminProxy(`/categories/${categoryId}`, request, {
     method: "PATCH",
     body: JSON.stringify(body),
   });
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ categoryId: string }> },
 ) {
   const { categoryId } = await params;
-  return adminProxy(`/categories/${categoryId}`, { method: "DELETE" });
+  return adminProxy(`/categories/${categoryId}`, request, { method: "DELETE" });
 }

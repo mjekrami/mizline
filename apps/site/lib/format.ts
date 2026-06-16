@@ -34,6 +34,13 @@ export function formatPrepTime(seconds: number | null): string {
   return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
 }
 
+export function formatTimeOfDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
+
 export function formatRelativeTime(timestamp: string, now = Date.now()): string {
   const elapsedMs = Math.max(0, now - new Date(timestamp).getTime());
   const totalSeconds = Math.floor(elapsedMs / 1000);

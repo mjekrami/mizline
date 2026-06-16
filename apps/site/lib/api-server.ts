@@ -1,24 +1,16 @@
 import type { KitchenMetrics, Order, OrderStatus, Store } from "@mizline/shared";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
-
-function kitchenHeaders(): HeadersInit {
-  const token = process.env.KITCHEN_DEV_TOKEN;
-  if (!token) {
-    throw new Error("KITCHEN_DEV_TOKEN is not configured");
-  }
-
-  return {
-    "Content-Type": "application/json",
-    "x-kitchen-dev-token": token,
-  };
-}
+import {
+  buildStaffAuthHeaders,
+  getServerAccessToken,
+} from "./auth-server";
+import { getApiBaseUrl, getStaffStoreIdFromEnv } from "./auth-constants";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const accessToken = await getServerAccessToken();
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     headers: {
-      ...kitchenHeaders(),
+      ...buildStaffAuthHeaders(accessToken),
       ...init?.headers,
     },
     cache: "no-store",
@@ -46,6 +38,8 @@ export function getStoreMetrics(storeId: string): Promise<KitchenMetrics> {
   return apiFetch(`/api/stores/${storeId}/orders/metrics`);
 }
 
-export function getApiBaseUrl(): string {
-  return API_BASE;
+export { getApiBaseUrl };
+
+export function getConfiguredStoreId(): string | undefined {
+  return getStaffStoreIdFromEnv();
 }

@@ -2,19 +2,24 @@
 
 import type { Order, OrderStatus } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
-import { CheckCircle2, Loader2 } from "lucide-react";
 import { AdminStatusBadge } from "@/components/admin/admin-status-badge";
 import { OrderTrackingStepper } from "@/components/admin/order-tracking-stepper";
+import { OrderAdvanceButton } from "@/components/order/order-advance-button";
+import { OrderItemsList } from "@/components/order/order-items-list";
 import {
   type OrderStatusFilter,
   useAdminOrders,
 } from "@/hooks/use-admin-orders";
 import {
+  canHandOffOrderItems,
+  getPendingOrderItems,
+} from "@/lib/order-display";
+import {
   formatOrderNumber,
   formatPrice,
+  formatTimeOfDay,
   formatWaitTime,
 } from "@/lib/format";
-import { getAdvanceActionLabel } from "@/lib/order-status";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { cn } from "@/lib/utils";
 
@@ -32,13 +37,6 @@ const FILTER_OPTIONS: { id: OrderStatusFilter; label: string }[] = [
   { id: "ready", label: "Ready" },
   { id: "fulfilled", label: "Fulfilled" },
 ];
-
-function formatTime(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(iso));
-}
 
 export function AdminOrdersPanel({
   orders,
@@ -155,7 +153,7 @@ export function AdminOrdersPanel({
                     <p className="text-xs text-muted-foreground">
                       {order.items.length} item
                       {order.items.length === 1 ? "" : "s"} ·{" "}
-                      {formatPrice(order.total)} · {formatTime(order.createdAt)}
+                      {formatPrice(order.total)} · {formatTimeOfDay(order.createdAt)}
                     </p>
                   </div>
                   <OrderTrackingStepper status={order.status} compact />
@@ -167,7 +165,7 @@ export function AdminOrdersPanel({
 
         <section className="admin-panel flex flex-col gap-4 p-4 xl:col-span-7">
           {selectedOrder ? (
-            <OrderDetail
+            <AdminOrderDetail
               order={selectedOrder}
               now={now}
               advancing={advancingId === selectedOrder.id}
@@ -192,7 +190,7 @@ export function AdminOrdersPanel({
   );
 }
 
-interface OrderDetailProps {
+interface AdminOrderDetailProps {
   order: Order;
   now: number;
   advancing: boolean;
@@ -201,17 +199,16 @@ interface OrderDetailProps {
   onFulfillItem: (order: Order, itemId: string) => void;
 }
 
-function OrderDetail({
+function AdminOrderDetail({
   order,
   now,
   advancing,
   fulfillingItemId,
   onAdvance,
   onFulfillItem,
-}: OrderDetailProps) {
-  const actionLabel = getAdvanceActionLabel(order.status);
-  const pendingItems = order.items.filter((item) => !item.fulfilled);
-  const canHandOffItems = order.status === "ready" && pendingItems.length > 0;
+}: AdminOrderDetailProps) {
+  const pendingItems = getPendingOrderItems(order);
+  const canHandOffItems = canHandOffOrderItems(order);
 
   return (
     <>
@@ -229,19 +226,12 @@ function OrderDetail({
           </p>
         </div>
 
-        {actionLabel ? (
-          <button
-            type="button"
-            disabled={advancing}
-            onClick={() => onAdvance(order)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {advancing ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : null}
-            {actionLabel}
-          </button>
-        ) : null}
+        <OrderAdvanceButton
+          order={order}
+          advancing={advancing}
+          onAdvance={onAdvance}
+          size="md"
+        />
       </header>
 
       <div>
@@ -263,71 +253,12 @@ function OrderDetail({
           ) : null}
         </div>
 
-        <ul className="flex flex-col gap-2">
-          {order.items.map((item) => {
-            const handingOff = fulfillingItemId === item.id;
-
-            return (
-              <li
-                key={item.id}
-                className={cn(
-                  "flex items-start justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                  item.fulfilled
-                    ? "border-success/30 bg-success/5"
-                    : "border-border/60 bg-background/40",
-                )}
-              >
-                <div className={cn(item.fulfilled && "text-muted-foreground")}>
-                  <span className="font-medium">
-                    {item.quantity}× {item.productName}
-                  </span>
-                  {item.variantName ? (
-                    <span className="text-muted-foreground">
-                      {" "}
-                      · {item.variantName}
-                    </span>
-                  ) : null}
-                  {item.modifiers.length > 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      {item.modifiers.map((mod) => mod.optionName).join(", ")}
-                    </p>
-                  ) : null}
-                  {item.notes ? (
-                    <p className="text-xs italic text-muted-foreground">
-                      {item.notes}
-                    </p>
-                  ) : null}
-                  {item.fulfilled ? (
-                    <p className="text-xs text-success">Handed off</p>
-                  ) : order.status === "ready" ? (
-                    <p className="text-xs text-muted-foreground">Awaiting hand-off</p>
-                  ) : null}
-                </div>
-
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  {item.fulfilled ? (
-                    <CheckCircle2 className="size-4 text-success" />
-                  ) : canHandOffItems ? (
-                    <button
-                      type="button"
-                      disabled={handingOff}
-                      onClick={() => onFulfillItem(order, item.id)}
-                      className="inline-flex items-center gap-1 rounded-md bg-accent px-2 py-1 text-xs font-semibold text-accent-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {handingOff ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : null}
-                      Hand off
-                    </button>
-                  ) : null}
-                  <span className="font-mono text-xs">
-                    {formatPrice(item.price * item.quantity)}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <OrderItemsList
+          order={order}
+          variant="admin"
+          fulfillingItemId={fulfillingItemId}
+          onFulfillItem={onFulfillItem}
+        />
       </div>
     </>
   );

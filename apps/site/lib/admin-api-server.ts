@@ -1,24 +1,16 @@
 import type { AdminCatalog, AdminTable } from "@mizline/shared";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
-
-function adminHeaders(): HeadersInit {
-  const token = process.env.KITCHEN_DEV_TOKEN;
-  if (!token) {
-    throw new Error("KITCHEN_DEV_TOKEN is not configured");
-  }
-
-  return {
-    "Content-Type": "application/json",
-    "x-kitchen-dev-token": token,
-  };
-}
+import {
+  buildStaffAuthHeaders,
+  getServerAccessToken,
+} from "./auth-server";
+import { getApiBaseUrl } from "./auth-constants";
 
 async function adminFetch<T>(storeId: string, path: string): Promise<T> {
+  const accessToken = await getServerAccessToken();
   const response = await fetch(
-    `${API_BASE}/api/stores/${storeId}/admin${path}`,
+    `${getApiBaseUrl()}/api/stores/${storeId}/admin${path}`,
     {
-      headers: adminHeaders(),
+      headers: buildStaffAuthHeaders(accessToken),
       cache: "no-store",
     },
   );

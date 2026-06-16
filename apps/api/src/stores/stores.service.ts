@@ -21,6 +21,8 @@ export class StoresService {
       name: store.name,
       address: store.address,
       timezone: store.timezone,
+      delayWarningMinutes: store.delayWarningMinutes,
+      delayCriticalMinutes: store.delayCriticalMinutes,
     };
   }
 

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { staffHref } from "@/lib/site-path";
+import { getStaffPathPrefix } from "@/lib/site-path";
 import { getDemoTablePath } from "@/lib/pwa";
 
 export default function Home() {
   const customerHref = getDemoTablePath();
-  const staffAdminHref = staffHref("admin");
+  const staffLoginHref = `/${getStaffPathPrefix()}/login`;
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-16 pr-20">
@@ -43,7 +43,7 @@ export default function Home() {
         )}
 
         <Link
-          href={staffAdminHref}
+          href={staffLoginHref}
           className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
         >
           Staff

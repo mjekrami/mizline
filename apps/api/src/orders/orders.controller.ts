@@ -8,7 +8,14 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { KitchenDevTokenGuard } from "../common/guards/kitchen-dev-token.guard";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { Roles } from "../auth/decorators/roles.decorator";
+import type { AuthenticatedUser } from "../auth/auth.types";
+import {
+  RolesGuard,
+  TenantGuard,
+} from "../auth/guards/auth.guards";
+import { StaffAuthGuard } from "../auth/guards/staff-auth.guard";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { ListStoreOrdersQueryDto } from "./dto/list-store-orders-query.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
@@ -33,13 +40,15 @@ export class OrdersController {
   }
 
   @Get("stores/:storeId/orders/metrics")
-  @UseGuards(KitchenDevTokenGuard)
+  @UseGuards(StaffAuthGuard, RolesGuard, TenantGuard)
+  @Roles("barista")
   getStoreMetrics(@Param("storeId") storeId: string) {
     return this.ordersService.getStoreMetrics(storeId);
   }
 
   @Get("stores/:storeId/orders")
-  @UseGuards(KitchenDevTokenGuard)
+  @UseGuards(StaffAuthGuard, RolesGuard, TenantGuard)
+  @Roles("barista")
   listStoreOrders(
     @Param("storeId") storeId: string,
     @Query() query: ListStoreOrdersQueryDto,
@@ -48,16 +57,19 @@ export class OrdersController {
   }
 
   @Patch("orders/:orderId/status")
-  @UseGuards(KitchenDevTokenGuard)
+  @UseGuards(StaffAuthGuard, RolesGuard)
+  @Roles("barista")
   updateStatus(
     @Param("orderId") orderId: string,
     @Body() dto: UpdateOrderStatusDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.ordersService.updateStatus(orderId, dto.status);
+    return this.ordersService.updateStatus(orderId, dto.status, user.id);
   }
 
   @Patch("orders/:orderId/items/:itemId/fulfill")
-  @UseGuards(KitchenDevTokenGuard)
+  @UseGuards(StaffAuthGuard, RolesGuard)
+  @Roles("barista")
   fulfillOrderItem(
     @Param("orderId") orderId: string,
     @Param("itemId") itemId: string,

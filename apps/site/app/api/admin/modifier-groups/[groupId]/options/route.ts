@@ -6,7 +6,7 @@ export async function POST(
 ) {
   const { groupId } = await params;
   const body = await request.json();
-  return adminProxy(`/modifier-groups/${groupId}/options`, {
+  return adminProxy(`/modifier-groups/${groupId}/options`, request, {
     method: "POST",
     body: JSON.stringify(body),
   });

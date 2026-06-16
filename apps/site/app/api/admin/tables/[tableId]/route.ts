@@ -6,7 +6,7 @@ export async function PATCH(
 ) {
   const { tableId } = await params;
   const body = await request.json();
-  return adminProxy(`/tables/${tableId}`, {
+  return adminProxy(`/tables/${tableId}`, request, {
     method: "PATCH",
     body: JSON.stringify(body),
   });

@@ -1,6 +1,26 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, StaffRole } from "@prisma/client";
+import * as bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
+
+const DEMO_PASSWORD = "demo1234";
+const DEMO_USERS = [
+  {
+    email: "manager@demo.cafe",
+    name: "Alex Manager",
+    role: StaffRole.manager,
+  },
+  {
+    email: "barista1@demo.cafe",
+    name: "Sam Barista",
+    role: StaffRole.barista,
+  },
+  {
+    email: "barista2@demo.cafe",
+    name: "Jordan Barista",
+    role: StaffRole.barista,
+  },
+] as const;
 
 const DEMO_TENANT_SLUG = "demo-cafe";
 const DEMO_STORE_NAME = "Main Street Café";
@@ -303,6 +323,38 @@ async function main() {
     }
   }
 
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+
+  for (const demoUser of DEMO_USERS) {
+    const user = await prisma.user.upsert({
+      where: {
+        tenantId_email: { tenantId: tenant.id, email: demoUser.email },
+      },
+      update: {
+        name: demoUser.name,
+        role: demoUser.role,
+        active: true,
+        passwordHash,
+      },
+      create: {
+        tenantId: tenant.id,
+        email: demoUser.email,
+        name: demoUser.name,
+        role: demoUser.role,
+        passwordHash,
+        active: true,
+      },
+    });
+
+    await prisma.userStore.upsert({
+      where: {
+        userId_storeId: { userId: user.id, storeId: store.id },
+      },
+      update: {},
+      create: { userId: user.id, storeId: store.id },
+    });
+  }
+
   const tables = await prisma.table.findMany({
     where: { storeId: store.id },
     orderBy: { name: "asc" },
@@ -313,6 +365,11 @@ async function main() {
   console.log(`Store:  ${store.id}`);
   for (const table of tables) {
     console.log(`Table:  ${table.id} — ${table.name} (${table.qrCode})`);
+  }
+  console.log("");
+  console.log("Demo staff (password for all: demo1234):");
+  for (const demoUser of DEMO_USERS) {
+    console.log(`  ${demoUser.role.padEnd(8)} ${demoUser.email} — ${demoUser.name}`);
   }
 }
 

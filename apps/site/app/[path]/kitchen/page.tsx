@@ -1,6 +1,7 @@
 import { KitchenBoard } from "@/components/kitchen-board";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
+import { getServerAccessToken } from "@/lib/auth-server";
 import { loadKitchenBoardData } from "@/lib/load-kitchen-board";
 import { getStaffStoreId, hasKitchenDevToken } from "@/lib/staff-env";
 
@@ -16,11 +17,12 @@ export default async function KitchenDashboardPage() {
     );
   }
 
-  if (!hasKitchenDevToken()) {
+  const accessToken = await getServerAccessToken();
+  if (!accessToken && !hasKitchenDevToken()) {
     return (
       <StaffSetupNotice
         title="Kitchen Dashboard"
-        message={STAFF_SETUP_MESSAGES.missingDevToken}
+        message="Sign in to access the kitchen display."
       />
     );
   }

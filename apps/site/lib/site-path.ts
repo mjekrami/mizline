@@ -1,4 +1,4 @@
-export type SiteSection = "customer" | "kitchen" | "admin" | "site";
+export type SiteSection = "customer" | "kitchen" | "admin" | "login" | "site";
 
 export interface ParsedSitePath {
   section: SiteSection;
@@ -6,11 +6,8 @@ export interface ParsedSitePath {
 }
 
 export function getStaffPathPrefix(): string {
-  return (
-    process.env.NEXT_PUBLIC_STAFF_PATH ??
-    process.env.NEXT_PUBLIC_KITCHEN_STORE_ID ??
-    "staff"
-  );
+  const configured = process.env.NEXT_PUBLIC_STAFF_PATH?.trim();
+  return configured && configured.length > 0 ? configured : "staff";
 }
 
 export function staffHref(
@@ -36,6 +33,10 @@ export function parseSitePath(pathname: string): ParsedSitePath {
 
     if (section === "admin") {
       return { section: "admin", staffPath };
+    }
+
+    if (section === "login") {
+      return { section: "login", staffPath };
     }
   }
 

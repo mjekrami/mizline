@@ -7,19 +7,13 @@ import type {
   AdminTable,
   AdminVariant,
 } from "@mizline/shared";
+import { authFetch } from "@/lib/auth-session";
 
 async function adminClientFetch<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    cache: "no-store",
-  });
+  const response = await authFetch(path, init);
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {

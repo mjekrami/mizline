@@ -19,6 +19,8 @@ interface KitchenStatusColumnProps {
   now: number;
   advancingId: string | null;
   fulfillingItemId: string | null;
+  delayWarningMinutes: number;
+  delayCriticalMinutes: number;
   onAdvance: (order: Order) => void;
   onAdvanceToStatus: (orderId: string, status: OrderStatus) => void;
   onFulfillItem: (order: Order, itemId: string) => void;
@@ -31,6 +33,8 @@ export function KitchenStatusColumn({
   now,
   advancingId,
   fulfillingItemId,
+  delayWarningMinutes,
+  delayCriticalMinutes,
   onAdvance,
   onAdvanceToStatus,
   onFulfillItem,
@@ -91,6 +95,8 @@ export function KitchenStatusColumn({
             now={now}
             advancing={advancingId === order.id}
             fulfillingItemId={fulfillingItemId}
+            delayWarningMinutes={delayWarningMinutes}
+            delayCriticalMinutes={delayCriticalMinutes}
             onAdvance={onAdvance}
             onFulfillItem={onFulfillItem}
           />
