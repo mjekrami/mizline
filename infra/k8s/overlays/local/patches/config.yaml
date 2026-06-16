@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: mizline-config
 data:
-  CORS_ORIGINS: "http://order.mizline.local,http://kitchen.mizline.local"
+  CORS_ORIGINS: "http://app.mizline.local,http://order.mizline.local"

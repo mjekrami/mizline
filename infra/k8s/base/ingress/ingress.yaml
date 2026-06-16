@@ -29,6 +29,16 @@ spec:
                 name: api
                 port:
                   number: 3003
+    - host: app.mizline.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: site
+                port:
+                  number: 3000
     - host: order.mizline.local
       http:
         paths:
@@ -36,22 +46,12 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: customer
+                name: site
                 port:
                   number: 3000
-    - host: kitchen.mizline.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: kitchen
-                port:
-                  number: 3001
   # tls:
   #   - hosts:
   #       - api.mizline.local
+  #       - app.mizline.local
   #       - order.mizline.local
-  #       - kitchen.mizline.local
   #     secretName: mizline-tls

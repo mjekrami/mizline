@@ -4,6 +4,5 @@ metadata:
   name: mizline-config
 data:
   API_HOST: api.mizline.ir
-  CUSTOMER_HOST: order.mizline.ir
-  KITCHEN_HOST: kitchen.mizline.ir
-  CORS_ORIGINS: "https://order.mizline.ir,https://kitchen.mizline.ir"
+  SITE_HOST: app.mizline.ir
+  CORS_ORIGINS: "https://app.mizline.ir,https://order.mizline.ir"

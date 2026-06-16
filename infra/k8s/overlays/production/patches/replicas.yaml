@@ -8,14 +8,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customer
-spec:
-  replicas: 3
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: kitchen
+  name: site
 spec:
   replicas: 3
 ---
@@ -30,15 +23,7 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: customer
-spec:
-  minReplicas: 3
-  maxReplicas: 10
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: kitchen
+  name: site
 spec:
   minReplicas: 3
   maxReplicas: 10

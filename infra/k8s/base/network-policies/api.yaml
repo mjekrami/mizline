@@ -1,26 +1,3 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: api-ingress-only
-  labels:
-    app.kubernetes.io/part-of: mizline
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: api
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: ingress-nginx
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: customer
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: kitchen
-      ports:
-        - protocol: TCP
-          port: 3003
+              app.kubernetes.io/name: site

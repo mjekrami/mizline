@@ -8,8 +8,8 @@ spec:
   tls:
     - hosts:
         - api.mizline.ir
+        - app.mizline.ir
         - order.mizline.ir
-        - kitchen.mizline.ir
       secretName: mizline-tls
   rules:
     - host: api.mizline.ir
@@ -22,6 +22,16 @@ spec:
                 name: api
                 port:
                   number: 3003
+    - host: app.mizline.ir
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: site
+                port:
+                  number: 3000
     - host: order.mizline.ir
       http:
         paths:
@@ -29,16 +39,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: customer
+                name: site
                 port:
                   number: 3000
-    - host: kitchen.mizline.ir
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: kitchen
-                port:
-                  number: 3001

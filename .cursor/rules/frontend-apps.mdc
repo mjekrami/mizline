@@ -6,19 +6,26 @@ alwaysApply: false
 
 # Frontend Apps
 
-## Customer PWA (`apps/customer`)
+## Site (`apps/site`)
+
+Unified Next.js app for customer ordering and staff dashboards. Runs on port 3000.
+
+### Customer
 
 - Mobile-first; no authentication
-- Entry: QR URL `https://app.mizline.com/store/{storeId}/table/{tableId}`
+- Entry: `/store/{storeId}/table/{tableId}`
 - Flow: load store → menu → cart → checkout → order tracking
 - Persist cart in localStorage; associate orders with table from URL
 
-## Staff Dashboard (`apps/kitchen`)
+### Staff
 
-Single app for kitchen and admin staff. Runs on port 3001.
+Staff routes use a path segment: `/{path}/kitchen` and `/{path}/admin`.
 
-- `/kitchen` — Desktop-first KDS with four status columns; real-time via Socket.IO
-- `/admin` — Desktop-first store management; JWT auth required (MANAGER+)
+- `path` defaults to `NEXT_PUBLIC_STAFF_PATH`, then `NEXT_PUBLIC_KITCHEN_STORE_ID`, then `"staff"`
+- Use `PathProvider` / `usePathContext()` / `useIsAdmin()` to detect admin vs kitchen vs customer routes
+
+- `/{path}/kitchen` — Desktop-first KDS with four status columns; real-time via Socket.IO
+- `/{path}/admin` — Desktop-first store management; JWT auth required (MANAGER+)
 - Audio alert on `order.created`; support full-screen mode on kitchen view
 
 ## Conventions

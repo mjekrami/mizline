@@ -26,14 +26,10 @@ resources:
   - api/service.yaml
   - api/pdb.yaml
   - api/hpa.yaml
-  - customer/deployment.yaml
-  - customer/service.yaml
-  - customer/pdb.yaml
-  - customer/hpa.yaml
-  - kitchen/deployment.yaml
-  - kitchen/service.yaml
-  - kitchen/pdb.yaml
-  - kitchen/hpa.yaml
+  - site/deployment.yaml
+  - site/service.yaml
+  - site/pdb.yaml
+  - site/hpa.yaml
   - ingress/ingress.yaml
   - network-policies/api.yaml
 
@@ -41,9 +37,6 @@ images:
   - name: mizline/api
     newName: mizline/api
     newTag: latest
-  - name: mizline/customer
-    newName: mizline/customer
-    newTag: latest
-  - name: mizline/kitchen
-    newName: mizline/kitchen
+  - name: mizline/site
+    newName: mizline/site
     newTag: latest

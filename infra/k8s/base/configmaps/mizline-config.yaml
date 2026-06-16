@@ -5,7 +5,6 @@ metadata:
   labels:
     app.kubernetes.io/part-of: mizline
 data:
-  CORS_ORIGINS: "http://order.mizline.local,http://kitchen.mizline.local"
+  CORS_ORIGINS: "http://app.mizline.local,http://order.mizline.local"
   API_HOST: "api.mizline.local"
-  CUSTOMER_HOST: "order.mizline.local"
-  KITCHEN_HOST: "kitchen.mizline.local"
+  SITE_HOST: "app.mizline.local"

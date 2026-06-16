@@ -12,7 +12,5 @@ patches:
 images:
   - name: mizline/api
     newTag: latest
-  - name: mizline/customer
-    newTag: latest
-  - name: mizline/kitchen
+  - name: mizline/site
     newTag: latest
