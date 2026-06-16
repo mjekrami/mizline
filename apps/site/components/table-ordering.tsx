@@ -236,7 +236,7 @@ function TableOrderingContent({
           refreshing={myOrders.refreshing}
         />
         {!searchQuery.trim() && selectedCategoryId === null ? (
-          <div className="customer-hero relative overflow-hidden rounded-3xl px-5 py-6">
+          <div className="customer-hero rounded-3xl px-5 py-6">
             <div className="relative z-10">
               <p className="text-xs font-semibold uppercase tracking-widest customer-text-accent">
                 Welcome

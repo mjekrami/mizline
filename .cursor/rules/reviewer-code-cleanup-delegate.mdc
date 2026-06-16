@@ -1,0 +1,22 @@
+---
+description: Proactively delegate to reviewer-code-cleanup subagent after feature work, refactors, and dedupe requests
+alwaysApply: true
+---
+
+# Code cleanup subagent delegation
+
+Use the **`reviewer-code-cleanup`** subagent (`.cursor/agents/reviewer-code-cleanup.md`) without waiting for the user to ask, when:
+
+- You **just finished** implementing or refactoring a feature touching multiple files
+- You added UI in `apps/site/components/` or helpers duplicated across components
+- The user mentions: cleanup, dedupe, dead code, unused, consolidate, DRY, shared logic, remove redundant
+
+**Skip delegation** when:
+
+- The turn was question-only or review-only with no code to clean
+- The change was trivial (one-line fix, typo, comment-only)
+- The user explicitly says skip cleanup or wants speed over polish
+
+**How to invoke:** delegate to subagent `reviewer-code-cleanup` with scope = changed paths or `branch changes` from the session.
+
+Do not run cleanup *before* the user's requested work is done — run it as a **final pass** after the feature works.

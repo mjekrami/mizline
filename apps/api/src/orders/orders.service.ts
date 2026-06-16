@@ -29,7 +29,7 @@ type ProductForOrder = {
   id: string;
   name: string;
   price: number;
-  variants: Array<{ id: string; priceModifier: number }>;
+  variants: Array<{ id: string; name: string; priceModifier: number }>;
   modifierGroups: Array<{
     group: {
       id: string;
@@ -75,17 +75,10 @@ export class OrdersService {
       throw new NotFoundException("Table not found");
     }
 
-    const productIds = [...new Set(dto.items.map((item) => item.productId))];
-    const products = await this.loadProductsForOrder(storeId, productIds);
-
-    if (products.length !== productIds.length) {
-      const foundIds = new Set(products.map((product) => product.id));
-      const unavailableIds = productIds.filter((id) => !foundIds.has(id));
-      throw new BadRequestException(
-        `One or more products are invalid or unavailable:unavailable:${unavailableIds.join(",")}`,
-      );
-    }
-
+    const products = await this.loadValidatedProductsForOrder(
+      storeId,
+      dto.items.map((item) => item.productId),
+    );
     const productMap = new Map(products.map((product) => [product.id, product]));
     const { orderItems, subtotal } = this.buildOrderItemsFromDto(
       productMap,
@@ -97,6 +90,7 @@ export class OrdersService {
         tenantId: store.tenantId,
         storeId,
         tableId,
+        tableName: table.name,
         status: PrismaOrderStatus.new,
         subtotal,
         total: subtotal,
@@ -313,19 +307,30 @@ export class OrdersService {
     storeId: string,
     items: CreateOrderItemDto[],
   ) {
-    const productIds = [...new Set(items.map((item) => item.productId))];
-    const products = await this.loadProductsForOrder(storeId, productIds);
+    const products = await this.loadValidatedProductsForOrder(
+      storeId,
+      items.map((item) => item.productId),
+    );
+    const productMap = new Map(products.map((product) => [product.id, product]));
+    return this.buildOrderItemsFromDto(productMap, items);
+  }
 
-    if (products.length !== productIds.length) {
+  private async loadValidatedProductsForOrder(
+    storeId: string,
+    productIds: string[],
+  ): Promise<ProductForOrder[]> {
+    const uniqueIds = [...new Set(productIds)];
+    const products = await this.loadProductsForOrder(storeId, uniqueIds);
+
+    if (products.length !== uniqueIds.length) {
       const foundIds = new Set(products.map((product) => product.id));
-      const unavailableIds = productIds.filter((id) => !foundIds.has(id));
+      const unavailableIds = uniqueIds.filter((id) => !foundIds.has(id));
       throw new BadRequestException(
         `One or more products are invalid or unavailable:unavailable:${unavailableIds.join(",")}`,
       );
     }
 
-    const productMap = new Map(products.map((product) => [product.id, product]));
-    return this.buildOrderItemsFromDto(productMap, items);
+    return products;
   }
 
   private buildOrderItemsFromDto(
@@ -348,6 +353,7 @@ export class OrdersService {
 
       let unitPrice = product.price;
       let variantId: string | undefined;
+      let variantName: string | null = null;
 
       if (item.variantId) {
         const variant = product.variants.find((v) => v.id === item.variantId);
@@ -358,6 +364,7 @@ export class OrdersService {
         }
         unitPrice += variant.priceModifier;
         variantId = variant.id;
+        variantName = variant.name;
       }
 
       const selectedOptionIds = item.modifierOptionIds ?? [];
@@ -374,7 +381,9 @@ export class OrdersService {
 
       return {
         productId: item.productId,
+        productName: product.name,
         variantId,
+        variantName,
         quantity: item.quantity,
         price: unitPrice,
         notes: item.notes,

@@ -4,8 +4,6 @@ import { toSharedOrderStatus } from "../order-status";
 
 type OrderWithRelations = Order & {
   items: (OrderItem & {
-    product: { name: string };
-    variant: { name: string } | null;
     modifiers: {
       id: string;
       optionId: string | null;
@@ -13,19 +11,18 @@ type OrderWithRelations = Order & {
       priceModifier: number;
     }[];
   })[];
-  table: { name: string };
   assignedTo?: { id: string; name: string } | null;
 };
 
-export function mapOrderItem(
+function mapOrderItem(
   item: OrderWithRelations["items"][number],
 ): SharedOrderItem {
   return {
     id: item.id,
     productId: item.productId,
     variantId: item.variantId,
-    productName: item.product.name,
-    variantName: item.variant?.name ?? null,
+    productName: item.productName,
+    variantName: item.variantName,
     quantity: item.quantity,
     price: item.price,
     notes: item.notes,
@@ -45,7 +42,7 @@ export function mapOrder(order: OrderWithRelations): SharedOrder {
     tenantId: order.tenantId,
     storeId: order.storeId,
     tableId: order.tableId,
-    tableName: order.table.name,
+    tableName: order.tableName,
     status: toSharedOrderStatus(order.status),
     subtotal: order.subtotal,
     total: order.total,
@@ -62,11 +59,8 @@ export function mapOrder(order: OrderWithRelations): SharedOrder {
 export const orderWithRelationsInclude = {
   items: {
     include: {
-      product: { select: { name: true } },
-      variant: { select: { name: true } },
       modifiers: true,
     },
   },
-  table: { select: { name: true } },
   assignedTo: { select: { id: true, name: true } },
 } satisfies Prisma.OrderInclude;

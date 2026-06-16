@@ -36,8 +36,18 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<LoginResponse & { refreshToken: string }> {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { slug: dto.tenantSlug },
+      select: { id: true },
+    });
+
+    if (!tenant) {
+      throw new UnauthorizedException("Invalid email or password");
+    }
+
     const user = await this.prisma.user.findFirst({
       where: {
+        tenantId: tenant.id,
         email: dto.email.toLowerCase(),
         active: true,
       },

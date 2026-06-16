@@ -9,6 +9,7 @@ export class StoresService {
   async getStore(storeId: string): Promise<Store> {
     const store = await this.prisma.store.findUnique({
       where: { id: storeId },
+      include: { tenant: { select: { slug: true } } },
     });
 
     if (!store) {
@@ -18,6 +19,7 @@ export class StoresService {
     return {
       id: store.id,
       tenantId: store.tenantId,
+      tenantSlug: store.tenant.slug,
       name: store.name,
       address: store.address,
       timezone: store.timezone,

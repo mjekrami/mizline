@@ -7,10 +7,11 @@ import { loginStaff } from "@/lib/auth/session";
 
 interface LoginFormProps {
   staffPath: string;
+  tenantSlug: string;
   nextPath: string;
 }
 
-export function LoginForm({ staffPath, nextPath }: LoginFormProps) {
+export function LoginForm({ staffPath, tenantSlug, nextPath }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +24,7 @@ export function LoginForm({ staffPath, nextPath }: LoginFormProps) {
     setError(null);
 
     try {
-      const result = await loginStaff({ email, password });
+      const result = await loginStaff({ email, password, tenantSlug });
       const destination =
         nextPath.includes("/admin") && !canAccessAdmin(result.user.role)
           ? `/${staffPath}/kitchen`

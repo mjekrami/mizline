@@ -28,6 +28,7 @@ export interface AuthUser {
 export interface LoginRequest {
   email: string;
   password: string;
+  tenantSlug: string;
 }
 
 export interface LoginResponse {
@@ -85,6 +86,7 @@ export interface Tenant {
 export interface Store {
   id: StoreId;
   tenantId: TenantId;
+  tenantSlug: string;
   name: string;
   address?: string | null;
   timezone: string;

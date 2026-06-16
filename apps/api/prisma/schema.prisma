@@ -156,11 +156,13 @@ model RefreshToken {
   @@index([expiresAt])
 }
 
+// DB triggers enforce cross-entity consistency (see migration critical_db_integrity).
 model Order {
   id           String      @id @default(cuid())
   tenantId     String
   storeId      String
   tableId      String
+  tableName    String
   status       OrderStatus @default(new)
   subtotal     Int
   total        Int
@@ -172,8 +174,8 @@ model Order {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  store        Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  table        Table       @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  store        Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  table        Table       @relation(fields: [tableId], references: [id], onDelete: Restrict)
   assignedTo   User?       @relation("OrderAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   items        OrderItem[]
 
@@ -187,14 +189,16 @@ model Order {
 }
 
 model OrderItem {
-  id        String              @id @default(cuid())
-  orderId   String
-  productId String
-  variantId String?
-  quantity  Int
-  price     Int
-  notes     String?
-  fulfilled Boolean             @default(false)
+  id          String              @id @default(cuid())
+  orderId     String
+  productId   String
+  productName String
+  variantId   String?
+  variantName String?
+  quantity    Int
+  price       Int
+  notes       String?
+  fulfilled   Boolean             @default(false)
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
   order     Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)

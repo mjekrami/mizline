@@ -92,23 +92,16 @@
     #12100d 45%,
     #0e0c0a 100%
   );
-  --customer-surface-gradient: linear-gradient(
-    180deg,
-    #1a1612 0%,
-    #12100d 100%
-  );
   --customer-text-gradient: linear-gradient(
     120deg,
     #e07b32 0%,
     #f4a060 55%,
     #c4a574 100%
   );
-  --customer-pill-gradient: linear-gradient(180deg, #2a231c 0%, #241e18 100%);
-  --customer-summary-gradient: linear-gradient(
+  --customer-pill-gradient: linear-gradient(
     180deg,
-    #1a1612 0%,
-    #12100d 55%,
-    #080605 100%
+    color-mix(in srgb, #2a231c 90%, transparent) 0%,
+    color-mix(in srgb, #241e18 82%, transparent) 100%
   );
   --customer-image-ring-gradient: radial-gradient(
     circle at 30% 25%,
@@ -116,20 +109,7 @@
     #1a1612 55%,
     #12100d 100%
   );
-  --customer-bar-gradient: linear-gradient(180deg, #0e0c0a 0%, #080605 100%);
-
-  position: relative;
-  isolation: isolate;
-  color: var(--foreground);
-}
-
-.customer-app::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
+  --customer-ambient-gradient:
     radial-gradient(
       ellipse 105% 85% at 50% -22%,
       color-mix(in srgb, #e07b32 26%, transparent),
@@ -157,6 +137,35 @@
       #0a0807 72%,
       #080605 100%
     );
+  --customer-bar-gradient: linear-gradient(
+    180deg,
+    color-mix(in srgb, #0e0c0a 92%, transparent) 0%,
+    color-mix(in srgb, #080605 62%, transparent) 72%,
+    transparent 100%
+  );
+  --customer-detail-accent-gradient:
+    radial-gradient(
+      ellipse 80% 60% at 50% -5%,
+      color-mix(in srgb, #e07b32 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 0% 40%,
+      color-mix(in srgb, #c4a574 10%, transparent),
+      transparent 60%
+    );
+  position: relative;
+  isolation: isolate;
+  color: var(--foreground);
+}
+
+.customer-app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--customer-ambient-gradient);
 }
 
 .customer-app .customer-category-bar {
@@ -164,27 +173,31 @@
   top: 0;
   z-index: 40;
   background: var(--customer-bar-gradient);
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, var(--accent));
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--border) 35%, transparent);
   padding-top: 0.25rem;
 }
 
 .customer-app .customer-hero {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, #e07b32 22%, #12100d) 0%,
-      #12100d 42%,
-      #080605 100%
+      color-mix(in srgb, #e07b32 16%, transparent) 0%,
+      color-mix(in srgb, #12100d 28%, transparent) 38%,
+      transparent 100%
     );
-  border: 1px solid color-mix(in srgb, #e07b32 30%, var(--border));
+  border: 1px solid color-mix(in srgb, #e07b32 22%, var(--border));
 }
 
 .customer-app .customer-hero::before {
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: radial-gradient(
     ellipse 75% 90% at 100% 0%,
     color-mix(in srgb, var(--accent) 24%, transparent),
@@ -220,7 +233,6 @@
 .customer-app .customer-add-btn {
   background: var(--customer-accent-gradient);
   color: var(--accent-foreground);
-  overflow: hidden;
   isolation: isolate;
 }
 
@@ -228,8 +240,9 @@
 .customer-app .customer-icon-btn,
 .customer-app .customer-nav-link {
   background: var(--customer-pill-gradient);
-  border: 1px solid var(--border);
-  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .customer-app .customer-nav-link {
@@ -273,24 +286,35 @@
 }
 
 .customer-app .customer-cart-summary {
-  background: var(--customer-summary-gradient);
+  position: relative;
+  isolation: isolate;
   color: var(--foreground);
-  border-top: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-top: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
 }
 
-.customer-app .customer-detail-hero {
-  background:
-    radial-gradient(
-      ellipse 80% 60% at 50% -5%,
-      color-mix(in srgb, #e07b32 18%, transparent),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 50% 40% at 0% 40%,
-      color-mix(in srgb, #c4a574 10%, transparent),
-      transparent 60%
-    ),
-    var(--background);
+.customer-app .customer-cart-summary::before {
+  content: "";
+  position: absolute;
+  inset: -3rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, #1a1612 22%, transparent) 20%,
+    color-mix(in srgb, #12100d 50%, transparent) 55%,
+    color-mix(in srgb, #080605 78%, transparent) 100%
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.customer-app .customer-detail-view {
+  background: var(--customer-detail-accent-gradient), var(--customer-ambient-gradient);
+}
+
+.customer-app .customer-overlay-view {
+  background: var(--customer-ambient-gradient);
 }
 
 .customer-app .customer-detail-image-ring {
@@ -300,23 +324,63 @@
 }
 
 .customer-app .customer-detail-sheet {
-  background: var(--customer-surface-gradient);
+  position: relative;
+  isolation: isolate;
+}
+
+.customer-app .customer-detail-sheet::before {
+  content: "";
+  position: absolute;
+  inset: -4rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, #1a1612 18%, transparent) 18%,
+    color-mix(in srgb, #12100d 42%, transparent) 100%
+  );
+}
+
+.customer-app .customer-detail-footer {
+  position: relative;
+  isolation: isolate;
+  border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+}
+
+.customer-app .customer-detail-footer::before {
+  content: "";
+  position: absolute;
+  inset: -2.5rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, #12100d 55%, transparent) 35%,
+    color-mix(in srgb, #0e0c0a 82%, transparent) 100%
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .customer-app .customer-search {
   background: var(--customer-pill-gradient);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
 }
 
 .customer-app .customer-order-banner {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 22%, var(--card)) 0%,
-    color-mix(in srgb, var(--accent) 10%, var(--card)) 100%
+    color-mix(in srgb, var(--accent) 16%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 100%
   );
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
-  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .customer-app .customer-cart-line {

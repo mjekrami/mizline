@@ -139,7 +139,7 @@ export function VariantPicker({
   return (
     <dialog
       ref={dialogRef}
-      className="customer-detail-hero fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 bg-background p-0 backdrop:bg-black/30"
+      className="customer-detail-view fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 p-0 backdrop:bg-black/30"
       onClose={onClose}
     >
       <div className="flex h-full flex-col">
@@ -172,7 +172,7 @@ export function VariantPicker({
           ) : null}
         </div>
 
-        <div className="customer-detail-sheet flex flex-1 flex-col gap-5 overflow-y-auto rounded-t-3xl px-5 py-6">
+        <div className="customer-detail-sheet flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-6">
           {product.variants.length > 0 ? (
             <div className="flex flex-col gap-3">
               <p className="text-sm font-semibold">Size</p>
@@ -257,7 +257,7 @@ export function VariantPicker({
           </label>
         </div>
 
-        <div className="shrink-0 border-t border-border bg-card px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="customer-detail-footer shrink-0 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             disabled={!canAdd}
@@ -302,7 +302,7 @@ export function ProductCard({
     <button
       type="button"
       onClick={() => onSelect(product)}
-      className="customer-product-card flex flex-col overflow-hidden rounded-3xl text-left transition-transform active:scale-[0.97]"
+      className="customer-product-card flex flex-col rounded-3xl text-left transition-transform active:scale-[0.97]"
     >
       <ProductImage
         src={product.image}
@@ -515,7 +515,7 @@ export function CartSheet({
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 bg-background p-0 backdrop:bg-black/30"
+      className="customer-overlay-view fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 p-0 backdrop:bg-black/30"
       onClose={onClose}
     >
       <div className="flex h-full flex-col">
@@ -614,7 +614,7 @@ export function CartSheet({
           )}
         </div>
 
-        <div className="customer-cart-summary shrink-0 rounded-t-3xl px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="customer-cart-summary shrink-0 px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {error ? (
             <p className="mb-3 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
