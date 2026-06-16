@@ -1,7 +1,6 @@
 "use client";
 
 import type { KitchenMetrics, OrderStatus, Store } from "@mizline/shared";
-import { orderStatusLabels } from "@mizline/shared";
 import {
   Loader2,
   Maximize2,
@@ -10,12 +9,12 @@ import {
   WifiOff,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { KitchenDndProvider } from "@/components/kitchen/kitchen-dnd-provider";
+import { KitchenStatusColumn } from "@/components/kitchen/kitchen-status-column";
 import { KitchenMetricsBar } from "@/components/kitchen-metrics";
-import { OrderCard } from "@/components/order-card";
 import { StaffLiveControls } from "@/components/staff-live-controls";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useKitchenBoard } from "@/hooks/use-kitchen-board";
-import { cn } from "@/lib/utils";
 
 const columnAccent: Record<OrderStatus, string> = {
   new: "border-order-new text-order-new",
@@ -51,6 +50,7 @@ export function KitchenBoard({
     audioEnabled,
     refreshOrders,
     advanceOrder,
+    advanceOrderToStatus,
     fulfillItem,
     unlockAudio,
   } = useKitchenBoard({ storeId, initialOrders, initialMetrics });
@@ -73,7 +73,7 @@ export function KitchenBoard({
   }, []);
 
   return (
-    <main className="flex min-h-full flex-col gap-4 p-4 md:p-6">
+    <main className="flex min-h-dvh flex-col gap-4 p-4 md:h-dvh md:min-h-0 md:overflow-hidden md:p-6">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-1">
           <p className="text-sm font-medium text-muted-foreground">
@@ -128,50 +128,24 @@ export function KitchenBoard({
 
       <KitchenMetricsBar metrics={metrics} />
 
-      <div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {columns.map((status) => {
-          const columnOrders = ordersByStatus[status];
-
-          return (
-            <section
+      <KitchenDndProvider>
+        <div className="grid gap-3 md:min-h-0 md:flex-1 md:grid-cols-2 xl:grid-cols-4">
+          {columns.map((status) => (
+            <KitchenStatusColumn
               key={status}
-              className={cn(
-                "flex min-h-[24rem] flex-col gap-3 rounded-lg border border-t-4 bg-card/80 p-3",
-                columnAccent[status],
-              )}
-            >
-              <div className="flex items-center justify-between gap-2 px-1">
-                <h2 className="text-sm font-semibold uppercase tracking-wide">
-                  {orderStatusLabels[status]}
-                </h2>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {columnOrders.length}
-                </span>
-              </div>
-
-              <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
-                {columnOrders.length === 0 ? (
-                  <p className="px-1 text-sm text-muted-foreground">
-                    No orders
-                  </p>
-                ) : (
-                  columnOrders.map((order) => (
-                    <OrderCard
-                      key={order.id}
-                      order={order}
-                      now={now}
-                      advancing={advancingId === order.id}
-                      fulfillingItemId={fulfillingItemId}
-                      onAdvance={advanceOrder}
-                      onFulfillItem={fulfillItem}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+              status={status}
+              accentClassName={columnAccent[status]}
+              orders={ordersByStatus[status]}
+              now={now}
+              advancingId={advancingId}
+              fulfillingItemId={fulfillingItemId}
+              onAdvance={advanceOrder}
+              onAdvanceToStatus={advanceOrderToStatus}
+              onFulfillItem={fulfillItem}
+            />
+          ))}
+        </div>
+      </KitchenDndProvider>
     </main>
   );
 }

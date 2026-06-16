@@ -18,3 +18,10 @@ export function getAdvanceActionLabel(current: OrderStatus): string | null {
   if (!next) return null;
   return `Mark ${orderStatusLabels[next]}`;
 }
+
+export function canAdvanceOrderTo(
+  current: OrderStatus,
+  target: OrderStatus,
+): boolean {
+  return getNextOrderStatus(current) === target;
+}

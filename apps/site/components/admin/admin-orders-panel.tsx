@@ -15,6 +15,7 @@ import {
   formatWaitTime,
 } from "@/lib/format";
 import { getAdvanceActionLabel } from "@/lib/order-status";
+import { VirtualList } from "@/components/ui/virtual-list";
 import { cn } from "@/lib/utils";
 
 interface AdminOrdersPanelProps {
@@ -117,50 +118,51 @@ export function AdminOrdersPanel({
             </p>
           </header>
 
-          <ul className="max-h-[36rem] overflow-y-auto">
-            {filteredOrders.length === 0 ? (
-              <li className="px-4 py-10 text-center text-sm text-muted-foreground">
+          <VirtualList
+            as="ul"
+            itemAs="li"
+            items={filteredOrders}
+            estimateSize={88}
+            className="max-h-[36rem]"
+            getItemKey={(order) => order.id}
+            empty={
+              <p className="px-4 py-10 text-center text-sm text-muted-foreground">
                 No orders match this filter.
-              </li>
-            ) : (
-              filteredOrders.map((order) => {
-                const selected = activeOrderId === order.id;
+              </p>
+            }
+            renderItem={(order) => {
+              const selected = activeOrderId === order.id;
 
-                return (
-                  <li key={order.id}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedOrderId(order.id)}
-                      className={cn(
-                        "flex w-full items-start gap-3 border-b border-border/40 px-4 py-3 text-left transition last:border-b-0",
-                        selected
-                          ? "bg-muted/60"
-                          : "hover:bg-muted/30",
-                      )}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-xs font-semibold">
-                            #{formatOrderNumber(order.id)}
-                          </span>
-                          <AdminStatusBadge status={order.status} />
-                        </div>
-                        <p className="mt-1 text-sm text-foreground">
-                          Table {order.tableName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.items.length} item
-                          {order.items.length === 1 ? "" : "s"} ·{" "}
-                          {formatPrice(order.total)} · {formatTime(order.createdAt)}
-                        </p>
-                      </div>
-                      <OrderTrackingStepper status={order.status} compact />
-                    </button>
-                  </li>
-                );
-              })
-            )}
-          </ul>
+              return (
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrderId(order.id)}
+                  className={cn(
+                    "flex w-full items-start gap-3 border-b border-border/40 px-4 py-3 text-left transition",
+                    selected ? "bg-muted/60" : "hover:bg-muted/30",
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs font-semibold">
+                        #{formatOrderNumber(order.id)}
+                      </span>
+                      <AdminStatusBadge status={order.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-foreground">
+                      Table {order.tableName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {order.items.length} item
+                      {order.items.length === 1 ? "" : "s"} ·{" "}
+                      {formatPrice(order.total)} · {formatTime(order.createdAt)}
+                    </p>
+                  </div>
+                  <OrderTrackingStepper status={order.status} compact />
+                </button>
+              );
+            }}
+          />
         </section>
 
         <section className="admin-panel flex flex-col gap-4 p-4 xl:col-span-7">

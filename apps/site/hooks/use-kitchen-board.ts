@@ -8,7 +8,7 @@ import {
   listStoreOrders,
   updateOrderStatus,
 } from "@/lib/kitchen-api";
-import { getNextOrderStatus } from "@/lib/order-status";
+import { getNextOrderStatus, canAdvanceOrderTo } from "@/lib/order-status";
 import { useStoreRealtime } from "@/hooks/use-store-realtime";
 
 const KITCHEN_COLUMNS: OrderStatus[] = [
@@ -104,6 +104,29 @@ export function useKitchenBoard({
     }
   }, [refreshMetrics]);
 
+  const advanceOrderToStatus = useCallback(
+    async (orderId: string, targetStatus: OrderStatus) => {
+      const order = orders.find((entry) => entry.id === orderId);
+      if (!order || !canAdvanceOrderTo(order.status, targetStatus)) return;
+
+      setAdvancingId(orderId);
+      setError(null);
+
+      try {
+        const updated = await updateOrderStatus(orderId, targetStatus);
+        setOrders((current) =>
+          current.map((entry) => (entry.id === updated.id ? updated : entry)),
+        );
+        await refreshMetrics();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update order");
+      } finally {
+        setAdvancingId(null);
+      }
+    },
+    [orders, refreshMetrics],
+  );
+
   const fulfillItem = useCallback(async (order: Order, itemId: string) => {
     setFulfillingItemId(itemId);
     setError(null);
@@ -148,6 +171,7 @@ export function useKitchenBoard({
     audioEnabled,
     refreshOrders,
     advanceOrder,
+    advanceOrderToStatus,
     fulfillItem,
     unlockAudio,
   };

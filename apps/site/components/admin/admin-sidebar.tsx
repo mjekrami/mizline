@@ -58,14 +58,7 @@ export function AdminSidebar({
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-border/60 bg-card/50">
-      <div className="border-b border-border/60 px-4 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Mizline
-        </p>
-        <p className="mt-1 text-sm font-semibold text-foreground">Admin Console</p>
-      </div>
-
-      <nav className="flex flex-1 flex-col gap-1 p-3">
+      <nav className="flex flex-1 flex-col gap-1 p-3 pt-4">
         {navItems.map(({ id, label, icon: Icon, countKey }) => {
           const active = section === id;
 

@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PathProvider } from "@/components/path-provider";
 import { PwaProvider } from "@/components/pwa-provider";
+import { GlobalThemeToggle } from "@/components/global-theme-toggle";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   APP_DEFAULT_TITLE,
   APP_DESCRIPTION,
@@ -92,9 +92,7 @@ export default function RootLayout({
         >
           <PathProvider>
             <PwaProvider>
-              <div className="fixed top-4 right-4 z-50">
-                <ThemeToggle />
-              </div>
+              <GlobalThemeToggle />
               {children}
             </PwaProvider>
           </PathProvider>
