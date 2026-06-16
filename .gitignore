@@ -15,6 +15,13 @@ coverage
 .next
 out
 
+# expo
+.expo
+web-build
+expo-env.d.ts
+apps/mizline-customer/android
+apps/mizline-customer/ios
+
 # nestjs
 dist
 
