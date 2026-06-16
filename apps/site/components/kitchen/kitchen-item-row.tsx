@@ -1,24 +1,17 @@
 "use client";
 
 import type { OrderItem } from "@mizline/shared";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { splitItemModifiers } from "@/lib/kitchen/display";
-import { cn } from "@/lib/utils";
 
 interface KitchenItemRowProps {
   item: OrderItem;
   showReadyBadge: boolean;
-  canHandOff: boolean;
-  handingOff: boolean;
-  onHandOff: () => void;
 }
 
 export function KitchenItemRow({
   item,
   showReadyBadge,
-  canHandOff,
-  handingOff,
-  onHandOff,
 }: KitchenItemRowProps) {
   const { base, extras } = splitItemModifiers(item);
 
@@ -61,20 +54,6 @@ export function KitchenItemRow({
           <span className="rounded-md bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
             Ready
           </span>
-        ) : null}
-
-        {canHandOff && !item.fulfilled ? (
-          <button
-            type="button"
-            disabled={handingOff}
-            onClick={onHandOff}
-            className={cn(
-              "inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60",
-            )}
-          >
-            {handingOff ? <Loader2 className="size-3.5 animate-spin" /> : null}
-            Deliver
-          </button>
         ) : null}
 
         {item.fulfilled ? (

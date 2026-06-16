@@ -38,6 +38,12 @@ export function fulfillOrderItem(
   });
 }
 
+export function fulfillOrder(orderId: string): Promise<Order> {
+  return clientApiFetch(`/api/kitchen/orders/${orderId}/fulfill`, {
+    method: "PATCH",
+  });
+}
+
 export function addOrderItems(
   orderId: string,
   body: AddOrderItemsRequest,

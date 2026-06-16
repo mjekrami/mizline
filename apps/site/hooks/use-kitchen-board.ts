@@ -54,11 +54,10 @@ export function useKitchenBoard({
     );
   }, []);
 
-  const { advancingId, fulfillingItemId, advanceOrder, fulfillItem } =
-    useOrderActions({
-      onOrderUpdated: updateOrderInList,
-      onError: setError,
-    });
+  const { advancingId, advanceOrder } = useOrderActions({
+    onOrderUpdated: updateOrderInList,
+    onError: setError,
+  });
 
   const syncOrders = useCallback(async () => {
     const seq = ++syncSeqRef.current;
@@ -167,7 +166,6 @@ export function useKitchenBoard({
     error,
     advancingId,
     syncingId,
-    fulfillingItemId,
     now,
     connected,
     audioEnabled,
@@ -178,7 +176,6 @@ export function useKitchenBoard({
     syncOrder,
     replaceOrder: updateOrderInList,
     advanceOrder,
-    fulfillItem,
     unlockAudio,
   };
 }

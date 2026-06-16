@@ -12,14 +12,12 @@ interface KitchenOrderGridProps {
   now: number;
   advancingId: string | null;
   syncingId: string | null;
-  fulfillingItemId: string | null;
   delayWarningMinutes: number;
   delayCriticalMinutes: number;
   isFavorite: (tableId: string) => boolean;
   onToggleFavorite: (tableId: string) => void;
   onAdvance: (order: Order) => void;
   onSync: (orderId: string) => void;
-  onFulfillItem: (order: Order, itemId: string) => void;
   onOrderUpdated: (order: Order) => void;
 }
 
@@ -30,14 +28,12 @@ export function KitchenOrderGrid({
   now,
   advancingId,
   syncingId,
-  fulfillingItemId,
   delayWarningMinutes,
   delayCriticalMinutes,
   isFavorite,
   onToggleFavorite,
   onAdvance,
   onSync,
-  onFulfillItem,
   onOrderUpdated,
 }: KitchenOrderGridProps) {
   if (orders.length === 0) {
@@ -70,14 +66,12 @@ export function KitchenOrderGrid({
           now={now}
           advancing={advancingId === order.id}
           syncing={syncingId === order.id}
-          fulfillingItemId={fulfillingItemId}
           delayWarningMinutes={delayWarningMinutes}
           delayCriticalMinutes={delayCriticalMinutes}
           favorite={isFavorite(order.tableId)}
           onToggleFavorite={() => onToggleFavorite(order.tableId)}
           onAdvance={onAdvance}
           onSync={onSync}
-          onFulfillItem={onFulfillItem}
           onOrderUpdated={onOrderUpdated}
         />
       ))}

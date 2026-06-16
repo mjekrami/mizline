@@ -216,6 +216,23 @@ export class OrdersService {
     return this.publishOrderChange(orderId, order.storeId, order.status);
   }
 
+  private async getReadyOrder(orderId: string, notReadyMessage: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    if (order.status !== PrismaOrderStatus.ready) {
+      throw new BadRequestException(notReadyMessage);
+    }
+
+    return order;
+  }
+
   private async getModifiableOrder(
     orderId: string,
     tableId?: string,
@@ -670,20 +687,10 @@ export class OrdersService {
   }
 
   async fulfillOrderItem(orderId: string, itemId: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: { items: true },
-    });
-
-    if (!order) {
-      throw new NotFoundException("Order not found");
-    }
-
-    if (order.status !== PrismaOrderStatus.ready) {
-      throw new BadRequestException(
-        "Items can only be handed off when the order is ready",
-      );
-    }
+    const order = await this.getReadyOrder(
+      orderId,
+      "Items can only be handed off when the order is ready",
+    );
 
     const item = order.items.find((entry) => entry.id === itemId);
     if (!item) {
@@ -734,6 +741,37 @@ export class OrdersService {
     });
 
     return mapOrder(refreshed);
+  }
+
+  async fulfillOrder(orderId: string) {
+    await this.getReadyOrder(
+      orderId,
+      "Order can only be delivered when it is ready",
+    );
+
+    const now = new Date();
+
+    const completed = await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.updateMany({
+        where: { orderId, fulfilled: false },
+        data: { fulfilled: true },
+      });
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: PrismaOrderStatus.fulfilled,
+          fulfilledAt: now,
+        },
+        include: orderWithRelationsInclude,
+      });
+    });
+
+    this.realtime.emitOrderFulfilled(completed.storeId, completed.id, {
+      orderId: completed.id,
+    });
+
+    return mapOrder(completed);
   }
 
   private parseStatusFilter(statusFilter?: string): OrderStatus[] {

@@ -2,7 +2,7 @@
 
 import type { Order } from "@mizline/shared";
 import { useCallback, useState } from "react";
-import { fulfillOrderItem, updateOrderStatus } from "@/lib/api/kitchen";
+import { fulfillOrder, fulfillOrderItem, updateOrderStatus } from "@/lib/api/kitchen";
 import { getNextOrderStatus } from "@/lib/order/status";
 
 interface UseOrderActionsOptions {
@@ -21,6 +21,22 @@ export function useOrderActions({
 
   const advanceOrder = useCallback(
     async (order: Order) => {
+      if (order.status === "ready") {
+        setAdvancingId(order.id);
+        try {
+          const updated = await fulfillOrder(order.id);
+          onOrderUpdated(updated);
+          await onAfterAction?.();
+        } catch (err) {
+          onError?.(
+            err instanceof Error ? err.message : "Failed to deliver order",
+          );
+        } finally {
+          setAdvancingId(null);
+        }
+        return;
+      }
+
       const nextStatus = getNextOrderStatus(order.status);
       if (!nextStatus) return;
 

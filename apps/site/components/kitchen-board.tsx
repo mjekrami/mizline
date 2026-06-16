@@ -26,7 +26,6 @@ export function KitchenBoard({
     error,
     advancingId,
     syncingId,
-    fulfillingItemId,
     now,
     connected,
     audioEnabled,
@@ -37,7 +36,6 @@ export function KitchenBoard({
     syncOrder,
     replaceOrder,
     advanceOrder,
-    fulfillItem,
     unlockAudio,
   } = useKitchenBoard({
     storeId,
@@ -105,14 +103,12 @@ export function KitchenBoard({
         now={now}
         advancingId={advancingId}
         syncingId={syncingId}
-        fulfillingItemId={fulfillingItemId}
         delayWarningMinutes={store.delayWarningMinutes ?? 5}
         delayCriticalMinutes={store.delayCriticalMinutes ?? 10}
         isFavorite={isFavorite}
         onToggleFavorite={toggleFavorite}
         onAdvance={advanceOrder}
         onSync={(orderId) => void syncOrder(orderId)}
-        onFulfillItem={fulfillItem}
         onOrderUpdated={replaceOrder}
       />
     </main>

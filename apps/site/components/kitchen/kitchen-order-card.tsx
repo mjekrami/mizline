@@ -23,7 +23,6 @@ import {
   getReadyAllLabel,
   type KitchenItemTab,
 } from "@/lib/kitchen/display";
-import { canHandOffOrderItems } from "@/lib/order/display";
 import { formatOrderNumber, formatTimeOfDay, formatWaitTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -53,14 +52,12 @@ interface KitchenOrderCardProps {
   now: number;
   advancing: boolean;
   syncing: boolean;
-  fulfillingItemId: string | null;
   delayWarningMinutes: number;
   delayCriticalMinutes: number;
   favorite: boolean;
   onToggleFavorite: () => void;
   onAdvance: (order: Order) => void;
   onSync: (orderId: string) => void;
-  onFulfillItem: (order: Order, itemId: string) => void;
   onOrderUpdated: (order: Order) => void;
 }
 
@@ -70,14 +67,12 @@ export function KitchenOrderCard({
   now,
   advancing,
   syncing,
-  fulfillingItemId,
   delayWarningMinutes,
   delayCriticalMinutes,
   favorite,
   onToggleFavorite,
   onAdvance,
   onSync,
-  onFulfillItem,
   onOrderUpdated,
 }: KitchenOrderCardProps) {
   const [activeTab, setActiveTab] = useState<KitchenItemTab>(() =>
@@ -101,7 +96,6 @@ export function KitchenOrderCard({
     : "normal";
 
   const visibleItems = filterItemsByTab(order.items, activeTab, order.status);
-  const canHandOffItems = canHandOffOrderItems(order);
   const readyAllLabel = getReadyAllLabel(order.status);
   const itemCountByTab = ITEM_TABS.reduce(
     (counts, tab) => {
@@ -250,10 +244,7 @@ export function KitchenOrderCard({
             <KitchenItemRow
               key={item.id}
               item={item}
-              showReadyBadge={activeTab === "called" && !item.fulfilled}
-              canHandOff={canHandOffItems}
-              handingOff={fulfillingItemId === item.id}
-              onHandOff={() => onFulfillItem(order, item.id)}
+              showReadyBadge={activeTab === "called"}
             />
           ))
         )}

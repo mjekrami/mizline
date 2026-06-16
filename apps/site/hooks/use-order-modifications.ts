@@ -11,11 +11,13 @@ import { addItemsToOrder } from "@/lib/api/customer";
 
 type OrderModifyMode = "staff" | "customer";
 
+export type OrderModificationAction = "add" | "qty" | "remove";
+
 interface UseOrderModificationsOptions {
   mode: OrderModifyMode;
   storeId: string;
   tableId?: string;
-  onOrderUpdated: (order: Order) => void;
+  onOrderUpdated: (order: Order, action: OrderModificationAction) => void;
   onError?: (message: string) => void;
 }
 
@@ -29,11 +31,11 @@ export function useOrderModifications({
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   const run = useCallback(
-    async (key: string, action: () => Promise<Order>) => {
+    async (key: string, action: OrderModificationAction, task: () => Promise<Order>) => {
       setBusyKey(key);
       try {
-        const updated = await action();
-        onOrderUpdated(updated);
+        const updated = await task();
+        onOrderUpdated(updated, action);
         return updated;
       } catch (error) {
         const message =
@@ -49,7 +51,7 @@ export function useOrderModifications({
 
   const addItems = useCallback(
     (orderId: string, body: AddOrderItemsRequest) =>
-      run(`add:${orderId}`, () => {
+      run(`add:${orderId}`, "add", () => {
         if (mode === "customer") {
           if (!tableId) {
             throw new Error("Table is required to add items");
@@ -63,7 +65,7 @@ export function useOrderModifications({
 
   const changeItemQuantity = useCallback(
     (orderId: string, itemId: string, quantity: number) =>
-      run(`qty:${itemId}`, () =>
+      run(`qty:${itemId}`, "qty", () =>
         updateOrderItem(orderId, itemId, { quantity }),
       ),
     [run],
@@ -71,7 +73,7 @@ export function useOrderModifications({
 
   const removeItem = useCallback(
     (orderId: string, itemId: string) =>
-      run(`remove:${itemId}`, () => removeOrderItem(orderId, itemId)),
+      run(`remove:${itemId}`, "remove", () => removeOrderItem(orderId, itemId)),
     [run],
   );
 

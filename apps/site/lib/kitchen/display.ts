@@ -81,6 +81,8 @@ export function getReadyAllLabel(status: OrderStatus): string | null {
       return "Start all";
     case "preparing":
       return "Ready all";
+    case "ready":
+      return "Deliver all";
     default:
       return null;
   }

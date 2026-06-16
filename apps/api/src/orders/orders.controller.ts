@@ -94,6 +94,13 @@ export class OrdersController {
     return this.ordersService.fulfillOrderItem(orderId, itemId);
   }
 
+  @Patch("orders/:orderId/fulfill")
+  @UseGuards(StaffAuthGuard, RolesGuard)
+  @Roles("barista")
+  fulfillOrder(@Param("orderId") orderId: string) {
+    return this.ordersService.fulfillOrder(orderId);
+  }
+
   @Post("orders/:orderId/items")
   @UseGuards(StaffAuthGuard, RolesGuard)
   @Roles("barista")
