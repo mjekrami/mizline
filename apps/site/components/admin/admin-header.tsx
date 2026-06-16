@@ -5,8 +5,8 @@ import { Loader2, RefreshCw } from "lucide-react";
 import { HeaderMetricCard } from "@/components/admin/header-metric-card";
 import { StaffLiveControls } from "@/components/staff-live-controls";
 import { ThemeToggle } from "@/components/theme-toggle";
-import type { AdminDashboardStats } from "@/lib/admin-stats";
-import { buildHeaderMetrics } from "@/lib/admin-header-metrics";
+import type { AdminDashboardStats } from "@/lib/admin/dashboard";
+import { buildHeaderMetrics } from "@/lib/admin/dashboard";
 
 interface AdminHeaderProps {
   store: Store;

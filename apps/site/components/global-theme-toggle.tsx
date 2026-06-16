@@ -4,9 +4,9 @@ import { usePathContext } from "@/components/path-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function GlobalThemeToggle() {
-  const { isStaff } = usePathContext();
+  const { isStaff, isCustomer } = usePathContext();
 
-  if (isStaff) {
+  if (isStaff || isCustomer) {
     return null;
   }
 

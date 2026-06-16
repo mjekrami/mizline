@@ -1,7 +1,7 @@
 import type { AdminCatalog, AdminTable } from "@mizline/shared";
 import { QrCode, UtensilsCrossed } from "lucide-react";
-import type { AdminDashboardStats } from "@/lib/admin-stats";
-import { buildMenuBreakdown } from "@/lib/admin-overview-data";
+import type { AdminDashboardStats } from "@/lib/admin/dashboard";
+import { buildMenuBreakdown } from "@/lib/admin/dashboard";
 import { cn } from "@/lib/utils";
 
 interface AdminStoreSnapshotProps {

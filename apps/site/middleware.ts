@@ -4,7 +4,7 @@ import {
   getDevKitchenToken,
   isDevFallbackEnabled,
   REFRESH_COOKIE,
-} from "@/lib/auth-constants";
+} from "@/lib/auth/constants";
 
 function isStaffProtectedPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean);

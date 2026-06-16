@@ -7,14 +7,16 @@ import type {
   OrderCreatedEvent,
   OrderStatusEvent,
 } from "@mizline/shared";
-import { getApiBaseUrl } from "@/lib/api";
-import { getAccessToken, loadAuthSession } from "@/lib/auth-session";
-import { playNewOrderAlert } from "@/lib/order-alert";
+import { getApiBaseUrl } from "@/lib/api/customer";
+import { getClientKitchenDevToken } from "@/lib/auth/constants";
+import { getAccessToken, loadAuthSession } from "@/lib/auth/session";
+import { playNewOrderAlert } from "@/lib/kitchen/alerts";
 
 export type StoreRealtimeUpdate =
   | { type: "created"; payload: OrderCreatedEvent }
   | { type: "status"; payload: OrderStatusEvent }
-  | { type: "assigned"; payload: OrderAssignedEvent };
+  | { type: "assigned"; payload: OrderAssignedEvent }
+  | { type: "updated"; payload: import("@mizline/shared").OrderUpdatedEvent };
 
 interface UseStoreRealtimeOptions {
   storeId: string;
@@ -62,9 +64,11 @@ export function useStoreRealtime({
       if (cancelled) return;
 
       const token = getAccessToken();
+      const devToken = getClientKitchenDevToken();
       socket = io(`${getApiBaseUrl()}/realtime`, {
         query: { storeId },
-        auth: token ? { token } : undefined,
+        auth:
+          token ? { token } : devToken ? { devToken } : undefined,
         transports: ["websocket", "polling"],
       });
 
@@ -83,6 +87,10 @@ export function useStoreRealtime({
         void onUpdateRef.current({ type: "assigned", payload });
       };
 
+      const handleUpdated = (payload: import("@mizline/shared").OrderUpdatedEvent) => {
+        void onUpdateRef.current({ type: "updated", payload });
+      };
+
       socket.on("connect", () => setConnected(true));
       socket.on("disconnect", () => setConnected(false));
       socket.on("order.created", handleCreated);
@@ -90,6 +98,7 @@ export function useStoreRealtime({
       socket.on("order.ready", handleStatus);
       socket.on("order.fulfilled", handleStatus);
       socket.on("order.assigned", handleAssigned);
+      socket.on("order.updated", handleUpdated);
     });
 
     return () => {
@@ -101,6 +110,7 @@ export function useStoreRealtime({
       socket?.off("order.ready");
       socket?.off("order.fulfilled");
       socket?.off("order.assigned");
+      socket?.off("order.updated");
       socket?.disconnect();
     };
   }, [enabled, storeId]);

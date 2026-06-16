@@ -1,4 +1,5 @@
 import { MyOrdersList } from "@/components/my-orders";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type OrdersPageProps = {
@@ -12,16 +13,19 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
   const { storeId, tableId } = await params;
 
   return (
-    <main className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="border-b border-border px-4 py-4">
+    <main className="flex min-h-full flex-1 flex-col">
+      <header className="px-4 py-5">
         <Link
           href={`/store/${storeId}/table/${tableId}`}
-          className="text-sm font-medium text-primary hover:underline"
+          className="customer-nav-link"
         >
-          ← Back to menu
+          <ArrowLeft className="size-4" />
+          Back to menu
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">My orders</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="mt-4 text-2xl font-extrabold tracking-tight">
+          My orders
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Orders placed from this table on this device
         </p>
       </header>

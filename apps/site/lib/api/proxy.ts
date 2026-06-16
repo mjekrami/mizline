@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
-import {
-  getAccessTokenFromRequest,
-  buildStaffAuthHeaders,
-} from "@/lib/auth-server";
-import {
-  getApiBaseUrl,
-  getStaffStoreIdFromEnv,
-} from "@/lib/auth-constants";
+import { getAccessTokenFromRequest, buildStaffAuthHeaders } from "@/lib/auth/server";
+import { getApiBaseUrl, getStaffStoreId } from "@/lib/auth/constants";
 
 export async function staffProxy(
   apiPath: string,
   request: Request,
   init?: RequestInit,
 ) {
-  const storeId = getStaffStoreIdFromEnv();
+  const storeId = getStaffStoreId();
   if (!storeId) {
     return NextResponse.json(
       { error: "NEXT_PUBLIC_KITCHEN_STORE_ID is not configured" },
@@ -58,7 +52,7 @@ export async function staffProxy(
 }
 
 export async function adminProxy(path: string, request: Request, init?: RequestInit) {
-  const storeId = getStaffStoreIdFromEnv();
+  const storeId = getStaffStoreId();
   if (!storeId) {
     return NextResponse.json(
       { error: "NEXT_PUBLIC_KITCHEN_STORE_ID is not configured" },
@@ -70,7 +64,7 @@ export async function adminProxy(path: string, request: Request, init?: RequestI
 }
 
 export async function kitchenProxy(path: string, request: Request, init?: RequestInit) {
-  const storeId = getStaffStoreIdFromEnv();
+  const storeId = getStaffStoreId();
   if (!storeId) {
     return NextResponse.json(
       { error: "NEXT_PUBLIC_KITCHEN_STORE_ID is not configured" },

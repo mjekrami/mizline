@@ -1,33 +1,23 @@
 "use client";
 
-import type { KitchenMetrics, Order, OrderStatus } from "@mizline/shared";
+import type { Order } from "@mizline/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOrderActions } from "@/hooks/use-order-actions";
 import { useOrderDelayAlerts } from "@/hooks/use-order-delay-alerts";
 import {
-  getKitchenMetrics,
   getKitchenOrder,
   listStoreOrders,
-  updateOrderStatus,
-} from "@/lib/kitchen-api";
-import { canAdvanceOrderTo } from "@/lib/order-status";
-import { getAuthUser, loadAuthSession } from "@/lib/auth-session";
+} from "@/lib/api/kitchen";
+import { getAuthUser, loadAuthSession } from "@/lib/auth/session";
 import {
   useStoreRealtime,
   type StoreRealtimeUpdate,
 } from "@/hooks/use-store-realtime";
-
-const KITCHEN_COLUMNS: OrderStatus[] = [
-  "new",
-  "preparing",
-  "ready",
-  "fulfilled",
-];
+import { getActiveKitchenOrders } from "@/lib/kitchen/display";
 
 interface UseKitchenBoardOptions {
   storeId: string;
   initialOrders: Order[];
-  initialMetrics: KitchenMetrics;
   delayWarningMinutes: number;
   delayCriticalMinutes: number;
 }
@@ -35,17 +25,16 @@ interface UseKitchenBoardOptions {
 export function useKitchenBoard({
   storeId,
   initialOrders,
-  initialMetrics,
   delayWarningMinutes,
   delayCriticalMinutes,
 }: UseKitchenBoardOptions) {
   const [orders, setOrders] = useState(initialOrders);
-  const [metrics, setMetrics] = useState(initialMetrics);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [myOrdersOnly, setMyOrdersOnly] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
   const syncSeqRef = useRef(0);
 
   useEffect(() => {
@@ -55,21 +44,8 @@ export function useKitchenBoard({
   }, []);
 
   useEffect(() => {
-    setMetrics(initialMetrics);
-  }, [initialMetrics]);
-
-  useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 15_000);
     return () => window.clearInterval(timer);
-  }, []);
-
-  const refreshMetrics = useCallback(async () => {
-    try {
-      const latest = await getKitchenMetrics();
-      setMetrics(latest);
-    } catch {
-      // Metrics refresh failures should not block the board.
-    }
   }, []);
 
   const updateOrderInList = useCallback((updated: Order) => {
@@ -82,7 +58,6 @@ export function useKitchenBoard({
     useOrderActions({
       onOrderUpdated: updateOrderInList,
       onError: setError,
-      onAfterAction: refreshMetrics,
     });
 
   const syncOrders = useCallback(async () => {
@@ -92,24 +67,22 @@ export function useKitchenBoard({
       const latest = await listStoreOrders();
       if (seq !== syncSeqRef.current) return;
       setOrders(latest);
-      await refreshMetrics();
     } catch (err) {
       if (seq !== syncSeqRef.current) return;
       setError(err instanceof Error ? err.message : "Failed to refresh orders");
     }
-  }, [refreshMetrics]);
+  }, []);
 
   const syncOrderById = useCallback(
     async (orderId: string) => {
       try {
         const updated = await getKitchenOrder(orderId);
         updateOrderInList(updated);
-        await refreshMetrics();
       } catch {
         await syncOrders();
       }
     },
-    [refreshMetrics, syncOrders, updateOrderInList],
+    [syncOrders, updateOrderInList],
   );
 
   const handleRealtimeUpdate = useCallback(
@@ -128,6 +101,8 @@ export function useKitchenBoard({
             ),
           );
           return syncOrderById(update.payload.orderId);
+        case "updated":
+          return syncOrderById(update.payload.orderId);
       }
     },
     [syncOrderById, syncOrders],
@@ -142,6 +117,19 @@ export function useKitchenBoard({
       setLoading(false);
     }
   }, [syncOrders]);
+
+  const syncOrder = useCallback(
+    async (orderId: string) => {
+      setSyncingId(orderId);
+      setError(null);
+      try {
+        await syncOrderById(orderId);
+      } finally {
+        setSyncingId((current) => (current === orderId ? null : current));
+      }
+    },
+    [syncOrderById],
+  );
 
   const { connected, audioEnabled, unlockAudio } = useStoreRealtime({
     storeId,
@@ -158,73 +146,27 @@ export function useKitchenBoard({
     audioEnabled,
   });
 
-  const advanceOrderToStatus = useCallback(
-    async (orderId: string, targetStatus: OrderStatus) => {
-      let previousOrder: Order | undefined;
-      let shouldAdvance = false;
-
-      setOrders((current) => {
-        previousOrder = current.find((entry) => entry.id === orderId);
-        if (
-          !previousOrder ||
-          !canAdvanceOrderTo(previousOrder.status, targetStatus)
-        ) {
-          return current;
-        }
-
-        shouldAdvance = true;
-        return current.map((entry) =>
-          entry.id === orderId ? { ...entry, status: targetStatus } : entry,
-        );
-      });
-
-      if (!shouldAdvance || !previousOrder) return;
-
-      setError(null);
-
-      try {
-        const updated = await updateOrderStatus(orderId, targetStatus);
-        updateOrderInList(updated);
-        await refreshMetrics();
-      } catch (err) {
-        updateOrderInList(previousOrder);
-        setError(err instanceof Error ? err.message : "Failed to update order");
-      }
-    },
-    [refreshMetrics, updateOrderInList],
-  );
-
   const visibleOrders = useMemo(() => {
-    if (!myOrdersOnly || !currentUserId) {
-      return orders;
+    let next = getActiveKitchenOrders(orders);
+
+    if (myOrdersOnly && currentUserId) {
+      next = next.filter((order) => order.assignedTo?.id === currentUserId);
     }
 
-    return orders.filter((order) => order.assignedTo?.id === currentUserId);
+    return next.sort(
+      (left, right) =>
+        new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+    );
   }, [currentUserId, myOrdersOnly, orders]);
-
-  const ordersByStatus = useMemo(() => {
-    const grouped = Object.fromEntries(
-      KITCHEN_COLUMNS.map((status) => [status, [] as Order[]]),
-    ) as Record<OrderStatus, Order[]>;
-
-    for (const order of visibleOrders) {
-      if (grouped[order.status]) {
-        grouped[order.status].push(order);
-      }
-    }
-
-    return grouped;
-  }, [visibleOrders]);
 
   const isBarista = getAuthUser()?.role === "barista";
 
   return {
-    columns: KITCHEN_COLUMNS,
-    ordersByStatus,
-    metrics,
+    visibleOrders,
     loading,
     error,
     advancingId,
+    syncingId,
     fulfillingItemId,
     now,
     connected,
@@ -233,8 +175,9 @@ export function useKitchenBoard({
     setMyOrdersOnly,
     showMyOrdersFilter: isBarista,
     refreshOrders,
+    syncOrder,
+    replaceOrder: updateOrderInList,
     advanceOrder,
-    advanceOrderToStatus,
     fulfillItem,
     unlockAudio,
   };

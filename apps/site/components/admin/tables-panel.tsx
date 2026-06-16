@@ -7,7 +7,7 @@ import {
   createTable,
   slugifyQrCode,
   updateTable,
-} from "@/lib/admin-api";
+} from "@/lib/api/admin";
 import { cn } from "@/lib/utils";
 
 interface TablesPanelProps {

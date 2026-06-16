@@ -2,8 +2,8 @@
 
 import type { Order } from "@mizline/shared";
 import { useCallback, useState } from "react";
-import { fulfillOrderItem, updateOrderStatus } from "@/lib/kitchen-api";
-import { getNextOrderStatus } from "@/lib/order-status";
+import { fulfillOrderItem, updateOrderStatus } from "@/lib/api/kitchen";
+import { getNextOrderStatus } from "@/lib/order/status";
 
 interface UseOrderActionsOptions {
   onOrderUpdated: (order: Order) => void;

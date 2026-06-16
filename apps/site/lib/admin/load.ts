@@ -1,5 +1,10 @@
-import { getAdminCatalog, getAdminTables } from "@/lib/admin-api-server";
-import { getStore, getStoreMetrics, listStoreOrders } from "@/lib/api-server";
+import {
+  getAdminCatalog,
+  getAdminTables,
+  getStore,
+  getStoreMetrics,
+  listStoreOrders,
+} from "@/lib/api/server";
 
 export async function loadAdminDashboardData(storeId: string) {
   const [store, catalog, tables, orders, metrics] = await Promise.all([

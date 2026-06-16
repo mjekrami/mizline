@@ -2,8 +2,8 @@
 
 import type { Order, OrderStatus } from "@mizline/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getOrder } from "@/lib/api";
-import { loadOrderRefs } from "@/lib/orders";
+import { getOrder } from "@/lib/api/customer";
+import { loadOrderRefs } from "@/lib/order/storage";
 import { useCustomerOrderRealtime } from "@/hooks/use-customer-order-realtime";
 
 const ACTIVE_STATUSES: OrderStatus[] = ["new", "preparing", "ready"];

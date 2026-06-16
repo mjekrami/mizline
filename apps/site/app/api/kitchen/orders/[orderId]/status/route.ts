@@ -1,4 +1,4 @@
-import { staffProxy } from "@/lib/staff-proxy";
+import { staffProxy } from "@/lib/api/proxy";
 
 export async function PATCH(
   request: Request,

@@ -1,9 +1,9 @@
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
-import { getServerAccessToken } from "@/lib/auth-server";
-import { loadAdminDashboardData } from "@/lib/load-admin-dashboard";
-import { getCustomerBaseUrl, getStaffStoreId, hasKitchenDevToken } from "@/lib/staff-env";
+import { getServerAccessToken } from "@/lib/auth/server";
+import { loadAdminDashboardData } from "@/lib/admin/load";
+import { getCustomerBaseUrl, getStaffStoreId, hasKitchenDevToken } from "@/lib/auth/constants";
 
 export default async function AdminDashboardPage() {
   const storeId = getStaffStoreId();

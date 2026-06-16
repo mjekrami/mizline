@@ -1,6 +1,6 @@
 import type { Order, OrderStatus } from "@mizline/shared";
 import type { AdminCatalog, AdminTable, KitchenMetrics } from "@mizline/shared";
-import { formatOrderNumber, formatPrice } from "@/lib/format";
+import { formatOrderNumber, formatPrepTime, formatPrice } from "@/lib/format";
 
 export interface AdminDashboardStats {
   revenueTodayCents: number;
@@ -161,4 +161,84 @@ export function summarizeMetrics(metrics: KitchenMetrics) {
     averagePrepTimeSeconds: metrics.averagePrepTimeSeconds,
     ordersCompletedToday: metrics.ordersCompletedToday,
   };
+}
+
+export interface MenuBreakdownItem {
+  label: string;
+  value: number;
+  total: number;
+  color: string;
+}
+
+export function buildMenuBreakdown(
+  catalog: AdminCatalog,
+  tables: AdminTable[],
+  stats: AdminDashboardStats,
+): MenuBreakdownItem[] {
+  return [
+    {
+      label: "Available products",
+      value: stats.availableProducts,
+      total: catalog.products.length,
+      color: "bg-success",
+    },
+    {
+      label: "Categories",
+      value: catalog.categories.length,
+      total: catalog.categories.length,
+      color: "bg-info",
+    },
+    {
+      label: "Modifier groups",
+      value: catalog.modifierGroups.length,
+      total: catalog.modifierGroups.length,
+      color: "bg-accent",
+    },
+    {
+      label: "Active tables",
+      value: stats.activeTables,
+      total: tables.length,
+      color: "bg-primary",
+    },
+  ];
+}
+
+export function countTrackedOrders(
+  ordersByStatus: AdminDashboardStats["ordersByStatus"],
+): number {
+  return Object.values(ordersByStatus).reduce((sum, count) => sum + count, 0);
+}
+
+export interface HeaderMetric {
+  label: string;
+  value: string;
+  tone: string;
+}
+
+export function buildHeaderMetrics(
+  stats: AdminDashboardStats,
+  metrics: KitchenMetrics,
+): HeaderMetric[] {
+  return [
+    {
+      label: "Revenue today",
+      value: formatPrice(stats.revenueTodayCents),
+      tone: "text-success",
+    },
+    {
+      label: "Active orders",
+      value: stats.activeOrders.toString(),
+      tone: stats.activeOrders > 0 ? "text-warning" : "text-foreground",
+    },
+    {
+      label: "Completed today",
+      value: metrics.ordersCompletedToday.toString(),
+      tone: "text-foreground",
+    },
+    {
+      label: "Avg prep",
+      value: formatPrepTime(metrics.averagePrepTimeSeconds),
+      tone: "text-foreground",
+    },
+  ];
 }

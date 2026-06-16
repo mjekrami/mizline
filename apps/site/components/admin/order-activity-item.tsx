@@ -8,7 +8,7 @@ import {
   ShoppingBag,
   XCircle,
 } from "lucide-react";
-import type { ActivityEntry, ActivityEventType } from "@/lib/admin-stats";
+import type { ActivityEntry, ActivityEventType } from "@/lib/admin/dashboard";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

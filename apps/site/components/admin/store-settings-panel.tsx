@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchStoreSettings,
   updateStoreSettings,
-} from "@/lib/admin-reports-api";
+} from "@/lib/api/reports";
 
 export function StoreSettingsPanel() {
   const [settings, setSettings] = useState<StoreSettings>({

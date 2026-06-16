@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAccessTokenFromRequest, buildStaffAuthHeaders } from "@/lib/auth-server";
-import { getApiBaseUrl } from "@/lib/auth-constants";
+import { getAccessTokenFromRequest, buildStaffAuthHeaders } from "@/lib/auth/server";
+import { getApiBaseUrl } from "@/lib/auth/constants";
 
 export async function GET(request: Request) {
   const accessToken = await getAccessTokenFromRequest(request);

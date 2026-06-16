@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { OrderActivityItem } from "@/components/admin/order-activity-item";
-import type { ActivityEntry } from "@/lib/admin-stats";
+import type { ActivityEntry } from "@/lib/admin/dashboard";
 import { cn } from "@/lib/utils";
 
 interface AdminActivityLogProps {

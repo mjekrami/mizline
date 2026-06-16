@@ -23,9 +23,9 @@ import { StoreSettingsPanel } from "@/components/admin/store-settings-panel";
 import {
   buildActivityLog,
   type AdminDashboardStats,
-} from "@/lib/admin-stats";
-import { countTrackedOrders } from "@/lib/admin-overview-data";
-import { fetchDailySummary } from "@/lib/admin-reports-api";
+} from "@/lib/admin/dashboard";
+import { countTrackedOrders } from "@/lib/admin/dashboard";
+import { fetchDailySummary } from "@/lib/api/reports";
 import { formatPrepTime, formatPrice } from "@/lib/format";
 
 interface AdminOverviewProps {

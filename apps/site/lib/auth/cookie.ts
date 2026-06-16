@@ -1,4 +1,4 @@
-import { REFRESH_COOKIE } from "./auth-constants";
+import { REFRESH_COOKIE } from "./constants";
 
 export function refreshCookieOptions(secure: boolean) {
   return {
@@ -11,7 +11,15 @@ export function refreshCookieOptions(secure: boolean) {
 }
 
 export function setRefreshCookie(
-  response: { cookies: { set: (name: string, value: string, options: ReturnType<typeof refreshCookieOptions>) => void } },
+  response: {
+    cookies: {
+      set: (
+        name: string,
+        value: string,
+        options: ReturnType<typeof refreshCookieOptions>,
+      ) => void;
+    };
+  },
   refreshToken: string,
   secure: boolean,
 ) {

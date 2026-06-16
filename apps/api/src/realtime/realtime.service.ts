@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { OrderAssignedEvent, OrderStatusEvent, OrderCreatedEvent } from "@mizline/shared";
+import type { OrderAssignedEvent, OrderStatusEvent, OrderCreatedEvent, OrderUpdatedEvent } from "@mizline/shared";
 import { Server } from "socket.io";
 
 @Injectable()
@@ -33,5 +33,10 @@ export class RealtimeService {
   emitOrderAssigned(storeId: string, payload: OrderAssignedEvent) {
     this.server?.to(`store:${storeId}`).emit("order.assigned", payload);
     this.server?.to(`order:${payload.orderId}`).emit("order.assigned", payload);
+  }
+
+  emitOrderUpdated(storeId: string, orderId: string, payload: OrderUpdatedEvent) {
+    this.server?.to(`store:${storeId}`).emit("order.updated", payload);
+    this.server?.to(`order:${orderId}`).emit("order.updated", payload);
   }
 }

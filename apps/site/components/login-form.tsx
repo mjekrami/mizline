@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { canAccessAdmin } from "@mizline/shared";
-import { loginStaff } from "@/lib/auth-session";
+import { loginStaff } from "@/lib/auth/session";
 
 interface LoginFormProps {
   staffPath: string;

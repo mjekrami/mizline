@@ -3,7 +3,7 @@
 import type { OrderStatusEvent } from "@mizline/shared";
 import { useEffect, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl } from "@/lib/api/customer";
 
 interface UseCustomerOrderRealtimeOptions {
   storeId: string;
@@ -55,6 +55,7 @@ export function useCustomerOrderRealtime({
     socket.on("order.preparing", handleStatus);
     socket.on("order.ready", handleStatus);
     socket.on("order.fulfilled", handleStatus);
+    socket.on("order.updated", handleStatus);
 
     return () => {
       active = false;

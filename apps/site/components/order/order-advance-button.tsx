@@ -2,7 +2,7 @@
 
 import type { Order } from "@mizline/shared";
 import { Loader2 } from "lucide-react";
-import { getAdvanceActionLabel } from "@/lib/order-status";
+import { getAdvanceActionLabel } from "@/lib/order/status";
 import { cn } from "@/lib/utils";
 
 interface OrderAdvanceButtonProps {

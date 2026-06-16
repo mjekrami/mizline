@@ -12,7 +12,7 @@ import {
   parsePriceToCents,
   setProductModifierGroups,
   updateProduct,
-} from "@/lib/admin-api";
+} from "@/lib/api/admin";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

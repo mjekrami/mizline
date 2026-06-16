@@ -12,12 +12,20 @@ export {
 } from "./auth-roles";
 
 export {
+  CUSTOMER_ADD_ITEMS_STATUSES,
+  MODIFIABLE_ORDER_STATUSES,
+  canCustomerAddItems,
+  isOrderModifiable,
+} from "./order-modifiable";
+
+export {
   getWaitUrgency,
   type WaitUrgency,
   type WaitUrgencyThresholds,
 } from "./wait-urgency";
 
 export type {
+  AddOrderItemsRequest,
   AdminCatalog,
   AdminCategory,
   AdminModifierGroup,
@@ -52,6 +60,7 @@ export type {
   OrderRealtimeEvent,
   OrderRealtimePayload,
   OrderStatusEvent,
+  OrderUpdatedEvent,
   ProductId,
   StaffMember,
   StaffRole,
@@ -62,6 +71,7 @@ export type {
   TableInfo,
   Tenant,
   TenantId,
+  UpdateOrderItemRequest,
   UserId,
   VariantId,
 } from "./types";

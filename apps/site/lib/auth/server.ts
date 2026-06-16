@@ -5,7 +5,7 @@ import {
   getDevKitchenToken,
   isDevFallbackEnabled,
   REFRESH_COOKIE,
-} from "./auth-constants";
+} from "./constants";
 
 export async function getServerAccessToken(): Promise<string | null> {
   const cookieStore = await cookies();

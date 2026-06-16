@@ -44,3 +44,282 @@
     );
   background-size: 24px 24px, 24px 24px, 100% 100%;
 }
+
+/* Customer PWA — dark coffee ordering experience */
+.customer-app {
+  --radius: 1.25rem;
+  --background: #080605;
+  --foreground: #ede5d8;
+
+  --card: #12100d;
+  --card-foreground: #ede5d8;
+
+  --popover: #16120f;
+  --popover-foreground: #ede5d8;
+
+  --primary: #c4a574;
+  --primary-hover: #d4b88a;
+  --primary-foreground: #080605;
+
+  --secondary: #241e18;
+  --secondary-foreground: #ede5d8;
+
+  --muted: color-mix(in srgb, #3d342c 55%, #080605);
+  --muted-foreground: #9a8878;
+
+  --accent: #e07b32;
+  --accent-foreground: #140f0c;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --success: #3d9970;
+  --warning: #e8954a;
+
+  --border: #2c2620;
+  --input: #2c2620;
+  --ring: #c4a574;
+
+  --customer-accent-gradient: linear-gradient(
+    135deg,
+    #f4a060 0%,
+    #e07b32 45%,
+    #b85a18 100%
+  );
+  --customer-card-gradient: linear-gradient(
+    165deg,
+    #1c1814 0%,
+    #12100d 45%,
+    #0e0c0a 100%
+  );
+  --customer-surface-gradient: linear-gradient(
+    180deg,
+    #1a1612 0%,
+    #12100d 100%
+  );
+  --customer-text-gradient: linear-gradient(
+    120deg,
+    #e07b32 0%,
+    #f4a060 55%,
+    #c4a574 100%
+  );
+  --customer-pill-gradient: linear-gradient(180deg, #2a231c 0%, #241e18 100%);
+  --customer-summary-gradient: linear-gradient(
+    180deg,
+    #1a1612 0%,
+    #12100d 55%,
+    #080605 100%
+  );
+  --customer-image-ring-gradient: radial-gradient(
+    circle at 30% 25%,
+    #2a231c 0%,
+    #1a1612 55%,
+    #12100d 100%
+  );
+  --customer-bar-gradient: linear-gradient(180deg, #0e0c0a 0%, #080605 100%);
+
+  position: relative;
+  isolation: isolate;
+  color: var(--foreground);
+}
+
+.customer-app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 105% 85% at 50% -22%,
+      color-mix(in srgb, #e07b32 26%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 75% 55% at 92% 88%,
+      color-mix(in srgb, #c4a574 16%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 8% 62%,
+      color-mix(in srgb, #3d342c 28%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 85% 65% at 50% 108%,
+      color-mix(in srgb, #241e18 45%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      168deg,
+      #14110e 0%,
+      #080605 38%,
+      #0a0807 72%,
+      #080605 100%
+    );
+}
+
+.customer-app .customer-category-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--customer-bar-gradient);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, var(--accent));
+  padding-top: 0.25rem;
+}
+
+.customer-app .customer-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #e07b32 22%, #12100d) 0%,
+      #12100d 42%,
+      #080605 100%
+    );
+  border: 1px solid color-mix(in srgb, #e07b32 30%, var(--border));
+}
+
+.customer-app .customer-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 75% 90% at 100% 0%,
+    color-mix(in srgb, var(--accent) 24%, transparent),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.customer-app .customer-hero::after {
+  content: "";
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 55%;
+  height: 70%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 12%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.customer-app .customer-text-accent {
+  background: var(--customer-text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.customer-app .customer-pill-active,
+.customer-app .customer-btn-primary,
+.customer-app .customer-add-btn {
+  background: var(--customer-accent-gradient);
+  color: var(--accent-foreground);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.customer-app .customer-pill,
+.customer-app .customer-icon-btn,
+.customer-app .customer-nav-link {
+  background: var(--customer-pill-gradient);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.customer-app .customer-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.customer-app .customer-nav-link:hover,
+.customer-app .customer-icon-btn:hover {
+  opacity: 0.9;
+}
+
+.customer-app .customer-product-card {
+  background: var(--customer-card-gradient);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.customer-app .customer-product-image-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.customer-app .customer-product-image-wrap::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 45%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--card) 55%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+.customer-app .customer-cart-summary {
+  background: var(--customer-summary-gradient);
+  color: var(--foreground);
+  border-top: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+
+.customer-app .customer-detail-hero {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% -5%,
+      color-mix(in srgb, #e07b32 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 0% 40%,
+      color-mix(in srgb, #c4a574 10%, transparent),
+      transparent 60%
+    ),
+    var(--background);
+}
+
+.customer-app .customer-detail-image-ring {
+  background: var(--customer-image-ring-gradient);
+  border: 4px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 12%, transparent);
+}
+
+.customer-app .customer-detail-sheet {
+  background: var(--customer-surface-gradient);
+}
+
+.customer-app .customer-search {
+  background: var(--customer-pill-gradient);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
+}
+
+.customer-app .customer-order-banner {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 22%, var(--card)) 0%,
+    color-mix(in srgb, var(--accent) 10%, var(--card)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  overflow: hidden;
+}
+
+.customer-app .customer-cart-line {
+  background: var(--customer-card-gradient);
+  border: 1px solid var(--border);
+}

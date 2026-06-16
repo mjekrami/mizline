@@ -2,8 +2,8 @@ import type { AuthUser, LoginRequest } from "@mizline/shared";
 import { canAccessAdmin, canAccessKitchen } from "@mizline/shared";
 import { LoginForm } from "@/components/login-form";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
-import { getServerAuthUser } from "@/lib/auth-server";
-import { getConfiguredStoreId } from "@/lib/api-server";
+import { getServerAuthUser } from "@/lib/auth/server";
+import { getConfiguredStoreId } from "@/lib/api/server";
 import { redirect } from "next/navigation";
 
 interface LoginPageProps {

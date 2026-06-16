@@ -20,9 +20,9 @@ import { ReportsPanel } from "@/components/admin/reports-panel";
 import { StaffPanel } from "@/components/admin/staff-panel";
 import { TablesPanel } from "@/components/admin/tables-panel";
 import { useStoreRealtime } from "@/hooks/use-store-realtime";
-import { fetchAdminCatalog, fetchAdminTables } from "@/lib/admin-api";
-import { computeAdminStats } from "@/lib/admin-stats";
-import { getKitchenMetrics, listStoreOrders } from "@/lib/kitchen-api";
+import { fetchAdminCatalog, fetchAdminTables } from "@/lib/api/admin";
+import { computeAdminStats } from "@/lib/admin/dashboard";
+import { getKitchenMetrics, listStoreOrders } from "@/lib/api/kitchen";
 
 interface AdminDashboardProps {
   store: Store;
@@ -153,6 +153,7 @@ export function AdminDashboard({
 
       {section === "orders" ? (
         <AdminOrdersPanel
+          storeId={store.id}
           orders={orders}
           onOrdersChange={setOrders}
           selectedOrderId={selectedOrderId}

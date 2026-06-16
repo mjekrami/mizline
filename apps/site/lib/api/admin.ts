@@ -7,38 +7,18 @@ import type {
   AdminTable,
   AdminVariant,
 } from "@mizline/shared";
-import { authFetch } from "@/lib/auth-session";
-
-async function adminClientFetch<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const response = await authFetch(path, init);
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-    throw new Error(body?.error || `Request failed (${response.status})`);
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
-}
+import { clientApiFetch } from "./fetch";
 
 export function fetchAdminCatalog(): Promise<AdminCatalog> {
-  return adminClientFetch("/api/admin/catalog");
+  return clientApiFetch("/api/admin/catalog");
 }
 
 export function fetchAdminTables(): Promise<AdminTable[]> {
-  return adminClientFetch("/api/admin/tables");
+  return clientApiFetch("/api/admin/tables");
 }
 
 export function createCategory(name: string): Promise<AdminCategory> {
-  return adminClientFetch("/api/admin/categories", {
+  return clientApiFetch("/api/admin/categories", {
     method: "POST",
     body: JSON.stringify({ name }),
   });
@@ -48,14 +28,14 @@ export function updateCategory(
   categoryId: string,
   data: { name?: string; sortOrder?: number },
 ): Promise<AdminCategory> {
-  return adminClientFetch(`/api/admin/categories/${categoryId}`, {
+  return clientApiFetch(`/api/admin/categories/${categoryId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
 export function deleteCategory(categoryId: string): Promise<void> {
-  return adminClientFetch(`/api/admin/categories/${categoryId}`, {
+  return clientApiFetch(`/api/admin/categories/${categoryId}`, {
     method: "DELETE",
   });
 }
@@ -68,7 +48,7 @@ export function createProduct(data: {
   image?: string;
   available?: boolean;
 }): Promise<AdminProduct> {
-  return adminClientFetch("/api/admin/products", {
+  return clientApiFetch("/api/admin/products", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -85,14 +65,14 @@ export function updateProduct(
     available?: boolean;
   },
 ): Promise<AdminProduct> {
-  return adminClientFetch(`/api/admin/products/${productId}`, {
+  return clientApiFetch(`/api/admin/products/${productId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
 export function deleteProduct(productId: string): Promise<void> {
-  return adminClientFetch(`/api/admin/products/${productId}`, {
+  return clientApiFetch(`/api/admin/products/${productId}`, {
     method: "DELETE",
   });
 }
@@ -101,7 +81,7 @@ export function createVariant(
   productId: string,
   data: { name: string; priceModifier: number },
 ): Promise<AdminVariant> {
-  return adminClientFetch(`/api/admin/products/${productId}/variants`, {
+  return clientApiFetch(`/api/admin/products/${productId}/variants`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -112,7 +92,7 @@ export function updateVariant(
   variantId: string,
   data: { name?: string; priceModifier?: number },
 ): Promise<AdminVariant> {
-  return adminClientFetch(
+  return clientApiFetch(
     `/api/admin/products/${productId}/variants/${variantId}`,
     {
       method: "PATCH",
@@ -125,7 +105,7 @@ export function deleteVariant(
   productId: string,
   variantId: string,
 ): Promise<void> {
-  return adminClientFetch(
+  return clientApiFetch(
     `/api/admin/products/${productId}/variants/${variantId}`,
     { method: "DELETE" },
   );
@@ -135,7 +115,7 @@ export function setProductModifierGroups(
   productId: string,
   groupIds: string[],
 ): Promise<AdminProduct> {
-  return adminClientFetch(`/api/admin/products/${productId}/modifier-groups`, {
+  return clientApiFetch(`/api/admin/products/${productId}/modifier-groups`, {
     method: "PUT",
     body: JSON.stringify({ groupIds }),
   });
@@ -146,7 +126,7 @@ export function createModifierGroup(data: {
   minSelect?: number;
   maxSelect?: number;
 }): Promise<AdminModifierGroup> {
-  return adminClientFetch("/api/admin/modifier-groups", {
+  return clientApiFetch("/api/admin/modifier-groups", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -161,14 +141,14 @@ export function updateModifierGroup(
     sortOrder?: number;
   },
 ): Promise<AdminModifierGroup> {
-  return adminClientFetch(`/api/admin/modifier-groups/${groupId}`, {
+  return clientApiFetch(`/api/admin/modifier-groups/${groupId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
 export function deleteModifierGroup(groupId: string): Promise<void> {
-  return adminClientFetch(`/api/admin/modifier-groups/${groupId}`, {
+  return clientApiFetch(`/api/admin/modifier-groups/${groupId}`, {
     method: "DELETE",
   });
 }
@@ -181,7 +161,7 @@ export function createModifierOption(
     available?: boolean;
   },
 ): Promise<AdminModifierOption> {
-  return adminClientFetch(`/api/admin/modifier-groups/${groupId}/options`, {
+  return clientApiFetch(`/api/admin/modifier-groups/${groupId}/options`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -196,7 +176,7 @@ export function updateModifierOption(
     available?: boolean;
   },
 ): Promise<AdminModifierOption> {
-  return adminClientFetch(
+  return clientApiFetch(
     `/api/admin/modifier-groups/${groupId}/options/${optionId}`,
     {
       method: "PATCH",
@@ -209,7 +189,7 @@ export function deleteModifierOption(
   groupId: string,
   optionId: string,
 ): Promise<void> {
-  return adminClientFetch(
+  return clientApiFetch(
     `/api/admin/modifier-groups/${groupId}/options/${optionId}`,
     { method: "DELETE" },
   );
@@ -219,7 +199,7 @@ export function createTable(data: {
   name: string;
   qrCode: string;
 }): Promise<AdminTable> {
-  return adminClientFetch("/api/admin/tables", {
+  return clientApiFetch("/api/admin/tables", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -229,7 +209,7 @@ export function updateTable(
   tableId: string,
   data: { name?: string; active?: boolean },
 ): Promise<AdminTable> {
-  return adminClientFetch(`/api/admin/tables/${tableId}`, {
+  return clientApiFetch(`/api/admin/tables/${tableId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });

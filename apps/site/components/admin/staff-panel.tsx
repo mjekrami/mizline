@@ -7,7 +7,7 @@ import {
   createStaffMember,
   fetchStaffMembers,
   updateStaffMember,
-} from "@/lib/admin-staff-api";
+} from "@/lib/api/staff";
 import { cn } from "@/lib/utils";
 
 export function StaffPanel() {

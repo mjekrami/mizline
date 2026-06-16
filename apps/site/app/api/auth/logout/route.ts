@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getApiBaseUrl, REFRESH_COOKIE } from "@/lib/auth-constants";
+import { getApiBaseUrl, REFRESH_COOKIE } from "@/lib/auth/constants";
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;

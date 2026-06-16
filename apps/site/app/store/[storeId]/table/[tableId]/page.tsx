@@ -1,5 +1,5 @@
 import { TableOrdering } from "@/components/table-ordering";
-import { getMenu, getStore, getTable } from "@/lib/api";
+import { getMenu, getStore, getTable } from "@/lib/api/customer";
 import { notFound } from "next/navigation";
 
 type TablePageProps = {
@@ -27,7 +27,7 @@ export default async function TablePage({ params }: TablePageProps) {
   }
 
   return (
-    <main className="flex min-h-full flex-1 flex-col bg-background">
+    <main>
       <TableOrdering
         store={store}
         menu={menu}

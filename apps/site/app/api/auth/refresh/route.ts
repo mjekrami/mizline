@@ -1,7 +1,7 @@
 import type { LoginResponse } from "@mizline/shared";
 import { NextResponse, type NextRequest } from "next/server";
-import { getApiBaseUrl, REFRESH_COOKIE } from "@/lib/auth-constants";
-import { setRefreshCookie } from "@/lib/refresh-cookie";
+import { getApiBaseUrl, REFRESH_COOKIE } from "@/lib/auth/constants";
+import { setRefreshCookie } from "@/lib/auth/cookie";
 
 type AuthApiRefreshResponse = LoginResponse & { refreshToken?: string };
 

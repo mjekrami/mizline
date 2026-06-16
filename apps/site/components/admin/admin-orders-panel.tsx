@@ -2,9 +2,14 @@
 
 import type { Order, OrderStatus } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
+import { useState } from "react";
 import { AdminStatusBadge } from "@/components/admin/admin-status-badge";
 import { OrderTrackingStepper } from "@/components/admin/order-tracking-stepper";
 import { OrderAdvanceButton } from "@/components/order/order-advance-button";
+import {
+  OrderModifySheet,
+  OrderModifyTrigger,
+} from "@/components/order/order-modify-sheet";
 import { OrderItemsList } from "@/components/order/order-items-list";
 import {
   type OrderStatusFilter,
@@ -13,7 +18,7 @@ import {
 import {
   canHandOffOrderItems,
   getPendingOrderItems,
-} from "@/lib/order-display";
+} from "@/lib/order/display";
 import {
   formatOrderNumber,
   formatPrice,
@@ -24,6 +29,7 @@ import { VirtualList } from "@/components/ui/virtual-list";
 import { cn } from "@/lib/utils";
 
 interface AdminOrdersPanelProps {
+  storeId: string;
   orders: Order[];
   onOrdersChange: (orders: Order[]) => void;
   selectedOrderId: string | null;
@@ -39,6 +45,7 @@ const FILTER_OPTIONS: { id: OrderStatusFilter; label: string }[] = [
 ];
 
 export function AdminOrdersPanel({
+  storeId,
   orders,
   onOrdersChange,
   selectedOrderId,
@@ -166,12 +173,20 @@ export function AdminOrdersPanel({
         <section className="admin-panel flex flex-col gap-4 p-4 xl:col-span-7">
           {selectedOrder ? (
             <AdminOrderDetail
+              storeId={storeId}
               order={selectedOrder}
               now={now}
               advancing={advancingId === selectedOrder.id}
               fulfillingItemId={fulfillingItemId}
               onAdvance={advanceOrder}
               onFulfillItem={fulfillItem}
+              onOrderUpdated={(updated) =>
+                onOrdersChange(
+                  orders.map((entry) =>
+                    entry.id === updated.id ? updated : entry,
+                  ),
+                )
+              }
             />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 py-16 text-center">
@@ -191,22 +206,27 @@ export function AdminOrdersPanel({
 }
 
 interface AdminOrderDetailProps {
+  storeId: string;
   order: Order;
   now: number;
   advancing: boolean;
   fulfillingItemId: string | null;
   onAdvance: (order: Order) => void;
   onFulfillItem: (order: Order, itemId: string) => void;
+  onOrderUpdated: (order: Order) => void;
 }
 
 function AdminOrderDetail({
+  storeId,
   order,
   now,
   advancing,
   fulfillingItemId,
   onAdvance,
   onFulfillItem,
+  onOrderUpdated,
 }: AdminOrderDetailProps) {
+  const [modifyOpen, setModifyOpen] = useState(false);
   const pendingItems = getPendingOrderItems(order);
   const canHandOffItems = canHandOffOrderItems(order);
 
@@ -226,12 +246,19 @@ function AdminOrderDetail({
           </p>
         </div>
 
-        <OrderAdvanceButton
-          order={order}
-          advancing={advancing}
-          onAdvance={onAdvance}
-          size="md"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <OrderModifyTrigger
+            order={order}
+            mode="staff"
+            onClick={() => setModifyOpen(true)}
+          />
+          <OrderAdvanceButton
+            order={order}
+            advancing={advancing}
+            onAdvance={onAdvance}
+            size="md"
+          />
+        </div>
       </header>
 
       <div>
@@ -260,6 +287,15 @@ function AdminOrderDetail({
           onFulfillItem={onFulfillItem}
         />
       </div>
+
+      <OrderModifySheet
+        order={order}
+        storeId={storeId}
+        mode="staff"
+        open={modifyOpen}
+        onClose={() => setModifyOpen(false)}
+        onOrderUpdated={onOrderUpdated}
+      />
     </>
   );
 }

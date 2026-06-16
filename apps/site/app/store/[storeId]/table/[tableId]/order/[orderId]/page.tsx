@@ -1,5 +1,5 @@
 import { OrderTracking } from "@/components/order-tracking";
-import { getOrder } from "@/lib/api";
+import { getOrder } from "@/lib/api/customer";
 import { notFound } from "next/navigation";
 
 type OrderPageProps = {
@@ -26,7 +26,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
   }
 
   return (
-    <main className="flex min-h-full flex-1 flex-col bg-background">
+    <main className="flex min-h-full flex-1 flex-col">
       <OrderTracking
         initialOrder={order}
         storeId={storeId}

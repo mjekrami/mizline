@@ -1,9 +1,9 @@
 import { KitchenBoard } from "@/components/kitchen-board";
 import { StaffSetupNotice } from "@/components/staff-setup-notice";
 import { STAFF_SETUP_MESSAGES } from "@/constants/staff-setup";
-import { getServerAccessToken } from "@/lib/auth-server";
-import { loadKitchenBoardData } from "@/lib/load-kitchen-board";
-import { getStaffStoreId, hasKitchenDevToken } from "@/lib/staff-env";
+import { getServerAccessToken } from "@/lib/auth/server";
+import { loadKitchenBoardData } from "@/lib/kitchen/board";
+import { getStaffStoreId, hasKitchenDevToken } from "@/lib/auth/constants";
 
 export default async function KitchenDashboardPage() {
   const storeId = getStaffStoreId();
@@ -28,14 +28,13 @@ export default async function KitchenDashboardPage() {
   }
 
   try {
-    const { store, orders, metrics } = await loadKitchenBoardData(storeId);
+    const { store, orders } = await loadKitchenBoardData(storeId);
 
     return (
       <KitchenBoard
         store={store}
         storeId={storeId}
         initialOrders={orders}
-        initialMetrics={metrics}
       />
     );
   } catch (error) {

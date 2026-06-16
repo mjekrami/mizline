@@ -1,7 +1,7 @@
 import type { OrderStatus } from "@mizline/shared";
 import { orderStatusLabels } from "@mizline/shared";
 import { orderStatusBarColors } from "@/constants/order-status-colors";
-import type { AdminDashboardStats } from "@/lib/admin-stats";
+import type { AdminDashboardStats } from "@/lib/admin/dashboard";
 import { cn } from "@/lib/utils";
 
 interface AdminOrderPipelineProps {

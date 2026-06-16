@@ -150,6 +150,15 @@ export interface CreateOrderRequest {
   items: CreateOrderItemRequest[];
 }
 
+export interface AddOrderItemsRequest {
+  items: CreateOrderItemRequest[];
+}
+
+export interface UpdateOrderItemRequest {
+  quantity?: number;
+  notes?: string | null;
+}
+
 export interface OrderItemModifier {
   id: string;
   optionId?: ModifierOptionId | null;
@@ -197,6 +206,10 @@ export interface OrderCreatedEvent {
 }
 
 export interface OrderStatusEvent {
+  orderId: OrderId;
+}
+
+export interface OrderUpdatedEvent {
   orderId: OrderId;
 }
 
@@ -264,9 +277,11 @@ export type OrderRealtimeEvent =
   | "order.preparing"
   | "order.ready"
   | "order.fulfilled"
-  | "order.assigned";
+  | "order.assigned"
+  | "order.updated";
 
 export type OrderRealtimePayload =
   | OrderCreatedEvent
   | OrderStatusEvent
-  | OrderAssignedEvent;
+  | OrderAssignedEvent
+  | OrderUpdatedEvent;

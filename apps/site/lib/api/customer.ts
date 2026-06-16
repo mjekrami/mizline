@@ -5,11 +5,10 @@ import type {
   Store,
   TableInfo,
 } from "@mizline/shared";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
+import { getApiBaseUrl } from "@/lib/auth/constants";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -53,6 +52,19 @@ export function getOrder(orderId: string): Promise<Order> {
   return apiFetch(`/api/orders/${orderId}`);
 }
 
-export function getApiBaseUrl(): string {
-  return API_BASE;
+export function addItemsToOrder(
+  storeId: string,
+  tableId: string,
+  orderId: string,
+  body: import("@mizline/shared").AddOrderItemsRequest,
+): Promise<Order> {
+  return apiFetch(
+    `/api/stores/${storeId}/tables/${tableId}/orders/${orderId}/items`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
 }
+
+export { getApiBaseUrl };

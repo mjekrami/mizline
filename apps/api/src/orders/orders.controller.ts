@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -17,7 +18,9 @@ import {
 } from "../auth/guards/auth.guards";
 import { StaffAuthGuard } from "../auth/guards/staff-auth.guard";
 import { CreateOrderDto } from "./dto/create-order.dto";
+import { AddOrderItemsDto } from "./dto/add-order-items.dto";
 import { ListStoreOrdersQueryDto } from "./dto/list-store-orders-query.dto";
+import { UpdateOrderItemDto } from "./dto/update-order-item.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { OrdersService } from "./orders.service";
 
@@ -32,6 +35,20 @@ export class OrdersController {
     @Body() dto: CreateOrderDto,
   ) {
     return this.ordersService.createOrder(storeId, tableId, dto);
+  }
+
+  @Post("stores/:storeId/tables/:tableId/orders/:orderId/items")
+  addItemsForTable(
+    @Param("storeId") storeId: string,
+    @Param("tableId") tableId: string,
+    @Param("orderId") orderId: string,
+    @Body() dto: AddOrderItemsDto,
+  ) {
+    return this.ordersService.addOrderItems(orderId, dto, {
+      tableId,
+      storeId,
+      customerRequest: true,
+    });
   }
 
   @Get("orders/:orderId")
@@ -75,5 +92,36 @@ export class OrdersController {
     @Param("itemId") itemId: string,
   ) {
     return this.ordersService.fulfillOrderItem(orderId, itemId);
+  }
+
+  @Post("orders/:orderId/items")
+  @UseGuards(StaffAuthGuard, RolesGuard)
+  @Roles("barista")
+  addOrderItems(
+    @Param("orderId") orderId: string,
+    @Body() dto: AddOrderItemsDto,
+  ) {
+    return this.ordersService.addOrderItems(orderId, dto);
+  }
+
+  @Patch("orders/:orderId/items/:itemId")
+  @UseGuards(StaffAuthGuard, RolesGuard)
+  @Roles("barista")
+  updateOrderItem(
+    @Param("orderId") orderId: string,
+    @Param("itemId") itemId: string,
+    @Body() dto: UpdateOrderItemDto,
+  ) {
+    return this.ordersService.updateOrderItem(orderId, itemId, dto);
+  }
+
+  @Delete("orders/:orderId/items/:itemId")
+  @UseGuards(StaffAuthGuard, RolesGuard)
+  @Roles("barista")
+  removeOrderItem(
+    @Param("orderId") orderId: string,
+    @Param("itemId") itemId: string,
+  ) {
+    return this.ordersService.removeOrderItem(orderId, itemId);
   }
 }

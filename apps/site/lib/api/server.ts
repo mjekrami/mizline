@@ -1,11 +1,15 @@
-import type { KitchenMetrics, Order, OrderStatus, Store } from "@mizline/shared";
-import {
-  buildStaffAuthHeaders,
-  getServerAccessToken,
-} from "./auth-server";
-import { getApiBaseUrl, getStaffStoreIdFromEnv } from "./auth-constants";
+import type {
+  AdminCatalog,
+  AdminTable,
+  KitchenMetrics,
+  Order,
+  OrderStatus,
+  Store,
+} from "@mizline/shared";
+import { buildStaffAuthHeaders, getServerAccessToken } from "@/lib/auth/server";
+import { getApiBaseUrl, getStaffStoreId } from "@/lib/auth/constants";
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function serverFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const accessToken = await getServerAccessToken();
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
@@ -25,21 +29,29 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function getStore(storeId: string): Promise<Store> {
-  return apiFetch(`/api/stores/${storeId}`);
+  return serverFetch(`/api/stores/${storeId}`);
 }
 
 export function listStoreOrders(storeId: string): Promise<Order[]> {
   const statuses: OrderStatus[] = ["new", "preparing", "ready", "fulfilled"];
   const query = new URLSearchParams({ status: statuses.join(",") });
-  return apiFetch(`/api/stores/${storeId}/orders?${query.toString()}`);
+  return serverFetch(`/api/stores/${storeId}/orders?${query.toString()}`);
 }
 
 export function getStoreMetrics(storeId: string): Promise<KitchenMetrics> {
-  return apiFetch(`/api/stores/${storeId}/orders/metrics`);
+  return serverFetch(`/api/stores/${storeId}/orders/metrics`);
+}
+
+export function getAdminCatalog(storeId: string): Promise<AdminCatalog> {
+  return serverFetch(`/api/stores/${storeId}/admin/catalog`);
+}
+
+export function getAdminTables(storeId: string): Promise<AdminTable[]> {
+  return serverFetch(`/api/stores/${storeId}/admin/tables`);
 }
 
 export { getApiBaseUrl };
 
 export function getConfiguredStoreId(): string | undefined {
-  return getStaffStoreIdFromEnv();
+  return getStaffStoreId();
 }

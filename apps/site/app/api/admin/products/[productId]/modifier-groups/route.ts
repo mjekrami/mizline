@@ -1,4 +1,4 @@
-import { adminProxy } from "@/lib/admin-proxy";
+import { adminProxy } from "@/lib/api/proxy";
 
 export async function PUT(
   request: Request,

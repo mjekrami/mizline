@@ -3,7 +3,7 @@
 import type { Order } from "@mizline/shared";
 import { getWaitUrgency, type WaitUrgencyThresholds } from "@mizline/shared";
 import { useEffect, useRef } from "react";
-import { playDelayAlert } from "@/lib/order-alert";
+import { playDelayAlert } from "@/lib/kitchen/alerts";
 
 type AlertTier = "warning" | "critical";
 

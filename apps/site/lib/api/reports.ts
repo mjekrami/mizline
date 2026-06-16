@@ -1,0 +1,25 @@
+import type { DailySalesSummary, HourlyActivityReport, StoreSettings } from "@mizline/shared";
+import { clientApiFetch } from "./fetch";
+
+export function fetchDailySummary(date?: string): Promise<DailySalesSummary> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : "";
+  return clientApiFetch(`/api/admin/reports/daily-summary${query}`);
+}
+
+export function fetchHourlyActivity(date?: string): Promise<HourlyActivityReport> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : "";
+  return clientApiFetch(`/api/admin/reports/hourly-activity${query}`);
+}
+
+export function fetchStoreSettings(): Promise<StoreSettings> {
+  return clientApiFetch("/api/admin/settings");
+}
+
+export function updateStoreSettings(
+  settings: StoreSettings,
+): Promise<StoreSettings> {
+  return clientApiFetch("/api/admin/settings", {
+    method: "PATCH",
+    body: JSON.stringify(settings),
+  });
+}

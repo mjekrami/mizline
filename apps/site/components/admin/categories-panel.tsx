@@ -7,7 +7,7 @@ import {
   createCategory,
   deleteCategory,
   updateCategory,
-} from "@/lib/admin-api";
+} from "@/lib/api/admin";
 
 interface CategoriesPanelProps {
   categories: AdminCategory[];

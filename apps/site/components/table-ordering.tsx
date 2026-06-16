@@ -1,53 +1,36 @@
 "use client";
 
 import type { MenuCategory, MenuProduct, Store } from "@mizline/shared";
+import { ClipboardList } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   CartBar,
   CartSheet,
+  CategoryTabs,
   MenuCategorySection,
   MenuSearch,
   ProductCard,
   VariantPicker,
   type VariantPickerSelection,
 } from "@/components/menu-ui";
-import { MyOrdersBanner, MyOrdersNav, useMyOrders } from "@/components/my-orders";
+import { MyOrdersBanner, useMyOrders } from "@/components/my-orders";
 import { CartProvider, useCart } from "@/hooks/use-cart";
-import { createOrder } from "@/lib/api";
+import { createOrder } from "@/lib/api/customer";
 import { cartLineKey, computeUnitPrice } from "@/lib/cart";
-import { addOrderRef } from "@/lib/orders";
+import {
+  buildAvailableProductIds,
+  filterMenu,
+  productNeedsPicker,
+} from "@/lib/menu/filter";
+import { addOrderRef } from "@/lib/order/storage";
 
 interface TableOrderingProps {
   store: Store;
   menu: MenuCategory[];
   tableId: string;
   tableName?: string;
-}
-
-function productNeedsPicker(product: MenuProduct): boolean {
-  return product.variants.length > 0 || product.modifierGroups.length > 0;
-}
-
-function filterMenu(menu: MenuCategory[], query: string): MenuCategory[] {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return menu;
-
-  return menu
-    .map((category) => ({
-      ...category,
-      products: category.products.filter((product) => {
-        const haystack = `${product.name} ${product.description ?? ""}`.toLowerCase();
-        return haystack.includes(normalized);
-      }),
-    }))
-    .filter((category) => category.products.length > 0);
-}
-
-function buildAvailableProductIds(menu: MenuCategory[]): Set<string> {
-  return new Set(
-    menu.flatMap((category) => category.products.map((product) => product.id)),
-  );
 }
 
 function TableOrderingContent({
@@ -74,10 +57,18 @@ function TableOrderingContent({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
 
   const filteredMenu = useMemo(
-    () => filterMenu(menu, searchQuery),
-    [menu, searchQuery],
+    () => filterMenu(menu, searchQuery, selectedCategoryId),
+    [menu, searchQuery, selectedCategoryId],
+  );
+
+  const flatProducts = useMemo(
+    () => filteredMenu.flatMap((category) => category.products),
+    [filteredMenu],
   );
 
   const availableProductIds = useMemo(
@@ -105,6 +96,15 @@ function TableOrderingContent({
       return;
     }
 
+    addLine({
+      productId: product.id,
+      productName: product.name,
+      modifiers: [],
+      unitPrice: product.price,
+    });
+  }
+
+  function handleQuickAdd(product: MenuProduct) {
     addLine({
       productId: product.id,
       productName: product.name,
@@ -184,39 +184,81 @@ function TableOrderingContent({
     }
   }
 
+  const showCategorySections =
+    selectedCategoryId === null && !searchQuery.trim();
+
   return (
-    <>
-      <header className="sticky top-0 z-30 border-b border-border bg-background/95 px-4 py-4 pr-16 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {tableName ? `Table ${tableName}` : "Table ordering"}
-          </p>
-          <MyOrdersNav
-            storeId={store.id}
-            tableId={tableId}
-            orders={myOrders.orders}
-            loading={myOrders.loading}
-          />
+    <div className="flex flex-col">
+      <div className="px-4 pb-2 pt-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              {tableName ?? "Your table"}
+            </p>
+            <h1 className="text-2xl font-extrabold tracking-tight">
+              {store.name}
+            </h1>
+          </div>
+          {!myOrders.loading && myOrders.orders.length > 0 ? (
+            <Link
+              href={`/store/${store.id}/table/${tableId}/orders`}
+              className="customer-icon-btn flex size-11 items-center justify-center rounded-2xl text-foreground"
+              aria-label={`My orders (${myOrders.orders.length})`}
+            >
+              <ClipboardList className="size-5" />
+            </Link>
+          ) : null}
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">{store.name}</h1>
+      </div>
+
+      <div className="customer-category-bar px-4 pb-3 pt-1">
         <MenuSearch value={searchQuery} onChange={setSearchQuery} />
-      </header>
 
-      <MyOrdersBanner
-        storeId={store.id}
-        tableId={tableId}
-        activeOrders={myOrders.activeOrders}
-        refreshing={myOrders.refreshing}
-      />
+        {menu.length > 0 ? (
+          <div className="mt-3">
+            <CategoryTabs
+              categories={menu.map((category) => ({
+                id: category.id,
+                name: category.name,
+              }))}
+              selectedId={selectedCategoryId}
+              onSelect={setSelectedCategoryId}
+            />
+          </div>
+        ) : null}
+      </div>
 
-      <div className="flex flex-1 flex-col gap-8 px-4 py-6 pb-28">
+      <div className="flex flex-col gap-6 px-4 pt-4 pb-32">
+        <MyOrdersBanner
+          storeId={store.id}
+          tableId={tableId}
+          activeOrders={myOrders.activeOrders}
+          refreshing={myOrders.refreshing}
+        />
+        {!searchQuery.trim() && selectedCategoryId === null ? (
+          <div className="customer-hero relative overflow-hidden rounded-3xl px-5 py-6">
+            <div className="relative z-10">
+              <p className="text-xs font-semibold uppercase tracking-widest customer-text-accent">
+                Welcome
+              </p>
+              <h2 className="mt-1 text-xl font-extrabold leading-tight">
+                Find the best coffee{" "}
+                <span className="customer-text-accent">for you</span>
+              </h2>
+              <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+                Browse the menu, customize your order, and pay at the counter.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         {filteredMenu.length === 0 ? (
-          <p className="text-center text-muted-foreground">
+          <p className="py-12 text-center text-muted-foreground">
             {searchQuery.trim()
               ? "No matching items found."
               : "Menu is not available right now."}
           </p>
-        ) : (
+        ) : showCategorySections ? (
           filteredMenu.map((category) => (
             <MenuCategorySection key={category.id} name={category.name}>
               {category.products.map((product) => (
@@ -224,10 +266,22 @@ function TableOrderingContent({
                   key={product.id}
                   product={product}
                   onSelect={handleProductSelect}
+                  onQuickAdd={handleQuickAdd}
                 />
               ))}
             </MenuCategorySection>
           ))
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {flatProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onSelect={handleProductSelect}
+                onQuickAdd={handleQuickAdd}
+              />
+            ))}
+          </div>
         )}
       </div>
 
@@ -258,7 +312,7 @@ function TableOrderingContent({
           onAdd={handlePickerAdd}
         />
       ) : null}
-    </>
+    </div>
   );
 }
 

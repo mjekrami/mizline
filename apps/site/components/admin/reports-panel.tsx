@@ -7,7 +7,7 @@ import { AdminMetricCard } from "@/components/admin/admin-metric-card";
 import {
   fetchDailySummary,
   fetchHourlyActivity,
-} from "@/lib/admin-reports-api";
+} from "@/lib/api/reports";
 import { formatPrice } from "@/lib/format";
 
 function todayInputValue() {

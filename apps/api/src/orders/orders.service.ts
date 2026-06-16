@@ -1,9 +1,11 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import type { KitchenMetrics, OrderStatus } from "@mizline/shared";
+import { isOrderModifiable, canCustomerAddItems } from "@mizline/shared";
 import { OrderStatus as PrismaOrderStatus } from "@prisma/client";
 import {
   isValidOrderStatusTransition,
@@ -16,7 +18,9 @@ import {
 import { getStoreDayBounds } from "../common/timezone";
 import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
-import { CreateOrderDto } from "./dto/create-order.dto";
+import { CreateOrderDto, CreateOrderItemDto } from "./dto/create-order.dto";
+import { AddOrderItemsDto } from "./dto/add-order-items.dto";
+import { UpdateOrderItemDto } from "./dto/update-order-item.dto";
 import { AssignmentService } from "./assignment.service";
 
 const DEFAULT_KDS_STATUSES: OrderStatus[] = ["new", "preparing", "ready"];
@@ -83,9 +87,254 @@ export class OrdersService {
     }
 
     const productMap = new Map(products.map((product) => [product.id, product]));
+    const { orderItems, subtotal } = this.buildOrderItemsFromDto(
+      productMap,
+      dto.items,
+    );
+
+    const order = await this.prisma.order.create({
+      data: {
+        tenantId: store.tenantId,
+        storeId,
+        tableId,
+        status: PrismaOrderStatus.new,
+        subtotal,
+        total: subtotal,
+        items: { create: orderItems },
+      },
+      include: orderWithRelationsInclude,
+    });
+
+    this.realtime.emitOrderCreated(storeId, { orderId: order.id });
+    await this.assignment.assignNextBarista(storeId, order.id);
+
+    const assigned = await this.prisma.order.findUnique({
+      where: { id: order.id },
+      include: orderWithRelationsInclude,
+    });
+
+    return mapOrder(assigned ?? order);
+  }
+
+  async addOrderItems(
+    orderId: string,
+    dto: AddOrderItemsDto,
+    options?: { tableId?: string; storeId?: string; customerRequest?: boolean },
+  ) {
+    const order = await this.getModifiableOrder(
+      orderId,
+      options?.tableId,
+      options?.storeId,
+      options?.customerRequest,
+    );
+    const { orderItems, subtotal: addedSubtotal } =
+      await this.prepareOrderItemsForStore(order.storeId, dto.items);
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of orderItems) {
+        await tx.orderItem.create({
+          data: {
+            orderId,
+            ...item,
+          },
+        });
+      }
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: this.buildContentChangeUpdate(order, addedSubtotal),
+      });
+    });
+
+    return this.publishOrderChange(orderId, order.storeId, order.status);
+  }
+
+  async updateOrderItem(
+    orderId: string,
+    itemId: string,
+    dto: UpdateOrderItemDto,
+  ) {
+    if (dto.quantity === undefined && dto.notes === undefined) {
+      throw new BadRequestException("No changes provided");
+    }
+
+    const order = await this.getModifiableOrder(orderId);
+    const item = order.items.find((entry) => entry.id === itemId);
+
+    if (!item) {
+      throw new NotFoundException("Order item not found");
+    }
+
+    if (item.fulfilled) {
+      throw new BadRequestException("Fulfilled items cannot be modified");
+    }
+
+    const previousLineTotal = item.price * item.quantity;
+    const nextQuantity = dto.quantity ?? item.quantity;
+    const nextLineTotal = item.price * nextQuantity;
+    const subtotalDelta = nextLineTotal - previousLineTotal;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.update({
+        where: { id: itemId },
+        data: {
+          quantity: dto.quantity,
+          notes: dto.notes === undefined ? undefined : dto.notes,
+        },
+      });
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: this.buildContentChangeUpdate(order, subtotalDelta),
+      });
+    });
+
+    return this.publishOrderChange(orderId, order.storeId, order.status);
+  }
+
+  async removeOrderItem(orderId: string, itemId: string) {
+    const order = await this.getModifiableOrder(orderId);
+    const item = order.items.find((entry) => entry.id === itemId);
+
+    if (!item) {
+      throw new NotFoundException("Order item not found");
+    }
+
+    if (item.fulfilled) {
+      throw new BadRequestException("Fulfilled items cannot be removed");
+    }
+
+    if (order.items.length <= 1) {
+      throw new BadRequestException("An order must contain at least one item");
+    }
+
+    const removedSubtotal = item.price * item.quantity;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.delete({ where: { id: itemId } });
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: this.buildContentChangeUpdate(order, -removedSubtotal),
+      });
+    });
+
+    return this.publishOrderChange(orderId, order.storeId, order.status);
+  }
+
+  private async getModifiableOrder(
+    orderId: string,
+    tableId?: string,
+    storeId?: string,
+    customerRequest?: boolean,
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    if (tableId && order.tableId !== tableId) {
+      throw new ForbiddenException("Order does not belong to this table");
+    }
+
+    if (storeId && order.storeId !== storeId) {
+      throw new ForbiddenException("Order does not belong to this store");
+    }
+
+    const status = toSharedOrderStatus(order.status);
+    if (!isOrderModifiable(status)) {
+      throw new BadRequestException("This order can no longer be modified");
+    }
+
+    if (customerRequest && !canCustomerAddItems(status)) {
+      throw new BadRequestException(
+        "Items can only be added while the order is being prepared",
+      );
+    }
+
+    return order;
+  }
+
+  private buildContentChangeUpdate(
+    order: { subtotal: number; total: number; status: PrismaOrderStatus },
+    subtotalDelta: number,
+  ) {
+    const nextSubtotal = order.subtotal + subtotalDelta;
+    const data: {
+      subtotal: number;
+      total: number;
+      status?: PrismaOrderStatus;
+      readyAt?: null;
+    } = {
+      subtotal: nextSubtotal,
+      total: nextSubtotal,
+    };
+
+    if (order.status === PrismaOrderStatus.ready && subtotalDelta !== 0) {
+      data.status = PrismaOrderStatus.preparing;
+      data.readyAt = null;
+    }
+
+    return data;
+  }
+
+  private async publishOrderChange(
+    orderId: string,
+    storeId: string,
+    previousStatus: PrismaOrderStatus,
+  ) {
+    const refreshed = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderWithRelationsInclude,
+    });
+
+    if (!refreshed) {
+      throw new NotFoundException("Order not found");
+    }
+
+    const payload = { orderId: refreshed.id };
+    this.realtime.emitOrderUpdated(storeId, refreshed.id, payload);
+
+    if (
+      previousStatus === PrismaOrderStatus.ready &&
+      refreshed.status === PrismaOrderStatus.preparing
+    ) {
+      this.realtime.emitOrderPreparing(storeId, refreshed.id, payload);
+    }
+
+    return mapOrder(refreshed);
+  }
+
+  private async prepareOrderItemsForStore(
+    storeId: string,
+    items: CreateOrderItemDto[],
+  ) {
+    const productIds = [...new Set(items.map((item) => item.productId))];
+    const products = await this.loadProductsForOrder(storeId, productIds);
+
+    if (products.length !== productIds.length) {
+      const foundIds = new Set(products.map((product) => product.id));
+      const unavailableIds = productIds.filter((id) => !foundIds.has(id));
+      throw new BadRequestException(
+        `One or more products are invalid or unavailable:unavailable:${unavailableIds.join(",")}`,
+      );
+    }
+
+    const productMap = new Map(products.map((product) => [product.id, product]));
+    return this.buildOrderItemsFromDto(productMap, items);
+  }
+
+  private buildOrderItemsFromDto(
+    productMap: Map<string, ProductForOrder>,
+    items: CreateOrderItemDto[],
+  ) {
     let subtotal = 0;
 
-    const orderItems = dto.items.map((item) => {
+    const orderItems = items.map((item) => {
       const product = productMap.get(item.productId);
       if (!product) {
         throw new BadRequestException(`Product ${item.productId} not found`);
@@ -139,28 +388,7 @@ export class OrdersService {
       };
     });
 
-    const order = await this.prisma.order.create({
-      data: {
-        tenantId: store.tenantId,
-        storeId,
-        tableId,
-        status: PrismaOrderStatus.new,
-        subtotal,
-        total: subtotal,
-        items: { create: orderItems },
-      },
-      include: orderWithRelationsInclude,
-    });
-
-    this.realtime.emitOrderCreated(storeId, { orderId: order.id });
-    await this.assignment.assignNextBarista(storeId, order.id);
-
-    const assigned = await this.prisma.order.findUnique({
-      where: { id: order.id },
-      include: orderWithRelationsInclude,
-    });
-
-    return mapOrder(assigned ?? order);
+    return { orderItems, subtotal };
   }
 
   private async loadProductsForOrder(storeId: string, productIds: string[]) {
