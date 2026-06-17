@@ -1,4 +1,8 @@
-const DEFAULT_CORS_ORIGINS = ["http://localhost:3000"];
+const DEFAULT_CORS_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+];
 
 export function getCorsOrigins(): string[] {
   const fromEnv = process.env.CORS_ORIGINS;

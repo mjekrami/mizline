@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
   UseGuards,
+  BadRequestException,
 } from "@nestjs/common";
 import type { StaffMember } from "@mizline/shared";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
@@ -55,6 +57,19 @@ export class StaffController {
     @Body() dto: UpdateStaffDto,
   ): Promise<StaffMember> {
     return this.staffService.updateStaff(user.tenantId, userId, dto);
+  }
+
+  @Delete("stores/:storeId/staff/:userId")
+  @Roles("manager")
+  async removeStoreStaff(
+    @Param("storeId") storeId: string,
+    @Param("userId") userId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<void> {
+    if (user.id === userId) {
+      throw new BadRequestException("You cannot remove your own account");
+    }
+    await this.staffService.removeStoreStaff(user.tenantId, storeId, userId);
   }
 
   @Patch("orders/:orderId/assign")

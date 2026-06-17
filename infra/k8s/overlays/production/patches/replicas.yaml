@@ -8,7 +8,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: site
+  name: kds
 spec:
   replicas: 3
 ---
@@ -23,7 +23,7 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: site
+  name: kds
 spec:
   minReplicas: 3
   maxReplicas: 10

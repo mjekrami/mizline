@@ -8,7 +8,7 @@ export default function StoreNotFound() {
         This store ID doesn&apos;t exist in the API. After seeding the database,
         copy the printed store and table IDs into{" "}
         <code className="rounded bg-muted px-1 py-0.5 text-xs">
-          apps/site/.env.local
+          apps/kds/.env.local
         </code>{" "}
         and restart the customer dev server.
       </p>

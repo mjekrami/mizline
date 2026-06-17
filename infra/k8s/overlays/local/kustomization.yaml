@@ -12,5 +12,5 @@ patches:
 images:
   - name: mizline/api
     newTag: latest
-  - name: mizline/site
+  - name: mizline/kds
     newTag: latest

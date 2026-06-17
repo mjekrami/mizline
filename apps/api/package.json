@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nest start --watch --builder tsc",
+    "dev": "NODE_ENV=development nest start --watch --builder tsc",
     "predev": "pnpm --filter @mizline/shared build",
     "build": "tsc -p tsconfig.build.json",
     "prebuild": "pnpm --filter @mizline/shared build",

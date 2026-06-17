@@ -36,7 +36,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: site
+                name: kds
                 port:
                   number: 3000
     - host: order.mizline.local
@@ -46,7 +46,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: site
+                name: kds
                 port:
                   number: 3000
   # tls:

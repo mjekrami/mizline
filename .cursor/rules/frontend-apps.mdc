@@ -16,21 +16,30 @@ Mobile-first QR ordering PWA. Runs on port **3001**.
 - Persist cart in localStorage; associate orders with table from URL
 - Serwist PWA with offline fallback
 
-## Site (`apps/site`)
+## KDS (`apps/kds`)
 
-Staff dashboards (kitchen, waiter, admin). Runs on port **3000**.
+Staff dashboards (kitchen and admin). Runs on port **3000**.
 
-Staff routes use a path segment: `/{path}/kitchen`, `/{path}/admin`, and `/{path}/waiter`.
+Staff routes use a path segment: `/{path}/kitchen` and `/{path}/admin`.
 
 - `path` defaults to `NEXT_PUBLIC_STAFF_PATH`, then `NEXT_PUBLIC_KITCHEN_STORE_ID`, then `"staff"`
 - Use `PathProvider` / `usePathContext()` / `useIsAdmin()` to detect admin vs kitchen routes
 
 - `/{path}/kitchen` — Desktop-first KDS with four status columns; real-time via Socket.IO
 - `/{path}/admin` — Desktop-first store management; JWT auth required (MANAGER+)
-- `/{path}/waiter` — Waiter order board
 - Audio alert on `order.created`; support full-screen mode on kitchen view
 
 QR table links in admin use `NEXT_PUBLIC_CUSTOMER_URL` (customer app base URL).
+
+## Waiter (`apps/waiter`)
+
+Mobile-first waiter order board PWA. Runs on port **3002**.
+
+- JWT auth required (waiter role)
+- Entry: `/{path}` (board) and `/{path}/login`
+- Real-time order updates and table buzz alerts via Socket.IO
+- `path` defaults to `NEXT_PUBLIC_STAFF_PATH` (same segment name as KDS, separate app origin)
+- Serwist PWA with offline fallback
 
 ## Conventions
 

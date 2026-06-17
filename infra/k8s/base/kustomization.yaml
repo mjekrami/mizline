@@ -26,10 +26,10 @@ resources:
   - api/service.yaml
   - api/pdb.yaml
   - api/hpa.yaml
-  - site/deployment.yaml
-  - site/service.yaml
-  - site/pdb.yaml
-  - site/hpa.yaml
+  - kds/deployment.yaml
+  - kds/service.yaml
+  - kds/pdb.yaml
+  - kds/hpa.yaml
   - ingress/ingress.yaml
   - network-policies/api.yaml
 
@@ -37,6 +37,6 @@ images:
   - name: mizline/api
     newName: mizline/api
     newTag: latest
-  - name: mizline/site
-    newName: mizline/site
+  - name: mizline/kds
+    newName: mizline/kds
     newTag: latest

@@ -23,14 +23,14 @@ name() {
 echo "Building API image..."
 docker build -f apps/api/Dockerfile -t "$(name api)" .
 
-echo "Building site image..."
-docker build -f apps/site/Dockerfile \
+echo "Building KDS image..."
+docker build -f apps/kds/Dockerfile \
   --build-arg "NEXT_PUBLIC_API_URL=${API_URL}" \
   --build-arg "NEXT_PUBLIC_SITE_URL=${SITE_URL}" \
   --build-arg "NEXT_PUBLIC_KITCHEN_STORE_ID=${KITCHEN_STORE_ID}" \
   --build-arg "NEXT_PUBLIC_STAFF_PATH=${STAFF_PATH}" \
-  -t "$(name site)" .
+  -t "$(name kds)" .
 
 echo "Done."
 echo "  $(name api)"
-echo "  $(name site)"
+echo "  $(name kds)"

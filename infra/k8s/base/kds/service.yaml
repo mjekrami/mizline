@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kds
+  labels:
+    app.kubernetes.io/name: kds
+    app.kubernetes.io/part-of: mizline
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kds
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

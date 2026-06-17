@@ -30,7 +30,7 @@ isProject: false
 
 ## Current state
 
-- **Staff**: email/password → self-signed JWT (`tenantId`, `role`, `storeIds`) + DB refresh cookie ([`auth.service.ts`](apps/api/src/auth/auth.service.ts), [`middleware.ts`](apps/site/middleware.ts))
+- **Staff**: email/password → self-signed JWT (`tenantId`, `role`, `storeIds`) + DB refresh cookie ([`auth.service.ts`](apps/api/src/auth/auth.service.ts), [`middleware.ts`](apps/kds/middleware.ts))
 - **Customer**: fully anonymous; table context from URL only ([`.cursor/rules/authentication.mdc`](.cursor/rules/authentication.mdc))
 - **Tenancy**: `Tenant.slug` exists in DB but is unused; staff UI uses a cosmetic `[path]` segment and a single env-bound store (`NEXT_PUBLIC_KITCHEN_STORE_ID`)
 - **Logto**: no integration today
@@ -46,7 +46,7 @@ flowchart TB
     APIResource[API Resource mizline-api]
   end
 
-  subgraph site [apps/site Next.js]
+  subgraph kds [apps/kds Next.js]
     StaffRoutes["/{tenantSlug}/login|kitchen|admin"]
     CustRoutes["/store/{storeId}/table/{tableId}"]
     LogtoSDK["@logto/next session"]
@@ -119,7 +119,7 @@ Per tenant organization in Logto Console / Management API:
 
 ### Environment variables (new)
 
-**Site** (`apps/site/.env.example`):
+**KDS** (`apps/kds/.env.example`):
 
 - `LOGTO_ENDPOINT`, `LOGTO_APP_ID`, `LOGTO_APP_SECRET`, `LOGTO_COOKIE_SECRET`
 - `LOGTO_CUSTOMER_APP_ID`, `LOGTO_CUSTOMER_APP_SECRET` (if separate app)
@@ -189,11 +189,11 @@ Replace cosmetic `[path]` with validated **tenant slug**.
 
 ### Routing
 
-- Keep route folder [`apps/site/app/[path]/`](apps/site/app/[path]/) but treat segment as `tenantSlug`
+- Keep route folder [`apps/kds/app/[path]/`](apps/kds/app/[path]/) but treat segment as `tenantSlug`
 - Add server helper `resolveTenantFromSlug(slug)` → `{ tenantId, logtoOrganizationId, stores[] }`
 - Invalid slug → 404 (not login loop)
 
-### Middleware ([`middleware.ts`](apps/site/middleware.ts))
+### Middleware ([`middleware.ts`](apps/kds/middleware.ts))
 
 - For `/{tenantSlug}/kitchen|admin`: require Logto session cookie (from `@logto/next`) instead of `mizline_refresh`
 - Validate slug against cached tenant list or lightweight API lookup
@@ -201,7 +201,7 @@ Replace cosmetic `[path]` with validated **tenant slug**.
 
 ### Store context (deprecate single-store env)
 
-Today [`resolveStaffStoreId`](apps/site/lib/auth-session.ts) falls back to `NEXT_PUBLIC_KITCHEN_STORE_ID`. After migration:
+Today [`resolveStaffStoreId`](apps/kds/lib/auth-session.ts) falls back to `NEXT_PUBLIC_KITCHEN_STORE_ID`. After migration:
 
 1. Prefer `user.storeIds[0]` when only one store
 2. If multiple → store picker persisted in cookie/localStorage
@@ -219,12 +219,12 @@ Keep [`TenantGuard`](apps/api/src/auth/guards/auth.guards.ts) but add service-le
 
 1. Add `@logto/next` per [App Router quick start](https://docs.logto.io/quick-starts/next-app-router)
 2. Add route handlers: `/api/logto/[action]` (sign-in, sign-out, callback)
-3. Replace [`login-form.tsx`](apps/site/components/login-form.tsx) with **“Sign in with SSO”** button calling `signIn()` with:
+3. Replace [`login-form.tsx`](apps/kds/components/login-form.tsx) with **“Sign in with SSO”** button calling `signIn()` with:
    - `organizationId` from tenant slug lookup
    - scopes: `openid`, `profile`, `organizations`, API scopes
-4. Replace [`auth-session.ts`](apps/site/lib/auth-session.ts) flow:
+4. Replace [`auth-session.ts`](apps/kds/lib/auth-session.ts) flow:
    - `loadAuthSession()` → get Logto session → call BFF exchange → set in-memory Mizline JWT
-5. Remove legacy routes: [`/api/auth/login`](apps/site/app/api/auth/login/route.ts), refresh, logout (or shim to Logto sign-out)
+5. Remove legacy routes: [`/api/auth/login`](apps/kds/app/api/auth/login/route.ts), refresh, logout (or shim to Logto sign-out)
 
 ### Session exchange (BFF + API)
 
@@ -249,7 +249,7 @@ const res = await fetch(`${API}/auth/session`, {
 5. Issue existing Mizline JWT payload (`sub`, `tenantId`, `role`, `storeIds`)
 6. Return `AuthUser` (same shared type)
 
-Existing guards, [`staff-proxy.ts`](apps/site/lib/staff-proxy.ts), and realtime JWT verification keep working with minimal changes.
+Existing guards, [`staff-proxy.ts`](apps/kds/lib/staff-proxy.ts), and realtime JWT verification keep working with minimal changes.
 
 ### Socket.IO ([`orders.gateway.ts`](apps/api/src/realtime/orders.gateway.ts))
 
@@ -269,7 +269,7 @@ Continue accepting Mizline JWT from exchanged token. Staff connects same as toda
 
 ### UX
 
-On [`table-ordering.tsx`](apps/site/components/table-ordering.tsx) / order tracking:
+On [`table-ordering.tsx`](apps/kds/components/table-ordering.tsx) / order tracking:
 
 - “Sign in” → Logto customer app sign-in (social + enterprise if configured at platform level)
 - After sign-in, show account badge + “My orders at this store”
@@ -294,7 +294,7 @@ Anonymous endpoints unchanged: [`stores.controller.ts`](apps/api/src/stores/stor
 
 ### Linking anonymous orders
 
-After optional sign-in, client calls link endpoint with order IDs from localStorage (`mizline-cart:{storeId}:{tableId}` pattern in [`orders.ts`](apps/site/lib/orders.ts)).
+After optional sign-in, client calls link endpoint with order IDs from localStorage (`mizline-cart:{storeId}:{tableId}` pattern in [`orders.ts`](apps/kds/lib/orders.ts)).
 
 ### Realtime for customers
 
@@ -340,11 +340,11 @@ gantt
 |------|-------|
 | Schema/seed | [`schema.prisma`](apps/api/prisma/schema.prisma), [`seed.ts`](apps/api/prisma/seed.ts) |
 | Nest auth | [`auth.module.ts`](apps/api/src/auth/auth.module.ts), `auth.service.ts`, new `logto.service.ts`, `jwt.strategy.ts` |
-| Next auth | `middleware.ts`, [`auth-session.ts`](apps/site/lib/auth-session.ts), new `lib/logto.ts`, `[path]/login/page.tsx` |
-| Routing | [`site-path.ts`](apps/site/lib/site-path.ts), [`path-provider.tsx`](apps/site/components/path-provider.tsx) |
-| Customer | [`table-ordering.tsx`](apps/site/components/table-ordering.tsx), new customer session routes |
+| Next auth | `middleware.ts`, [`auth-session.ts`](apps/kds/lib/auth-session.ts), new `lib/logto.ts`, `[path]/login/page.tsx` |
+| Routing | [`staff-path.ts`](apps/kds/lib/staff-path.ts), [`path-provider.tsx`](apps/kds/components/path-provider.tsx) |
+| Customer | [`table-ordering.tsx`](apps/kds/components/table-ordering.tsx), new customer session routes |
 | Shared types | [`packages/shared/src/types.ts`](packages/shared/src/types.ts) |
-| Infra | [`apps/site/.env.example`](apps/site/.env.example), [`apps/api/.env.example`](apps/api/.env.example), k8s secrets |
+| Infra | [`apps/kds/.env.example`](apps/kds/.env.example), [`apps/api/.env.example`](apps/api/.env.example), k8s secrets |
 
 ### Testing plan
 

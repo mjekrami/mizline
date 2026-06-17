@@ -8,7 +8,7 @@ alwaysApply: true
 Use the **`reviewer-code-cleanup`** subagent (`.cursor/agents/reviewer-code-cleanup.md`) without waiting for the user to ask, when:
 
 - You **just finished** implementing or refactoring a feature touching multiple files
-- You added UI in `apps/site/components/` or helpers duplicated across components
+- You added UI in `apps/kds/components/` or helpers duplicated across components
 - The user mentions: cleanup, dedupe, dead code, unused, consolidate, DRY, shared logic, remove redundant
 
 **Skip delegation** when:

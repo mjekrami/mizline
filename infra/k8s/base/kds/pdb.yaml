@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kds
+  labels:
+    app.kubernetes.io/name: kds
+    app.kubernetes.io/part-of: mizline
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kds

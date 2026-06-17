@@ -8,14 +8,14 @@ Production-oriented Kubernetes layout for the Mizline monorepo using **Kustomize
 Ingress (nginx)
   ├── api.mizline.local  → API Deployment (HA, HPA, PDB)
   ├── order.mizline.local → Customer Deployment (HA, HPA, PDB)
-  └── kitchen.mizline.local → Kitchen Deployment (HA, HPA, PDB)
+  └── app.mizline.local → KDS Deployment (HA, HPA, PDB)
 
 API → Postgres (StatefulSet + PVC) + Redis (Deployment + PVC)
 ```
 
 | Component | HA strategy |
 |-----------|-------------|
-| API, Customer, Kitchen | 2+ replicas, rolling updates, PDB, HPA |
+| API, Customer, KDS | 2+ replicas, rolling updates, PDB, HPA |
 | Postgres | Single StatefulSet + PVC (see DB HA note below) |
 | Redis | Single replica + PVC (AOF persistence) |
 | Ingress | nginx + sticky sessions for Socket.IO |
@@ -41,7 +41,7 @@ minikube addons enable ingress
 Add hosts (or use `/etc/hosts`):
 
 ```text
-127.0.0.1 api.mizline.local order.mizline.local kitchen.mizline.local
+127.0.0.1 api.mizline.local app.mizline.local order.mizline.local
 ```
 
 For minikube ingress, point hosts to `minikube ip`.
@@ -65,7 +65,7 @@ Load into minikube:
 ```bash
 minikube image load mizline/api:latest
 minikube image load mizline/customer:latest
-minikube image load mizline/kitchen:latest
+minikube image load mizline/kds:latest
 ```
 
 ## Deploy
@@ -108,7 +108,7 @@ kubectl -n mizline wait --for=condition=complete job/db-seed --timeout=120s
 kubectl -n mizline logs job/db-seed
 ```
 
-Copy printed store/table IDs into kitchen env / customer build args for demos.
+Copy printed store/table IDs into KDS env / customer build args for demos.
 
 ## Verify
 
@@ -153,7 +153,7 @@ infra/k8s/
 ├── base/                    # Shared manifests
 │   ├── api/                 # Deployment, Service, HPA, PDB
 │   ├── customer/
-│   ├── kitchen/
+│   ├── kds/
 │   ├── postgres/            # StatefulSet, headless Service
 │   ├── redis/
 │   ├── storage/             # StorageClass, PV
@@ -176,6 +176,6 @@ infra/k8s/
 |-------|------------|
 | `mizline/api` | `apps/api/Dockerfile` |
 | `mizline/customer` | `apps/customer/Dockerfile` |
-| `mizline/kitchen` | `apps/kitchen/Dockerfile` |
+| `mizline/kds` | `apps/kds/Dockerfile` |
 
 API reads `CORS_ORIGINS` from ConfigMap (comma-separated). Match your ingress host URLs.

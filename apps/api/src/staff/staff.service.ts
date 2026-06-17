@@ -8,7 +8,6 @@ import type { StaffMember } from "@mizline/shared";
 import { StaffRole } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
-import type { AuthenticatedUser } from "../auth/auth.types";
 import { CreateStaffDto, UpdateStaffDto } from "./dto/staff.dto";
 
 @Injectable()
@@ -70,14 +69,7 @@ export class StaffService {
     userId: string,
     dto: UpdateStaffDto,
   ): Promise<StaffMember> {
-    const user = await this.prisma.user.findFirst({
-      where: { id: userId, tenantId },
-      include: { storeLinks: { select: { storeId: true } } },
-    });
-
-    if (!user) {
-      throw new NotFoundException("Staff member not found");
-    }
+    await this.findStaffUser(tenantId, userId);
 
     if (dto.storeIds) {
       for (const storeId of dto.storeIds) {
@@ -115,6 +107,34 @@ export class StaffService {
     }
 
     return this.mapStaffMember(updated);
+  }
+
+  async removeStoreStaff(
+    tenantId: string,
+    storeId: string,
+    userId: string,
+  ): Promise<void> {
+    await this.assertStoreInTenant(tenantId, storeId);
+
+    const user = await this.findStaffUser(tenantId, userId);
+
+    if (!user.storeLinks.some((link) => link.storeId === storeId)) {
+      throw new NotFoundException("Staff member not linked to this store");
+    }
+
+    await this.prisma.userStore.delete({
+      where: { userId_storeId: { userId, storeId } },
+    });
+
+    const remainingStores = user.storeLinks.filter(
+      (link) => link.storeId !== storeId,
+    );
+    if (remainingStores.length === 0) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { active: false },
+      });
+    }
   }
 
   async assignOrder(
@@ -160,6 +180,19 @@ export class StaffService {
     return updated;
   }
 
+  private async findStaffUser(tenantId: string, userId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, tenantId },
+      include: { storeLinks: { select: { storeId: true } } },
+    });
+
+    if (!user) {
+      throw new NotFoundException("Staff member not found");
+    }
+
+    return user;
+  }
+
   private async assertStoreInTenant(tenantId: string, storeId: string) {
     const store = await this.prisma.store.findFirst({
       where: { id: storeId, tenantId },
@@ -188,8 +221,4 @@ export class StaffService {
       storeIds: user.storeLinks.map((link) => link.storeId),
     };
   }
-}
-
-export function resolveTenantId(user: AuthenticatedUser): string {
-  return user.tenantId;
 }
