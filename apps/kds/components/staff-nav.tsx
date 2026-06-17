@@ -37,7 +37,7 @@ export function StaffNav() {
   }
 
   return (
-    <nav className="border-b border-border bg-card">
+    <nav className="border-b border-border/60 bg-transparent">
       <div className="flex items-center gap-6 px-4 py-3 md:px-6">
         <span className="text-sm font-semibold tracking-tight">
           Mizline Staff

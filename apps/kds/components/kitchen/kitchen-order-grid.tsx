@@ -52,7 +52,7 @@ export function KitchenOrderGrid({
   return (
     <div
       className={cn(
-        "grid min-h-0 flex-1 gap-3 overflow-y-auto pb-2 pr-1",
+        "grid min-h-0 flex-1 auto-rows-max items-start gap-3 overflow-y-auto pb-2 pr-1",
         viewMode === "grid"
           ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
           : "grid-cols-1",

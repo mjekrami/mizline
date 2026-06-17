@@ -51,7 +51,7 @@ const navItems: {
   { id: "modifiers", label: "Modifiers", icon: SlidersHorizontal, countKey: "modifiers" },
   { id: "tables", label: "Tables", icon: QrCode, countKey: "tables" },
   { id: "staff", label: "Staff", icon: UsersRound },
-  { id: "reports", label: "Reports", icon: BarChart3 },
+  { id: "reports", label: "Analytics", icon: BarChart3 },
 ];
 
 export function AdminSidebar({

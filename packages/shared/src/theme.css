@@ -1,75 +1,111 @@
 :root {
-  --background: #ddd4c8;
-  --foreground: #140f0c;
+  --background: #0c0c0e;
+  --foreground: #f4f4f5;
 
-  --card: #ede7de;
-  --card-foreground: #140f0c;
+  --card: #141416;
+  --card-foreground: #f4f4f5;
 
-  --popover: #f3ede6;
-  --popover-foreground: #140f0c;
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
 
-  --primary: #1a1210;
-  --primary-hover: #0f0a08;
-  --primary-foreground: #f4ede4;
+  --primary: #e8b86d;
+  --primary-hover: #f0c675;
+  --primary-foreground: #1a1208;
 
-  --secondary: #7a6248;
-  --secondary-foreground: #f4ede4;
+  --secondary: #1e1a16;
+  --secondary-foreground: #f4f4f5;
 
-  --muted: color-mix(in srgb, #7a6248 14%, #ddd4c8);
-  --muted-foreground: #5c4f42;
+  --muted: #1e1a16;
+  --muted-foreground: #9a9080;
 
-  --accent: #c05621;
-  --accent-foreground: #fff8f2;
+  --accent: #c9943a;
+  --accent-foreground: #1a1208;
 
-  --destructive: #b91c1c;
+  --destructive: #f87171;
   --destructive-foreground: #ffffff;
 
-  --success: #2d6a4f;
-  --warning: #b45309;
-  --error: #b91c1c;
-  --info: #3d6b9e;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #60a5fa;
 
-  --border: #bfb4a6;
-  --input: #bfb4a6;
-  --ring: #1a1210;
+  --border: #2e2a24;
+  --input: #2e2a24;
+  --ring: #d4a24a;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 }
 
 .dark {
-  --background: #080605;
-  --foreground: #ede5d8;
+  --background: #0c0c0e;
+  --foreground: #f4f4f5;
 
-  --card: #12100d;
-  --card-foreground: #ede5d8;
+  --card: #141416;
+  --card-foreground: #f4f4f5;
 
-  --popover: #16120f;
-  --popover-foreground: #ede5d8;
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
 
-  --primary: #c4a574;
-  --primary-hover: #d4b88a;
-  --primary-foreground: #080605;
+  --primary: #e8b86d;
+  --primary-hover: #f0c675;
+  --primary-foreground: #1a1208;
 
-  --secondary: #241e18;
-  --secondary-foreground: #ede5d8;
+  --secondary: #1e1a16;
+  --secondary-foreground: #f4f4f5;
 
-  --muted: color-mix(in srgb, #3d342c 55%, #080605);
-  --muted-foreground: #9a8878;
+  --muted: #1e1a16;
+  --muted-foreground: #9a9080;
 
-  --accent: #e07b32;
-  --accent-foreground: #140f0c;
+  --accent: #c9943a;
+  --accent-foreground: #1a1208;
 
-  --destructive: #ef4444;
+  --destructive: #f87171;
   --destructive-foreground: #ffffff;
 
-  --success: #3d9970;
-  --warning: #e8954a;
-  --error: #ef4444;
-  --info: #6b9fd4;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #60a5fa;
 
-  --border: #2c2620;
-  --input: #2c2620;
-  --ring: #c4a574;
+  --border: #2e2a24;
+  --input: #2e2a24;
+  --ring: #d4a24a;
+}
+
+.light {
+  --background: #fafafa;
+  --foreground: #09090b;
+
+  --card: #ffffff;
+  --card-foreground: #09090b;
+
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
+  --primary: #18181b;
+  --primary-hover: #27272a;
+  --primary-foreground: #fafafa;
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
+  --accent: #b45309;
+  --accent-foreground: #ffffff;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #2563eb;
+
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #18181b;
 }
 
 @theme inline {
@@ -109,48 +145,50 @@
 
   --color-surface: var(--card);
 
-  --color-order-new: #4f7fd4;
-  --color-order-preparing: #d97706;
-  --color-order-ready: #0d9b6e;
-  --color-order-fulfilled: #78716c;
-  --color-order-cancelled: #dc2626;
+  --color-order-new: #60a5fa;
+  --color-order-preparing: #fbbf24;
+  --color-order-ready: #34d399;
+  --color-order-fulfilled: #71717a;
+  --color-order-cancelled: #f87171;
 
-  --color-order-new-soft: color-mix(in srgb, #4f7fd4 12%, var(--card));
-  --color-order-new-strong: #4f7fd4;
-  --color-order-preparing-soft: color-mix(in srgb, #d97706 12%, var(--card));
-  --color-order-preparing-strong: #d97706;
-  --color-order-ready-soft: color-mix(in srgb, #0d9b6e 12%, var(--card));
-  --color-order-ready-strong: #0d9b6e;
-  --color-order-fulfilled-soft: color-mix(in srgb, #78716c 12%, var(--card));
-  --color-order-fulfilled-strong: #78716c;
-  --color-order-cancelled-soft: color-mix(in srgb, #dc2626 12%, var(--card));
-  --color-order-cancelled-strong: #dc2626;
+  --color-order-new-soft: color-mix(in srgb, #60a5fa 12%, var(--card));
+  --color-order-new-strong: #60a5fa;
+  --color-order-preparing-soft: color-mix(in srgb, #fbbf24 12%, var(--card));
+  --color-order-preparing-strong: #fbbf24;
+  --color-order-ready-soft: color-mix(in srgb, #34d399 12%, var(--card));
+  --color-order-ready-strong: #34d399;
+  --color-order-fulfilled-soft: color-mix(in srgb, #71717a 12%, var(--card));
+  --color-order-fulfilled-strong: #71717a;
+  --color-order-cancelled-soft: color-mix(in srgb, #f87171 12%, var(--card));
+  --color-order-cancelled-strong: #f87171;
 
   --radius-lg: var(--radius);
 }
 
+html {
+  background-color: var(--background);
+  min-height: 100%;
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
 body {
-  background:
-    radial-gradient(
-      ellipse 120% 70% at 50% -15%,
-      color-mix(in srgb, var(--secondary) 16%, transparent),
-      transparent 55%
-    ),
-    var(--background);
+  background-color: var(--background);
+  background-image: radial-gradient(
+    ellipse 100% 60% at 50% -20%,
+    color-mix(in srgb, var(--accent) 7%, transparent) 0%,
+    transparent 55%
+  );
   color: var(--foreground);
 }
 
-.dark body {
-  background:
-    radial-gradient(
-      ellipse 90% 55% at 50% -10%,
-      color-mix(in srgb, var(--accent) 8%, transparent),
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse 70% 45% at 100% 100%,
-      color-mix(in srgb, var(--secondary) 12%, transparent),
-      transparent 45%
-    ),
-    var(--background);
+.light body {
+  background-image: radial-gradient(
+    ellipse 100% 60% at 50% -20%,
+    color-mix(in srgb, var(--accent) 5%, var(--background)) 0%,
+    var(--background) 55%
+  );
 }

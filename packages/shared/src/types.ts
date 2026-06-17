@@ -59,6 +59,70 @@ export interface HourlyActivityReport {
   entries: HourlyActivityEntry[];
 }
 
+export interface SalesAnalyticsCategoryShare {
+  categoryName: string;
+  revenueCents: number;
+  percentage: number;
+}
+
+export interface AnalyticsDateRange {
+  startDate: string;
+  endDate: string;
+  comparisonStartDate: string;
+  comparisonEndDate: string;
+}
+
+export interface AnalyticsDailySnapshot {
+  date: string;
+  revenueCents: number;
+  orderCount: number;
+  averageTicketCents: number | null;
+  itemsSold: number;
+}
+
+export interface AnalyticsTopSellingItem {
+  productId: string;
+  name: string;
+  image: string | null;
+  quantitySold: number;
+  revenueCents: number;
+}
+
+export interface AnalyticsStatusShare {
+  key: "completed" | "inProgress" | "canceled";
+  label: string;
+  orderCount: number;
+  percentage: number;
+}
+
+export interface AnalyticsChannelShare {
+  channel: string;
+  orderCount: number;
+  percentage: number;
+}
+
+export interface SalesAnalyticsDashboard {
+  range: AnalyticsDateRange;
+  revenueCents: number;
+  revenueChangePercent: number | null;
+  orderCount: number;
+  orderCountChangePercent: number | null;
+  averageTicketCents: number | null;
+  averageTicketChangePercent: number | null;
+  itemsSold: number;
+  itemsSoldChangePercent: number | null;
+  revenueSparkline: number[];
+  ordersSparkline: number[];
+  averageTicketSparkline: number[];
+  itemsSoldSparkline: number[];
+  dailySales: AnalyticsDailySnapshot[];
+  categoryBreakdown: SalesAnalyticsCategoryShare[];
+  topSellingItems: AnalyticsTopSellingItem[];
+  peakHours: HourlyActivityEntry[];
+  channelBreakdown: AnalyticsChannelShare[];
+  statusBreakdown: AnalyticsStatusShare[];
+}
+
 export interface StaffMember {
   id: UserId;
   email: string;

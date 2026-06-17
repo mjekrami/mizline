@@ -85,7 +85,6 @@ export function SplashScreen({
             onClick={handleContinue}
             className="customer-splash-cta flex items-center gap-3 rounded-full py-3.5 pl-6 pr-2 text-base font-bold transition-transform active:scale-[0.98]"
           >
-            Get Started
             <span className="customer-splash-cta-icon flex size-10 items-center justify-center rounded-full">
               <ArrowRight className="size-5" strokeWidth={2.5} />
             </span>

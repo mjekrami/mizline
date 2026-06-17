@@ -75,7 +75,7 @@ export function KitchenBoard({
   );
 
   return (
-    <main className="flex min-h-dvh flex-col gap-4 p-4 md:h-dvh md:min-h-0 md:overflow-hidden md:p-5">
+    <main className="flex min-h-0 flex-1 flex-col gap-4 p-4 md:overflow-hidden md:p-5">
       <KitchenTopBar
         storeName={store.name}
         stats={filteredStats}

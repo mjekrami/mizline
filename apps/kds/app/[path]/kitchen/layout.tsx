@@ -6,7 +6,7 @@ export default function KitchenLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="kitchen-shell flex min-h-dvh flex-col">
       <StaffNav />
       {children}
     </div>

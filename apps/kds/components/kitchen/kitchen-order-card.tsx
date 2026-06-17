@@ -40,10 +40,10 @@ const statusBadge: Record<Order["status"], string> = {
   cancelled: "bg-order-cancelled-soft text-order-cancelled-strong",
 };
 
-const urgencyRing = {
+const urgencyAccent = {
   normal: "",
-  warning: "ring-1 ring-order-preparing/40",
-  critical: "ring-2 ring-order-cancelled/50",
+  warning: "border-l-[3px] border-l-order-preparing",
+  critical: "border-l-[3px] border-l-order-cancelled",
 } as const;
 
 interface KitchenOrderCardProps {
@@ -112,8 +112,8 @@ export function KitchenOrderCard({
   return (
     <article
       className={cn(
-        "flex flex-col rounded-xl border border-border bg-card shadow-sm",
-        showUrgency && urgencyRing[urgency],
+        "flex h-fit w-full flex-col self-start rounded-xl border border-border bg-card shadow-sm",
+        showUrgency && urgencyAccent[urgency],
       )}
     >
       <header className="border-b border-border/70 px-4 py-3">

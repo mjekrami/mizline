@@ -70,7 +70,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`customer-app dark ${customerSans.variable} h-full antialiased`}
+      className={`customer-app dark ${customerSans.variable} min-h-dvh antialiased`}
     >
       <body
         className="min-h-dvh w-full font-[family-name:var(--font-customer)] text-foreground"

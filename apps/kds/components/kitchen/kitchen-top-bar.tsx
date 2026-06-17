@@ -10,9 +10,14 @@ import {
   Star,
   WifiOff,
 } from "lucide-react";
+import { KitchenLogo } from "@/components/kitchen/kitchen-logo";
 import { KitchenStatsPill } from "@/components/kitchen/kitchen-stats-pill";
 import { StaffLiveControls } from "@/components/staff-live-controls";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  KITCHEN_BOARD_SCOPE_LABEL,
+  kitchenLogoStoreClassName,
+} from "@/lib/kitchen/brand";
 import type { KitchenBoardStats, KitchenViewMode } from "@/lib/kitchen/display";
 import { cn } from "@/lib/utils";
 
@@ -59,12 +64,15 @@ export function KitchenTopBar({
     <header className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Kitchen
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <KitchenLogo />
+            <span className={cn("truncate text-sm md:text-base", kitchenLogoStoreClassName)}>
+              {storeName}
+            </span>
+          </div>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            {KITCHEN_BOARD_SCOPE_LABEL}
           </p>
-          <h1 className="truncate text-xl font-bold tracking-tight md:text-2xl">
-            {storeName} · All tables
-          </h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

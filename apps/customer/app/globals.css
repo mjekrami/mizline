@@ -7,111 +7,52 @@
   --font-sans: var(--font-customer);
 }
 
-/* Dark Roasted — deep espresso coffee ordering experience */
+/* Modern sleek dark — customer ordering experience */
 .customer-app {
   --radius: 1.25rem;
-  --background: #050403;
-  --foreground: #ede5d8;
 
-  --card: #0d0b09;
-  --card-foreground: #ede5d8;
-
-  --popover: #12100d;
-  --popover-foreground: #ede5d8;
-
-  --primary: #c4a574;
-  --primary-hover: #d4b88a;
-  --primary-foreground: #050403;
-
-  --secondary: #181410;
-  --secondary-foreground: #ede5d8;
-
-  --muted: #1c1814;
-  --muted-foreground: #a8947f;
-
-  --accent: #c4956a;
-  --accent-foreground: #050403;
-
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-
-  --success: #3d9970;
-  --warning: #e8954a;
-
-  --border: #241e18;
-  --input: #241e18;
-  --ring: #c4a574;
-
-  --customer-caramel: #c4956a;
-  --customer-dark: #050403;
-  --customer-accent-foreground: #faf6f0;
+  --customer-accent: #d4a24a;
+  --customer-dark: #0c0c0e;
+  --customer-accent-foreground: #1a1208;
   --customer-accent-gradient: linear-gradient(
     135deg,
-    #3d342c 0%,
-    #1a1410 55%,
-    #0a0806 100%
+    #f0c675 0%,
+    #d4a24a 55%,
+    #b8862e 100%
   );
-  --customer-card-shadow: 0 4px 24px -4px rgb(0 0 0 / 0.45);
-  --customer-float-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.55);
+  --customer-card-shadow: 0 4px 24px -4px rgb(0 0 0 / 0.5);
+  --customer-float-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.6);
   --customer-splash-gradient: linear-gradient(
     180deg,
     transparent 0%,
     transparent 35%,
-    rgb(5 4 3 / 0.45) 70%,
-    rgb(5 4 3 / 0.92) 100%
+    rgb(12 12 14 / 0.5) 70%,
+    rgb(12 12 14 / 0.94) 100%
   );
-  --customer-home-gradient:
-    radial-gradient(
-      ellipse 90% 70% at 50% -15%,
-      rgb(196 149 106 / 0.18),
-      transparent 58%
-    ),
-    linear-gradient(
-      180deg,
-      #030202 0%,
-      #050403 18%,
-      #0a0806 42%,
-      #0d0b09 68%,
-      var(--background) 100%
-    );
+  --customer-home-gradient: radial-gradient(
+    ellipse 100% 75% at 50% -10%,
+    rgb(212 162 74 / 0.16) 0%,
+    rgb(212 162 74 / 0) 68%
+  );
   --customer-home-foreground: #faf6f0;
   --customer-home-muted: rgb(250 246 240 / 0.58);
-  --customer-ambient-gradient:
-    radial-gradient(
-      ellipse 105% 85% at 50% -22%,
-      color-mix(in srgb, #c4956a 10%, transparent),
-      transparent 58%
-    ),
-    radial-gradient(
-      ellipse 75% 55% at 92% 88%,
-      color-mix(in srgb, #e07b32 6%, transparent),
-      transparent 52%
-    ),
-    radial-gradient(
-      ellipse 60% 50% at 8% 62%,
-      color-mix(in srgb, #c4956a 5%, transparent),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 85% 65% at 50% 108%,
-      color-mix(in srgb, #241e18 40%, transparent),
-      transparent 58%
-    ),
-    linear-gradient(
-      168deg,
-      #050403 0%,
-      #080605 38%,
-      #0a0806 72%,
-      #050403 100%
-    );
+  --customer-ambient-gradient: linear-gradient(
+    180deg,
+    #12100d 0%,
+    #0e0c0a 50%,
+    #0c0c0e 100%
+  );
   position: relative;
   isolation: isolate;
   color: var(--foreground);
+  background-color: var(--background);
+  background-image: var(--customer-ambient-gradient);
+  min-height: 100%;
 }
 
 .customer-app body {
-  background: var(--customer-ambient-gradient);
-  background-attachment: fixed;
+  background: transparent;
+  min-height: 100dvh;
 }
 
 .customer-app .customer-pill-active,
@@ -123,7 +64,7 @@
 
 .customer-app .customer-pill-outlined {
   background: transparent;
-  border: 1.5px solid color-mix(in srgb, var(--customer-caramel) 45%, var(--border));
+  border: 1.5px solid color-mix(in srgb, var(--customer-accent) 40%, var(--border));
   color: var(--foreground);
 }
 
@@ -168,7 +109,7 @@
 .customer-app .customer-call-waiter {
   width: 100%;
   background: color-mix(in srgb, var(--card) 92%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--customer-caramel) 35%, var(--border));
+  border: 1.5px solid color-mix(in srgb, var(--customer-accent) 30%, var(--border));
 }
 
 .customer-app .customer-call-waiter-confirm {
@@ -247,7 +188,8 @@
 }
 
 .customer-app .customer-home-gradient {
-  background: var(--customer-home-gradient);
+  background-color: transparent;
+  background-image: var(--customer-home-gradient);
   padding-bottom: 1.25rem;
 }
 
@@ -261,20 +203,20 @@
 }
 
 .customer-app .customer-home-gradient .customer-home-avatar {
-  background: rgb(250 246 240 / 0.1);
-  border: 1px solid rgb(250 246 240 / 0.14);
+  background: rgb(250 246 240 / 0.08);
+  border: 1px solid rgb(250 246 240 / 0.12);
   color: var(--customer-home-foreground);
 }
 
 .customer-app .customer-home-gradient .customer-icon-btn {
-  background: rgb(250 246 240 / 0.1);
-  border-color: rgb(250 246 240 / 0.14);
+  background: rgb(250 246 240 / 0.08);
+  border-color: rgb(250 246 240 / 0.12);
   color: var(--customer-home-foreground);
   box-shadow: none;
 }
 
 .customer-app .customer-home-gradient .customer-icon-btn:hover {
-  background: rgb(250 246 240 / 0.16);
+  background: rgb(250 246 240 / 0.14);
 }
 
 .customer-app .customer-home-gradient .customer-hero-headline {
@@ -288,12 +230,12 @@
 }
 
 .customer-app .customer-text-accent {
-  color: var(--customer-caramel);
+  color: var(--customer-accent);
 }
 
 .customer-app .customer-order-banner {
-  background: color-mix(in srgb, var(--customer-caramel) 14%, var(--card));
-  border: 1px solid color-mix(in srgb, var(--customer-caramel) 28%, var(--border));
+  background: color-mix(in srgb, var(--customer-accent) 12%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--customer-accent) 24%, var(--border));
 }
 
 .customer-app .customer-cart-line {
@@ -356,25 +298,25 @@
 }
 
 .customer-app .customer-floating-label {
-  background: rgb(5 4 3 / 0.62);
+  background: rgb(12 12 14 / 0.65);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: var(--customer-home-foreground);
 }
 
 .customer-app .customer-splash-cta {
-  background: #faf6f0;
+  background: #f5e6c8;
   color: var(--customer-dark);
   box-shadow: var(--customer-float-shadow);
 }
 
 .customer-app .customer-splash-cta-icon {
   background: var(--customer-dark);
-  color: #faf6f0;
+  color: #f5e6c8;
 }
 
 .customer-app .customer-brand-badge {
-  background: #faf6f0;
+  background: #f5e6c8;
   color: var(--customer-dark);
 }
 
@@ -414,7 +356,7 @@
 
 .customer-app .customer-add-cart-btn-icon {
   background: var(--customer-accent-gradient);
-  color: #faf6f0;
+  color: #f5e6c8;
 }
 
 .customer-app .customer-rating-star {

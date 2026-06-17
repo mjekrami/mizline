@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/c
 import type {
   DailySalesSummary,
   HourlyActivityReport,
+  SalesAnalyticsDashboard,
   StoreSettings,
 } from "@mizline/shared";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
@@ -28,6 +29,22 @@ export class ReportsController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<DailySalesSummary> {
     return this.reportsService.getDailySummary(user.tenantId, storeId, date);
+  }
+
+  @Get("stores/:storeId/reports/sales-analytics")
+  @Roles("manager")
+  getSalesAnalytics(
+    @Param("storeId") storeId: string,
+    @Query("startDate") startDate: string | undefined,
+    @Query("endDate") endDate: string | undefined,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<SalesAnalyticsDashboard> {
+    return this.reportsService.getSalesAnalytics(
+      user.tenantId,
+      storeId,
+      startDate,
+      endDate,
+    );
   }
 
   @Get("stores/:storeId/reports/hourly-activity")

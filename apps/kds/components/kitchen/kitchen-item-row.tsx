@@ -16,7 +16,7 @@ export function KitchenItemRow({
   const { base, extras } = splitItemModifiers(item);
 
   return (
-    <li className="rounded-lg border border-border/70 bg-background/60 px-3 py-2.5">
+    <li className="rounded-lg border border-border/70 bg-muted/25 px-3 py-2.5">
       <div className="flex items-start justify-between gap-3">
         <p className="min-w-0 flex-1 text-sm font-semibold leading-snug">
           {item.productName}

@@ -1,7 +1,7 @@
 "use client";
 
 import type { AdminCatalog, AdminProduct } from "@mizline/shared";
-import { Loader2, Trash2 } from "lucide-react";
+import { LayoutGrid, List, Loader2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ProductImage } from "@/components/product-image";
 import {
@@ -16,6 +16,8 @@ import {
 import { formatPrice } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
+type ProductsViewMode = "cards" | "compact";
+
 interface ProductsPanelProps {
   catalog: AdminCatalog;
   onCatalogChange: (catalog: AdminCatalog) => void;
@@ -28,6 +30,7 @@ export function ProductsPanel({
   onError,
 }: ProductsPanelProps) {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<ProductsViewMode>("cards");
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -364,7 +367,7 @@ export function ProductsPanel({
         </div>
       </form>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <label className="flex items-center gap-2 text-sm">
           <span className="font-medium">Filter</span>
           <select
@@ -380,9 +383,44 @@ export function ProductsPanel({
             ))}
           </select>
         </label>
+
+        <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+          <button
+            type="button"
+            onClick={() => setViewMode("cards")}
+            aria-label="Card view"
+            className={cn(
+              "inline-flex items-center justify-center rounded-md px-2.5 py-1.5 transition",
+              viewMode === "cards"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <LayoutGrid className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("compact")}
+            aria-label="Compact view"
+            className={cn(
+              "inline-flex items-center justify-center rounded-md px-2.5 py-1.5 transition",
+              viewMode === "compact"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <List className="size-4" />
+          </button>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div
+        className={cn(
+          viewMode === "cards"
+            ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            : "flex flex-col gap-2",
+        )}
+      >
         {filteredProducts.length === 0 ? (
           <p className="col-span-full rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
             No products in this view.
@@ -398,73 +436,153 @@ export function ProductsPanel({
             return (
               <article
                 key={product.id}
-                className="flex flex-col overflow-hidden rounded-lg border border-border bg-card"
+                className={cn(
+                  "overflow-hidden rounded-lg border border-border bg-card",
+                  viewMode === "cards" ? "flex flex-col" : "flex flex-col",
+                )}
               >
-                <ProductImage
-                  src={product.image}
-                  alt={product.name}
-                  className="aspect-[4/3] w-full"
-                />
-
-                <div className="flex flex-1 flex-col gap-3 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-medium">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {product.categoryName}
+                {viewMode === "compact" ? (
+                  <div className="flex items-center gap-3 p-3">
+                    <ProductImage
+                      src={product.image}
+                      alt={product.name}
+                      className="size-12 shrink-0 rounded-md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h3 className="truncate font-medium">{product.name}</h3>
+                        {!product.available ? (
+                          <ProductAvailabilityBadge available={false} />
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {product.categoryName} · {formatPrice(product.price)}
+                        {product.variants.length > 0
+                          ? ` · ${product.variants.length} variant${product.variants.length === 1 ? "" : "s"}`
+                          : ""}
                       </p>
                     </div>
-                    <span className="shrink-0 font-medium">
-                      {formatPrice(product.price)}
-                    </span>
-                  </div>
-
-                  {product.description ? (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {product.description}
-                    </p>
-                  ) : null}
-
-                  <p className="text-xs text-muted-foreground">
-                    {product.variants.length} variant
-                    {product.variants.length === 1 ? "" : "s"} ·{" "}
-                    {product.modifierGroupIds.length} modifier group
-                    {product.modifierGroupIds.length === 1 ? "" : "s"}
-                  </p>
-
-                  <label className="flex flex-col gap-1 text-xs">
-                    <span className="font-medium text-muted-foreground">
-                      Image URL
-                    </span>
-                    <input
-                      key={`${product.id}-${product.image ?? ""}`}
-                      defaultValue={product.image ?? ""}
-                      placeholder="https://…"
-                      type="url"
-                      disabled={saving}
-                      onBlur={(event) => {
-                        const next = event.target.value.trim();
-                        const current = product.image?.trim() ?? "";
-                        if (next !== current) {
-                          void saveImage(product, next);
+                    <div className="flex shrink-0 items-center gap-1">
+                      <ProductAvailabilityToggle
+                        available={product.available}
+                        disabled={saving}
+                        onToggle={() => void toggleAvailability(product)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedProductId(expanded ? null : product.id)
                         }
-                      }}
-                      className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                        className="rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-muted"
+                      >
+                        {expanded ? "Less" : "Edit"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDelete(product)}
+                        disabled={saving}
+                        className="rounded-md p-1 text-muted-foreground hover:bg-error/10 hover:text-error"
+                        aria-label={`Delete ${product.name}`}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <ProductImage
+                      src={product.image}
+                      alt={product.name}
+                      className="aspect-[4/3] w-full"
                     />
-                  </label>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedProductId(expanded ? null : product.id)
-                    }
-                    className="text-left text-sm font-medium text-primary hover:underline"
+                    <div className="flex flex-1 flex-col gap-3 p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-medium">{product.name}</h3>
+                            <ProductAvailabilityBadge available={product.available} />
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {product.categoryName}
+                          </p>
+                        </div>
+                        <span className="shrink-0 font-medium">
+                          {formatPrice(product.price)}
+                        </span>
+                      </div>
+
+                      {product.description ? (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {product.description}
+                        </p>
+                      ) : null}
+
+                      <p className="text-xs text-muted-foreground">
+                        {product.variants.length} variant
+                        {product.variants.length === 1 ? "" : "s"} ·{" "}
+                        {product.modifierGroupIds.length} modifier group
+                        {product.modifierGroupIds.length === 1 ? "" : "s"}
+                      </p>
+
+                      <label className="flex flex-col gap-1 text-xs">
+                        <span className="font-medium text-muted-foreground">
+                          Image URL
+                        </span>
+                        <input
+                          key={`${product.id}-${product.image ?? ""}`}
+                          defaultValue={product.image ?? ""}
+                          placeholder="https://…"
+                          type="url"
+                          disabled={saving}
+                          onBlur={(event) => {
+                            const next = event.target.value.trim();
+                            const current = product.image?.trim() ?? "";
+                            if (next !== current) {
+                              void saveImage(product, next);
+                            }
+                          }}
+                          className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedProductId(expanded ? null : product.id)
+                        }
+                        className="text-left text-sm font-medium text-primary hover:underline"
+                      >
+                        {expanded ? "Hide customization" : "Manage sizes & modifiers"}
+                      </button>
+
+                      <div className="mt-auto flex items-center justify-between gap-2">
+                        <ProductAvailabilityToggle
+                          available={product.available}
+                          disabled={saving}
+                          onToggle={() => void toggleAvailability(product)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleDelete(product)}
+                          disabled={saving}
+                          className="rounded-md p-1 text-muted-foreground hover:bg-error/10 hover:text-error"
+                          aria-label={`Delete ${product.name}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {expanded ? (
+                  <div
+                    className={cn(
+                      "flex flex-col gap-4 border-t border-border bg-muted/20 p-3 text-sm",
+                      viewMode === "compact" && "mx-3 mb-3 rounded-md border",
+                    )}
                   >
-                    {expanded ? "Hide customization" : "Manage sizes & modifiers"}
-                  </button>
-
-                  {expanded ? (
-                    <div className="flex flex-col gap-4 rounded-md border border-border bg-muted/20 p-3 text-sm">
                       <div>
                         <p className="mb-2 font-medium">Size variants</p>
                         {product.variants.length > 0 ? (
@@ -572,38 +690,53 @@ export function ProductsPanel({
                         )}
                       </div>
                     </div>
-                  ) : null}
-
-                  <div className="mt-auto flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void toggleAvailability(product)}
-                      disabled={saving}
-                      className={cn(
-                        "rounded-full px-2.5 py-1 text-xs font-medium",
-                        product.available
-                          ? "bg-success/10 text-success"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {product.available ? "Available" : "Hidden"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleDelete(product)}
-                      disabled={saving}
-                      className="rounded-md p-1 text-muted-foreground hover:bg-error/10 hover:text-error"
-                      aria-label={`Delete ${product.name}`}
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                </div>
+                ) : null}
               </article>
             );
           })
         )}
       </div>
     </div>
+  );
+}
+
+function ProductAvailabilityBadge({ available }: { available: boolean }) {
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        available
+          ? "bg-success/10 text-success"
+          : "bg-error/10 text-error",
+      )}
+    >
+      {available ? "Available" : "Not available"}
+    </span>
+  );
+}
+
+function ProductAvailabilityToggle({
+  available,
+  disabled,
+  onToggle,
+}: {
+  available: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled}
+      className={cn(
+        "rounded-full px-2.5 py-1 text-xs font-medium",
+        available
+          ? "bg-success/10 text-success hover:bg-success/20"
+          : "bg-error/10 text-error hover:bg-error/20",
+      )}
+    >
+      {available ? "Available" : "Not available"}
+    </button>
   );
 }

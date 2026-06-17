@@ -27,11 +27,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#1A1210" },
-    { media: "(prefers-color-scheme: dark)", color: "#080605" },
-  ],
-  colorScheme: "light dark",
+  themeColor: "#0c0c0e",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -43,15 +40,16 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background font-sans text-foreground">
+      <body className="min-h-dvh flex flex-col bg-background font-sans text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           storageKey="mizline-kds-theme"
           disableTransitionOnChange
+          value={{ light: "light", dark: "dark" }}
         >
           <PathProvider>
             <GlobalThemeToggle />

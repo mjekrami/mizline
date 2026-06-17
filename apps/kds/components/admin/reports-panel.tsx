@@ -1,33 +1,52 @@
 "use client";
 
-import type { DailySalesSummary, HourlyActivityReport } from "@mizline/shared";
-import { BarChart3, Loader2, Receipt, ShoppingBag } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { AdminMetricCard } from "@/components/admin/admin-metric-card";
-import {
-  fetchDailySummary,
-  fetchHourlyActivity,
-} from "@/lib/api/reports";
+import type { SalesAnalyticsDashboard } from "@mizline/shared";
 import { formatPrice } from "@mizline/shared";
-
-function todayInputValue() {
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnalyticsHeader } from "@/components/admin/analytics/analytics-header";
+import { AnalyticsKpiCard } from "@/components/admin/analytics/analytics-kpi-card";
+import {
+  AnalyticsSectionCard,
+  AnalyticsSectionSelect,
+} from "@/components/admin/analytics/analytics-section-card";
+import { CategoryBreakdownPanel } from "@/components/admin/analytics/category-breakdown-panel";
+import { ChannelBreakdownPanel } from "@/components/admin/analytics/channel-breakdown-panel";
+import { DailyPerformanceTable } from "@/components/admin/analytics/daily-performance-table";
+import { OrderStatusBreakdownPanel } from "@/components/admin/analytics/order-status-breakdown-panel";
+import { PeakHoursChart } from "@/components/admin/analytics/peak-hours-chart";
+import { SalesOverTimeChart } from "@/components/admin/analytics/sales-over-time-chart";
+import { TopSellingItemsPanel } from "@/components/admin/analytics/top-selling-items-panel";
+import { TrendBadge } from "@/components/admin/analytics/trend-badge";
+import {
+  defaultAnalyticsRange,
+  formatComparisonLabel,
+  type AnalyticsDatePresetId,
+  type AnalyticsDateRangeSelection,
+} from "@/lib/admin/analytics-format";
+import { fetchSalesAnalytics } from "@/lib/api/reports";
 
 export function ReportsPanel() {
-  const [date, setDate] = useState(todayInputValue);
-  const [summary, setSummary] = useState<DailySalesSummary | null>(null);
-  const [activity, setActivity] = useState<HourlyActivityReport | null>(null);
+  const initialRange = useMemo(() => defaultAnalyticsRange(), []);
+  const [startDate, setStartDate] = useState(initialRange.startDate);
+  const [endDate, setEndDate] = useState(initialRange.endDate);
+  const [activePreset, setActivePreset] = useState<AnalyticsDatePresetId | null>("7d");
+  const [analytics, setAnalytics] = useState<SalesAnalyticsDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const maxOrders = useMemo(
-    () => Math.max(1, ...(activity?.entries.map((entry) => entry.orderCount) ?? [1])),
-    [activity],
+  const comparisonLabel = useMemo(
+    () => (analytics ? formatComparisonLabel(analytics.range) : ""),
+    [analytics],
+  );
+
+  const totalOrders = useMemo(
+    () =>
+      analytics?.statusBreakdown.reduce(
+        (sum, status) => sum + status.orderCount,
+        0,
+      ) ?? 0,
+    [analytics],
   );
 
   const loadReports = useCallback(async () => {
@@ -35,44 +54,58 @@ export function ReportsPanel() {
     setError(null);
 
     try {
-      const [nextSummary, nextActivity] = await Promise.all([
-        fetchDailySummary(date),
-        fetchHourlyActivity(date),
-      ]);
-      setSummary(nextSummary);
-      setActivity(nextActivity);
+      const nextAnalytics = await fetchSalesAnalytics(startDate, endDate);
+      setAnalytics(nextAnalytics);
     } catch (loadError) {
       setError(
-        loadError instanceof Error ? loadError.message : "Failed to load reports",
+        loadError instanceof Error ? loadError.message : "Failed to load analytics",
       );
     } finally {
       setLoading(false);
     }
-  }, [date]);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     void loadReports();
   }, [loadReports]);
 
+  const handleStartDateChange = useCallback((value: string) => {
+    setStartDate(value);
+    setActivePreset(null);
+  }, []);
+
+  const handleEndDateChange = useCallback((value: string) => {
+    setEndDate(value);
+    setActivePreset(null);
+  }, []);
+
+  const handlePresetSelect = useCallback(
+    (range: AnalyticsDateRangeSelection, presetId: AnalyticsDatePresetId) => {
+      setStartDate(range.startDate);
+      setEndDate(range.endDate);
+      setActivePreset(presetId);
+    },
+    [],
+  );
+
+  const handleResetFilters = useCallback(() => {
+    const range = defaultAnalyticsRange();
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
+    setActivePreset("7d");
+  }, []);
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">Reports</h2>
-          <p className="text-sm text-muted-foreground">
-            Daily sales and hourly order activity for staffing decisions.
-          </p>
-        </div>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">Date</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(event) => setDate(event.target.value)}
-            className="rounded-md border border-input bg-background px-3 py-2"
-          />
-        </label>
-      </div>
+    <div className="flex flex-col gap-5">
+      <AnalyticsHeader
+        startDate={startDate}
+        endDate={endDate}
+        activePreset={activePreset}
+        onStartDateChange={handleStartDateChange}
+        onEndDateChange={handleEndDateChange}
+        onPresetSelect={handlePresetSelect}
+        onResetFilters={handleResetFilters}
+      />
 
       {error ? (
         <p className="rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error">
@@ -83,60 +116,93 @@ export function ReportsPanel() {
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
-          Loading reports…
+          Loading analytics…
         </div>
-      ) : (
+      ) : analytics ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <AdminMetricCard
-              label="Revenue"
-              value={formatPrice(summary?.revenueCents ?? 0)}
-              icon={Receipt}
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AnalyticsKpiCard
+              label="Sales Overview"
+              value={formatPrice(analytics.revenueCents)}
+              trend={analytics.revenueChangePercent}
+              comparisonLabel={comparisonLabel}
+              sparkline={analytics.revenueSparkline}
             />
-            <AdminMetricCard
+            <AnalyticsKpiCard
               label="Orders"
-              value={(summary?.orderCount ?? 0).toString()}
-              icon={ShoppingBag}
+              value={analytics.orderCount.toString()}
+              trend={analytics.orderCountChangePercent}
+              comparisonLabel={comparisonLabel}
+              sparkline={analytics.ordersSparkline}
             />
-            <AdminMetricCard
-              label="Average ticket"
+            <AnalyticsKpiCard
+              label="Avg. Order Value"
               value={
-                summary?.averageTicketCents != null
-                  ? formatPrice(summary.averageTicketCents)
+                analytics.averageTicketCents != null
+                  ? formatPrice(analytics.averageTicketCents)
                   : "—"
               }
-              icon={BarChart3}
+              trend={analytics.averageTicketChangePercent}
+              comparisonLabel={comparisonLabel}
+              sparkline={analytics.averageTicketSparkline}
             />
-          </div>
-
-          <section className="rounded-lg border border-border bg-card p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Hourly activity
-            </h3>
-            <div className="grid grid-cols-6 gap-2 md:grid-cols-12 xl:grid-cols-24">
-              {activity?.entries.map((entry) => {
-                const intensity = entry.orderCount / maxOrders;
-
-                return (
-                  <div
-                    key={entry.hour}
-                    title={`${entry.hour}:00 — ${entry.orderCount} orders, ${formatPrice(entry.revenueCents)}`}
-                    className="flex min-h-16 flex-col justify-end rounded-md border border-border p-2"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, var(--color-accent) ${Math.round(intensity * 55)}%, var(--card))`,
-                    }}
-                  >
-                    <span className="text-[10px] font-medium text-muted-foreground">
-                      {entry.hour}:00
-                    </span>
-                    <span className="text-sm font-semibold">{entry.orderCount}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <AnalyticsKpiCard
+              label="Items Sold"
+              value={analytics.itemsSold.toLocaleString()}
+              trend={analytics.itemsSoldChangePercent}
+              comparisonLabel={comparisonLabel}
+              sparkline={analytics.itemsSoldSparkline}
+            />
           </section>
+
+          <section className="grid gap-4 xl:grid-cols-3">
+            <AnalyticsSectionCard
+              title="Sales Over Time"
+              action={<AnalyticsSectionSelect label="Daily" />}
+              className="xl:col-span-2"
+            >
+              <div className="mb-5 space-y-1">
+                <p className="font-mono text-3xl font-semibold tracking-tight">
+                  {formatPrice(analytics.revenueCents)}
+                </p>
+                <TrendBadge
+                  value={analytics.revenueChangePercent}
+                  label={comparisonLabel}
+                />
+              </div>
+              <SalesOverTimeChart dailySales={analytics.dailySales} />
+            </AnalyticsSectionCard>
+
+            <CategoryBreakdownPanel categories={analytics.categoryBreakdown} />
+          </section>
+
+          <section className="grid items-stretch gap-4 xl:grid-cols-2">
+            <TopSellingItemsPanel items={analytics.topSellingItems} />
+            <PeakHoursChart entries={analytics.peakHours} />
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-2">
+            <ChannelBreakdownPanel
+              channels={analytics.channelBreakdown}
+              totalOrders={totalOrders}
+            />
+            <OrderStatusBreakdownPanel
+              statuses={analytics.statusBreakdown}
+              totalOrders={totalOrders}
+            />
+          </section>
+
+          <DailyPerformanceTable
+            dailySales={analytics.dailySales}
+            totals={{
+              orderCount: analytics.orderCount,
+              revenueCents: analytics.revenueCents,
+              averageTicketCents: analytics.averageTicketCents,
+              itemsSold: analytics.itemsSold,
+            }}
+          />
         </>
-      )}
+      ) : null}
     </div>
   );
 }
