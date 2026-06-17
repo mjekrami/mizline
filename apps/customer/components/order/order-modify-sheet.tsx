@@ -137,7 +137,7 @@ export function OrderModifySheet({
   }
 
   const sheet = createPortal(
-    <div className="customer-overlay-view fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
+    <div className="customer-sheet-overlay customer-overlay-view fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
       <button
         type="button"
         aria-label="Close"
@@ -149,7 +149,7 @@ export function OrderModifySheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="order-modify-title"
-        className="relative flex max-h-[min(92dvh,48rem)] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-xl sm:rounded-2xl"
+        className="customer-sheet-panel relative flex max-h-[min(92dvh,48rem)] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-xl sm:rounded-2xl"
       >
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div>

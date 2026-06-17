@@ -6,6 +6,7 @@ import { KitchenOrderGrid } from "@/components/kitchen/kitchen-order-grid";
 import { KitchenTopBar } from "@/components/kitchen/kitchen-top-bar";
 import { useKitchenBoard } from "@/hooks/use-kitchen-board";
 import { useKitchenFavorites } from "@/hooks/use-kitchen-favorites";
+import { useKitchenNewOrders } from "@/hooks/use-kitchen-new-orders";
 import type { KitchenViewMode } from "@/lib/kitchen/display";
 import { buildKitchenBoardStats } from "@/lib/kitchen/display";
 
@@ -74,8 +75,14 @@ export function KitchenBoard({
     [filteredOrders],
   );
 
+  const orderIds = useMemo(
+    () => filteredOrders.map((order) => order.id),
+    [filteredOrders],
+  );
+  const newOrderIds = useKitchenNewOrders(orderIds);
+
   return (
-    <main className="flex min-h-0 flex-1 flex-col gap-4 p-4 md:overflow-hidden md:p-5">
+    <main className="kitchen-fade-up flex min-h-0 flex-1 flex-col gap-4 p-4 md:overflow-hidden md:p-5">
       <KitchenTopBar
         storeName={store.name}
         stats={filteredStats}
@@ -105,6 +112,7 @@ export function KitchenBoard({
         syncingId={syncingId}
         delayWarningMinutes={store.delayWarningMinutes ?? 5}
         delayCriticalMinutes={store.delayCriticalMinutes ?? 10}
+        newOrderIds={newOrderIds}
         isFavorite={isFavorite}
         onToggleFavorite={toggleFavorite}
         onAdvance={advanceOrder}

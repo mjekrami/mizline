@@ -5,6 +5,7 @@ import { orderStatusLabels } from "@mizline/shared";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useMyOrders } from "@/hooks/use-my-orders";
+import { getCustomerTabHref } from "@/lib/customer-tabs";
 import { formatPrice } from "@mizline/shared";
 import { cn } from "@/lib/utils";
 
@@ -107,7 +108,7 @@ export function MyOrdersList({ storeId, tableId }: MyOrdersListProps) {
           Orders you place from this table will appear here on this device.
         </p>
         <Link
-          href={`/store/${storeId}/table/${tableId}`}
+          href={getCustomerTabHref(storeId, tableId, "home")}
           className="customer-btn-primary mt-4 rounded-2xl px-5 py-3 text-sm font-bold"
         >
           Browse menu
@@ -127,7 +128,7 @@ export function MyOrdersList({ storeId, tableId }: MyOrdersListProps) {
         ) : null}
       </div>
 
-      <ul className="flex flex-col gap-3">
+      <ul className="customer-stagger flex flex-col gap-3">
         {orders.map((order) => (
           <li key={order.id}>
             <Link

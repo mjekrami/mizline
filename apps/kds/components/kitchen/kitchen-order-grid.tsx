@@ -1,6 +1,7 @@
 "use client";
 
 import type { Order } from "@mizline/shared";
+import { ChefHat } from "lucide-react";
 import { KitchenOrderCard } from "@/components/kitchen/kitchen-order-card";
 import type { KitchenViewMode } from "@/lib/kitchen/display";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ interface KitchenOrderGridProps {
   syncingId: string | null;
   delayWarningMinutes: number;
   delayCriticalMinutes: number;
+  newOrderIds: Set<string>;
   isFavorite: (tableId: string) => boolean;
   onToggleFavorite: (tableId: string) => void;
   onAdvance: (order: Order) => void;
@@ -30,6 +32,7 @@ export function KitchenOrderGrid({
   syncingId,
   delayWarningMinutes,
   delayCriticalMinutes,
+  newOrderIds,
   isFavorite,
   onToggleFavorite,
   onAdvance,
@@ -39,7 +42,10 @@ export function KitchenOrderGrid({
   if (orders.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border bg-card/40 px-6 py-16 text-center">
-        <div>
+        <div className="kitchen-fade-up">
+          <div className="kitchen-empty-icon mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-border bg-muted/40">
+            <ChefHat className="size-7 text-muted-foreground" aria-hidden />
+          </div>
           <p className="text-lg font-semibold">No active orders</p>
           <p className="mt-1 text-sm text-muted-foreground">
             New orders will appear here in real time.
@@ -58,12 +64,14 @@ export function KitchenOrderGrid({
           : "grid-cols-1",
       )}
     >
-      {orders.map((order) => (
+      {orders.map((order, index) => (
         <KitchenOrderCard
           key={order.id}
           order={order}
           storeId={storeId}
           now={now}
+          index={index}
+          isNew={newOrderIds.has(order.id)}
           advancing={advancingId === order.id}
           syncing={syncingId === order.id}
           delayWarningMinutes={delayWarningMinutes}

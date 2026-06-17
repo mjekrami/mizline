@@ -93,5 +93,176 @@
 }
 
 .kitchen-shell {
-  background: var(--card);
+  background-color: var(--background);
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--border) 18%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--border) 18%, transparent) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      ellipse 90% 45% at 50% -10%,
+      color-mix(in srgb, var(--accent) 8%, transparent),
+      transparent 55%
+    );
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+}
+
+@keyframes kitchen-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kitchen-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes kitchen-tab-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kitchen-item-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes kitchen-new-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--color-order-new) 0%, transparent),
+      0 4px 16px color-mix(in srgb, var(--foreground) 4%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--color-order-new) 35%, transparent),
+      0 8px 24px color-mix(in srgb, var(--color-order-new) 12%, transparent);
+  }
+}
+
+@keyframes kitchen-urgency-warning {
+  0%,
+  100% {
+    border-left-color: color-mix(in srgb, var(--color-order-preparing) 70%, transparent);
+  }
+  50% {
+    border-left-color: var(--color-order-preparing);
+  }
+}
+
+@keyframes kitchen-urgency-critical {
+  0%,
+  100% {
+    border-left-color: color-mix(in srgb, var(--color-order-cancelled) 60%, transparent);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--color-order-cancelled) 6%, transparent);
+  }
+  50% {
+    border-left-color: var(--color-order-cancelled);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--color-order-cancelled) 18%, transparent);
+  }
+}
+
+@keyframes kitchen-stat-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes kitchen-empty-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.04);
+  }
+}
+
+.kitchen-fade-up {
+  animation: kitchen-fade-up 0.45s ease-out both;
+}
+
+.kitchen-card-enter {
+  animation: kitchen-card-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kitchen-tab-content {
+  animation: kitchen-tab-fade 0.22s ease-out both;
+}
+
+.kitchen-item-enter {
+  animation: kitchen-item-enter 0.28s ease-out both;
+}
+
+.kitchen-new-order {
+  animation: kitchen-new-glow 2s ease-in-out 3;
+}
+
+.kitchen-urgency-warning {
+  animation: kitchen-urgency-warning 2.5s ease-in-out infinite;
+}
+
+.kitchen-urgency-critical {
+  animation: kitchen-urgency-critical 1.8s ease-in-out infinite;
+}
+
+.kitchen-stat-pop {
+  animation: kitchen-stat-pop 0.35s ease-out;
+}
+
+.kitchen-empty-icon {
+  animation: kitchen-empty-pulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kitchen-fade-up,
+  .kitchen-card-enter,
+  .kitchen-tab-content,
+  .kitchen-item-enter,
+  .kitchen-new-order,
+  .kitchen-urgency-warning,
+  .kitchen-urgency-critical,
+  .kitchen-stat-pop,
+  .kitchen-empty-icon {
+    animation: none;
+  }
 }

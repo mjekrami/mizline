@@ -3,22 +3,36 @@
 import type { OrderItem } from "@mizline/shared";
 import { AlertCircle } from "lucide-react";
 import { splitItemModifiers } from "@/lib/kitchen/display";
+import { cn } from "@/lib/utils";
 
 interface KitchenItemRowProps {
   item: OrderItem;
   showReadyBadge: boolean;
+  index?: number;
 }
 
 export function KitchenItemRow({
   item,
   showReadyBadge,
+  index = 0,
 }: KitchenItemRowProps) {
   const { base, extras } = splitItemModifiers(item);
 
   return (
-    <li className="rounded-lg border border-border/70 bg-muted/25 px-3 py-2.5">
+    <li
+      className={cn(
+        "kitchen-item-enter rounded-lg border border-border/70 bg-muted/25 px-3 py-2.5 transition-colors hover:bg-muted/40",
+        item.fulfilled && "opacity-75",
+      )}
+      style={{ animationDelay: `${Math.min(index, 8) * 35}ms` }}
+    >
       <div className="flex items-start justify-between gap-3">
-        <p className="min-w-0 flex-1 text-sm font-semibold leading-snug">
+        <p
+          className={cn(
+            "min-w-0 flex-1 text-sm font-semibold leading-snug",
+            item.fulfilled && "text-muted-foreground line-through decoration-success/50",
+          )}
+        >
           {item.productName}
         </p>
         <span className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground">

@@ -1,4 +1,5 @@
 import { TableOrdering } from "@/components/table-ordering";
+import { parseCustomerTab } from "@/lib/customer-tabs";
 import {
   getMenu,
   getPopularProducts,
@@ -12,10 +13,14 @@ type TablePageProps = {
     storeId: string;
     tableId: string;
   }>;
+  searchParams: Promise<{
+    tab?: string;
+  }>;
 };
 
-export default async function TablePage({ params }: TablePageProps) {
+export default async function TablePage({ params, searchParams }: TablePageProps) {
   const { storeId, tableId } = await params;
+  const { tab: tabParam } = await searchParams;
 
   let store;
   let menu;
@@ -41,6 +46,7 @@ export default async function TablePage({ params }: TablePageProps) {
         popularProducts={popularProducts}
         tableId={tableId}
         tableName={table.name}
+        tab={parseCustomerTab(tabParam)}
       />
     </main>
   );

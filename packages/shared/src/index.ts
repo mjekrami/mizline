@@ -1,4 +1,10 @@
 export {
+  MIZLINE_WORDMARK,
+  mizlineWordmarkClassName,
+  mizlineWordmarkSplashClassName,
+} from "./brand";
+
+export {
   mizlineColors,
   orderStatusColors,
   orderStatusLabels,

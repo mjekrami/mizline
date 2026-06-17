@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { KitchenItemRow } from "@/components/kitchen/kitchen-item-row";
+import { orderStatusBarColors } from "@/constants/order-status-colors";
 import {
   OrderModifySheet,
   OrderModifyTrigger,
@@ -42,14 +43,16 @@ const statusBadge: Record<Order["status"], string> = {
 
 const urgencyAccent = {
   normal: "",
-  warning: "border-l-[3px] border-l-order-preparing",
-  critical: "border-l-[3px] border-l-order-cancelled",
+  warning: "border-l-[3px] border-l-order-preparing kitchen-urgency-warning",
+  critical: "border-l-[3px] border-l-order-cancelled kitchen-urgency-critical",
 } as const;
 
 interface KitchenOrderCardProps {
   order: Order;
   storeId: string;
   now: number;
+  index: number;
+  isNew: boolean;
   advancing: boolean;
   syncing: boolean;
   delayWarningMinutes: number;
@@ -65,6 +68,8 @@ export function KitchenOrderCard({
   order,
   storeId,
   now,
+  index,
+  isNew,
   advancing,
   syncing,
   delayWarningMinutes,
@@ -112,22 +117,29 @@ export function KitchenOrderCard({
   return (
     <article
       className={cn(
-        "flex h-fit w-full flex-col self-start rounded-xl border border-border bg-card shadow-sm",
+        "kitchen-card-enter group relative flex h-fit w-full flex-col self-start overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow duration-300 hover:shadow-md",
         showUrgency && urgencyAccent[urgency],
+        isNew && "kitchen-new-order ring-1 ring-order-new/30",
       )}
+      style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
     >
+      <div
+        className={cn("h-1 w-full shrink-0", orderStatusBarColors[order.status])}
+        aria-hidden
+      />
+
       <header className="border-b border-border/70 px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="truncate text-lg font-bold tracking-tight">
+              <h2 className="truncate text-lg font-bold tracking-tight transition-colors group-hover:text-accent">
                 {formatKitchenTableLabel(order.tableName)}
               </h2>
               <button
                 type="button"
                 onClick={onToggleFavorite}
                 aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
-                className="shrink-0 rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-accent"
+                className="shrink-0 rounded-md p-1 text-muted-foreground transition hover:scale-110 hover:bg-muted hover:text-accent active:scale-95"
               >
                 <Star
                   className={cn(
@@ -148,7 +160,13 @@ export function KitchenOrderCard({
             <Clock3 className="size-3.5" aria-hidden />
             {formatTimeOfDay(order.createdAt)}
           </span>
-          <span className="inline-flex items-center gap-1">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 font-medium tabular-nums",
+              urgency === "critical" && "text-order-cancelled-strong",
+              urgency === "warning" && "text-order-preparing-strong",
+            )}
+          >
             <Hourglass className="size-3.5" aria-hidden />
             {formatWaitTime(order.createdAt, now)}
           </span>
@@ -159,7 +177,7 @@ export function KitchenOrderCard({
             type="button"
             disabled={syncing}
             onClick={() => onSync(order.id)}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:bg-muted disabled:opacity-60"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:bg-muted active:scale-[0.97] disabled:opacity-60"
           >
             {syncing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -193,7 +211,7 @@ export function KitchenOrderCard({
             type="button"
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "relative flex-1 px-2 py-2.5 text-xs font-semibold uppercase tracking-wide transition",
+              "relative flex-1 px-2 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors duration-200",
               activeTab === tab.id
                 ? "text-accent"
                 : "text-muted-foreground hover:text-foreground",
@@ -204,7 +222,7 @@ export function KitchenOrderCard({
               <span className="ml-1 tabular-nums">({itemCountByTab[tab.id]})</span>
             ) : null}
             {activeTab === tab.id ? (
-              <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-accent" />
+              <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-accent transition-all duration-200" />
             ) : null}
           </button>
         ))}
@@ -225,7 +243,7 @@ export function KitchenOrderCard({
             type="button"
             disabled={advancing}
             onClick={() => onAdvance(order)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-accent-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-accent-foreground shadow-sm transition hover:opacity-90 hover:shadow active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {advancing ? <Loader2 className="size-3.5 animate-spin" /> : null}
             {readyAllLabel}
@@ -233,17 +251,18 @@ export function KitchenOrderCard({
         ) : null}
       </div>
 
-      <ul className="flex flex-col gap-2 p-3">
+      <ul key={activeTab} className="kitchen-tab-content flex flex-col gap-2 p-3">
         {visibleItems.length === 0 ? (
           <li className="px-1 py-6 text-center text-sm text-muted-foreground">
             No {activeTab} items
           </li>
         ) : (
-          visibleItems.map((item) => (
+          visibleItems.map((item, itemIndex) => (
             <KitchenItemRow
               key={item.id}
               item={item}
               showReadyBadge={activeTab === "called"}
+              index={itemIndex}
             />
           ))
         )}

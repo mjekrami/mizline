@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle2, Clock3, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getOrder } from "@/lib/api/customer";
+import { getCustomerTabHref } from "@/lib/customer-tabs";
 import { formatPrice } from "@mizline/shared";
 import { addOrderRef } from "@/lib/order/storage";
 import { useCustomerOrderRealtime } from "@/hooks/use-customer-order-realtime";
@@ -80,17 +81,17 @@ export function OrderTracking({
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 pb-10">
-      <header className="flex flex-col gap-3">
+      <header className="customer-page-header flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            href={`/store/${storeId}/table/${tableId}`}
+            href={getCustomerTabHref(storeId, tableId, "home")}
             className="customer-nav-link"
           >
             <ArrowLeft className="size-4" />
             Menu
           </Link>
           <Link
-            href={`/store/${storeId}/table/${tableId}/orders`}
+            href={getCustomerTabHref(storeId, tableId, "profile")}
             className="customer-nav-link"
           >
             My orders
@@ -125,7 +126,7 @@ export function OrderTracking({
         />
       </header>
 
-      <ol className="flex flex-col gap-3">
+      <ol className="customer-stagger flex flex-col gap-3">
         {TRACKING_STEPS.map((status, index) => {
           const done = currentStep > index;
           const active = currentStep === index;

@@ -88,15 +88,15 @@ export function KitchenTopBar({
         />
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+          <div className="inline-flex rounded-lg border border-border bg-card/80 p-0.5 shadow-sm backdrop-blur-sm">
             <button
               type="button"
               onClick={() => onViewModeChange("grid")}
               aria-label="Grid view"
               className={cn(
-                "inline-flex items-center justify-center rounded-md px-2.5 py-1.5 transition",
+                "inline-flex items-center justify-center rounded-md px-2.5 py-1.5 transition-all duration-200",
                 viewMode === "grid"
-                  ? "bg-muted text-foreground"
+                  ? "bg-muted text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -107,9 +107,9 @@ export function KitchenTopBar({
               onClick={() => onViewModeChange("list")}
               aria-label="List view"
               className={cn(
-                "inline-flex items-center justify-center rounded-md px-2.5 py-1.5 transition",
+                "inline-flex items-center justify-center rounded-md px-2.5 py-1.5 transition-all duration-200",
                 viewMode === "list"
-                  ? "bg-muted text-foreground"
+                  ? "bg-muted text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -178,7 +178,7 @@ export function KitchenTopBar({
       </div>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-lg border border-error/30 bg-error/5 px-4 py-3 text-sm text-error">
+        <div className="kitchen-fade-up flex items-center gap-2 rounded-lg border border-error/30 bg-error/5 px-4 py-3 text-sm text-error">
           <WifiOff className="size-4 shrink-0" />
           {error}
         </div>

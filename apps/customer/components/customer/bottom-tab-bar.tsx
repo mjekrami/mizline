@@ -2,31 +2,41 @@
 
 import { Heart, Home, User } from "lucide-react";
 import Link from "next/link";
+import {
+  getCustomerTabHref,
+  type BottomTab,
+} from "@/lib/customer-tabs";
 import { cn } from "@/lib/utils";
-
-export type BottomTab = "home" | "favorites" | "profile";
 
 interface BottomTabBarProps {
   active: BottomTab;
   storeId: string;
   tableId: string;
-  onTabChange?: (tab: BottomTab) => void;
 }
 
 const tabs: {
   id: BottomTab;
   label: string;
   icon: typeof Home;
-  href?: (storeId: string, tableId: string) => string;
+  href: (storeId: string, tableId: string) => string;
 }[] = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "favorites", label: "Favorites", icon: Heart },
+  {
+    id: "home",
+    label: "Home",
+    icon: Home,
+    href: (storeId, tableId) => getCustomerTabHref(storeId, tableId, "home"),
+  },
+  {
+    id: "favorites",
+    label: "Favorites",
+    icon: Heart,
+    href: (storeId, tableId) => getCustomerTabHref(storeId, tableId, "favorites"),
+  },
   {
     id: "profile",
     label: "Profile",
     icon: User,
-    href: (storeId, tableId) =>
-      `/store/${storeId}/table/${tableId}/orders`,
+    href: (storeId, tableId) => getCustomerTabHref(storeId, tableId, "profile"),
   },
 ];
 
@@ -34,7 +44,6 @@ export function BottomTabBar({
   active,
   storeId,
   tableId,
-  onTabChange,
 }: BottomTabBarProps) {
   return (
     <nav
@@ -51,33 +60,17 @@ export function BottomTabBar({
               : "size-12 bg-card text-muted-foreground shadow-sm",
           );
 
-          if (href && id !== "home") {
-            return (
-              <Link
-                key={id}
-                href={href(storeId, tableId)}
-                className={className}
-                aria-label={label}
-                aria-current={isActive ? "page" : undefined}
-              >
-                <Icon className="size-5" strokeWidth={isActive ? 2.25 : 2} />
-                {isActive ? <span>{label}</span> : null}
-              </Link>
-            );
-          }
-
           return (
-            <button
+            <Link
               key={id}
-              type="button"
-              onClick={() => onTabChange?.(id)}
+              href={href(storeId, tableId)}
               className={className}
               aria-label={label}
               aria-current={isActive ? "page" : undefined}
             >
               <Icon className="size-5" strokeWidth={isActive ? 2.25 : 2} />
               {isActive ? <span>{label}</span> : null}
-            </button>
+            </Link>
           );
         })}
       </div>

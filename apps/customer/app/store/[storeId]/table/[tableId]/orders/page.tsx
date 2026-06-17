@@ -1,4 +1,5 @@
 import { MyOrdersList } from "@/components/my-orders";
+import { getCustomerTabHref } from "@/lib/customer-tabs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -14,9 +15,9 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
 
   return (
     <main className="flex min-h-full flex-1 flex-col">
-      <header className="px-4 py-5">
+      <header className="customer-page-header px-4 py-5">
         <Link
-          href={`/store/${storeId}/table/${tableId}`}
+          href={getCustomerTabHref(storeId, tableId, "home")}
           className="customer-nav-link"
         >
           <ArrowLeft className="size-4" />

@@ -5,7 +5,7 @@ import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { BottomTabBar, type BottomTab } from "@/components/customer/bottom-tab-bar";
+import { getCustomerTabHref, type BottomTab } from "@/lib/customer-tabs";
 import { CallWaiterButton } from "@/components/customer/call-waiter-button";
 import { HeroBanner } from "@/components/customer/hero-banner";
 import {
@@ -42,6 +42,7 @@ interface TableOrderingProps {
   popularProducts: MenuProduct[];
   tableId: string;
   tableName?: string;
+  tab?: BottomTab;
 }
 
 function TableOrderingContent({
@@ -50,6 +51,7 @@ function TableOrderingContent({
   popularProducts,
   tableId,
   tableName,
+  tab = "home",
 }: TableOrderingProps) {
   const router = useRouter();
   const {
@@ -65,7 +67,6 @@ function TableOrderingContent({
   } = useCart();
   const myOrders = useMyOrders(store.id, tableId);
   const [showSplash, setShowSplash] = useState(false);
-  const [activeTab, setActiveTab] = useState<BottomTab>("home");
   const [selectedProduct, setSelectedProduct] = useState<MenuProduct | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -222,17 +223,17 @@ function TableOrderingContent({
       <SplashScreen
         storeId={store.id}
         tableId={tableId}
-        storeName={store.name}
         onContinue={() => setShowSplash(false)}
       />
     );
   }
 
   return (
-    <div className="flex min-h-dvh flex-col pb-36">
-      {activeTab === "home" ? (
-        <>
-          <div className="customer-home-gradient">
+    <div className="flex min-h-dvh flex-col">
+      <div className="flex flex-1 flex-col">
+        {tab === "home" ? (
+          <>
+            <div className="customer-home-gradient">
             <HomeHeader
               greeting={getHomeGreeting()}
               title={store.name}
@@ -247,7 +248,7 @@ function TableOrderingContent({
               trailing={
                 !myOrders.loading && myOrders.orders.length > 0 ? (
                   <Link
-                    href={`/store/${store.id}/table/${tableId}/orders`}
+                    href={getCustomerTabHref(store.id, tableId, "profile")}
                     className="customer-icon-btn flex size-11 items-center justify-center rounded-full"
                     aria-label={`My orders (${myOrders.orders.length})`}
                   >
@@ -311,18 +312,20 @@ function TableOrderingContent({
                   : "Menu is not available right now."}
               </p>
             ) : showCategorySections ? (
-              filteredMenu.map((category) => (
-                <MenuCategorySection key={category.id} name={category.name}>
-                  {category.products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onSelect={handleProductSelect}
-                      onQuickAdd={handleQuickAdd}
-                    />
-                  ))}
-                </MenuCategorySection>
-              ))
+              <div className="customer-stagger flex flex-col gap-8">
+                {filteredMenu.map((category) => (
+                  <MenuCategorySection key={category.id} name={category.name}>
+                    {category.products.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onSelect={handleProductSelect}
+                        onQuickAdd={handleQuickAdd}
+                      />
+                    ))}
+                  </MenuCategorySection>
+                ))}
+              </div>
             ) : (
               <section className="flex flex-col gap-3">
                 <SectionHeader
@@ -346,33 +349,26 @@ function TableOrderingContent({
 
           </div>
         </>
-      ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 py-24 text-center">
-          <p className="text-lg font-extrabold">Favorites</p>
-          <p className="text-sm text-muted-foreground">
-            Tap the heart on a menu item to save it here.
-          </p>
-          <button
-            type="button"
-            onClick={() => setActiveTab("home")}
-            className="customer-btn-primary mt-2 rounded-full px-6 py-3 text-sm font-bold"
-          >
-            Browse menu
-          </button>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 py-24 text-center">
+            <p className="text-lg font-extrabold">Favorites</p>
+            <p className="text-sm text-muted-foreground">
+              Tap the heart on a menu item to save it here.
+            </p>
+            <Link
+              href={getCustomerTabHref(store.id, tableId, "home")}
+              className="customer-btn-primary mt-2 rounded-full px-6 py-3 text-sm font-bold"
+            >
+              Browse menu
+            </Link>
+          </div>
+        )}
+      </div>
 
       <CartBar
         itemCount={itemCount}
         subtotal={subtotal}
         onOpenCart={() => setCartOpen(true)}
-      />
-
-      <BottomTabBar
-        active={activeTab}
-        storeId={store.id}
-        tableId={tableId}
-        onTabChange={setActiveTab}
       />
 
       <CartSheet

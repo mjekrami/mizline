@@ -1,9 +1,23 @@
+import { CustomerTableShell } from "@/components/customer/table-shell";
 import type { ReactNode } from "react";
 
-export default function CustomerTableLayout({
-  children,
-}: {
+type CustomerTableLayoutProps = {
   children: ReactNode;
-}) {
-  return <div className="min-h-dvh w-full">{children}</div>;
+  params: Promise<{
+    storeId: string;
+    tableId: string;
+  }>;
+};
+
+export default async function CustomerTableLayout({
+  children,
+  params,
+}: CustomerTableLayoutProps) {
+  const { storeId, tableId } = await params;
+
+  return (
+    <CustomerTableShell storeId={storeId} tableId={tableId}>
+      {children}
+    </CustomerTableShell>
+  );
 }

@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { ProductImage } from "@/components/product-image";
 import { getCategoryIcon } from "@/lib/category-icons";
 import type { CartModifier } from "@/lib/cart";
@@ -606,26 +607,33 @@ export function CartBar({
   onOpenCart,
   className,
 }: CartBarProps) {
-  if (itemCount === 0) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div
-      className={cn(
-        "fixed inset-x-4 bottom-[5.5rem] z-40 pb-[env(safe-area-inset-bottom)]",
-        className,
-      )}
-    >
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (itemCount === 0 || !mounted) return null;
+
+  return createPortal(
+    <div className={cn("customer-cart-bar customer-enter-up", className)}>
       <button
         type="button"
         onClick={onOpenCart}
-        className="customer-btn-primary flex w-full items-center justify-between rounded-full px-5 py-4 font-bold shadow-lg transition-transform active:scale-[0.98]"
+        className="customer-cart-bar__button customer-btn-primary"
       >
-        <span>
-          {itemCount} item{itemCount === 1 ? "" : "s"} · View cart
+        <span className="customer-cart-bar__label">
+          <span className="customer-cart-bar__icon" aria-hidden>
+            <ShoppingCart className="size-5" />
+          </span>
+          <span className="truncate">
+            {itemCount} item{itemCount === 1 ? "" : "s"} · View cart
+          </span>
         </span>
-        <span>{formatPrice(subtotal)}</span>
+        <span className="shrink-0">{formatPrice(subtotal)}</span>
       </button>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
